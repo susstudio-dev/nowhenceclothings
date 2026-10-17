@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { ListingPage } from '@/components/shop/ListingPage';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
-import { getStorefrontProducts } from '@/lib/launches-server';
+import { getStorefrontProducts, publicDrops } from '@/lib/launches-server';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Shop all', alternates: { canonical: '/shop' } };
@@ -17,7 +17,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
       params={params}
       products={products}
       inventory={inventory}
-      drops={catalogue.drops}
+      drops={publicDrops(catalogue.drops)}
     />
   );
 }

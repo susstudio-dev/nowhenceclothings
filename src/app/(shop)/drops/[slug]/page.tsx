@@ -6,7 +6,7 @@ import { Markdown } from '@/components/shop/Markdown';
 import { NotifyMe } from '@/components/shop/NotifyMe';
 import { ProductGrid } from '@/components/shop/ProductCard';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
-import { getStorefrontProducts } from '@/lib/launches-server';
+import { getStorefrontProducts, publicDrops } from '@/lib/launches-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,7 +55,7 @@ export default async function DropPage({ params }: Props) {
           </div>
         )}
         <h2 className="mb-8 font-display text-2xl">{upcoming ? 'Preview' : 'The pieces'}</h2>
-        <ProductGrid products={items} inventory={inventory} drops={catalogue.drops} empty="Pieces will be revealed soon." />
+        <ProductGrid products={items} inventory={inventory} drops={publicDrops(catalogue.drops)} empty="Pieces will be revealed soon." />
       </div>
     </>
   );

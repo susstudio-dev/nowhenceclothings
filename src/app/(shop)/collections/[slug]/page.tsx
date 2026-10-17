@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Image } from '@/components/ui';
 import { ListingPage } from '@/components/shop/ListingPage';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
-import { getStorefrontProducts } from '@/lib/launches-server';
+import { getStorefrontProducts, publicDrops } from '@/lib/launches-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +38,7 @@ export default async function CollectionPage({ params, searchParams }: Props) {
       params={sp}
       products={products.filter((p) => p.collectionIds.includes(col.id))}
       inventory={inventory}
-      drops={catalogue.drops}
+      drops={publicDrops(catalogue.drops)}
       hero={
         col.heroMedia ? (
           <Image media={col.heroMedia} priority sizes="100vw" className="max-h-[60vh] w-full object-cover" />

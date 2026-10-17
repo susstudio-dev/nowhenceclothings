@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ListingPage } from '@/components/shop/ListingPage';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
-import { getStorefrontProducts } from '@/lib/launches-server';
+import { getStorefrontProducts, publicDrops } from '@/lib/launches-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +37,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       params={sp}
       products={products.filter((p) => p.categoryId === cat.id)}
       inventory={inventory}
-      drops={catalogue.drops}
+      drops={publicDrops(catalogue.drops)}
     />
   );
 }
