@@ -54,6 +54,8 @@ export const Product = z.object({
   availability: Availability.optional(),
   comingSoon: ComingSoonConfig.optional(),
   presale: PresaleConfig.optional(),
+  /** A14: HSN code for invoices; falls back to settings.tax.defaultHsn. */
+  hsn: z.string().regex(/^\d{4,8}$/).optional(),
   createdAt: IsoDate,
   updatedAt: IsoDate,
 });

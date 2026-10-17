@@ -80,6 +80,8 @@ const Legal = z
     gstin: z.string().trim().max(15).default(''),
     registeredAddress: z.string().trim().max(500).default(''),
     jurisdictionCity: z.string().trim().max(80).default(''),
+    /** A14: seller state for place-of-supply (GST state code, e.g. "29"). Empty = derived from GSTIN. */
+    stateCode: z.union([z.literal(''), z.string().regex(/^\d{2}$/)]).default(''),
     privacyUpdatedAt: IsoDateOrEmpty,
     termsUpdatedAt: IsoDateOrEmpty,
   })
@@ -104,6 +106,19 @@ const SettingsShape = z.object({
       gstRatePercent: z.number().min(0).max(28).default(12),
       /** Legacy mirror of `legal.gstin` (read-only; kept for existing readers). */
       gstin: z.string().default(''),
+      /** A14: default HSN for apparel invoices. */
+      defaultHsn: z.string().regex(/^\d{4,8}$/).default('6105'),
+      /**
+       * A14: GST slabs by GST-inclusive unit price (apparel: 5% up to ₹2,500, else 18%).
+       * Ascending `upTo` (paise, inclusive); the last slab with no `upTo` covers the rest.
+       * Empty = flat `gstRatePercent`.
+       */
+      slabs: z
+        .array(z.object({ upTo: Paise.optional(), ratePercent: z.number().min(0).max(28) }))
+        .max(6)
+        .default([{ upTo: 250000, ratePercent: 5 }, { ratePercent: 18 }]),
+      /** A14: invoice number prefix, e.g. NWH -> NWH/25-26/0001. */
+      invoicePrefix: z.string().regex(/^[A-Z0-9]{1,8}$/).default('NWH'),
     })
     .default({}),
   store: z.object({

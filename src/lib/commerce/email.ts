@@ -1,6 +1,7 @@
 // C8. Order emails via Resend's HTTP API. Without RESEND_API_KEY every send is
 // skipped (logged) so local dev and previews work without a key.
 
+import { emailLayout } from '../email-layout';
 import { formatPaise } from '@/lib/money';
 import type { Order } from '@/lib/schemas/order';
 import type { SettingsDoc } from '@/lib/schemas/settings';
@@ -54,14 +55,14 @@ function linesTable(order: Order): string {
   const rows = order.lines
     .map(
       (l) =>
-        `<tr><td style="padding:6px 0">${escapeHtml(l.title)} — ${escapeHtml(l.colour)} / ${l.size} × ${l.qty}</td>` +
-        `<td style="padding:6px 0;text-align:right">${formatPaise(l.unitPrice * l.qty)}</td></tr>`,
+        `<tr><td style="padding:12px 0;border-bottom:1px solid #DEDDD8">${escapeHtml(l.title)} — ${escapeHtml(l.colour)} / ${l.size} × ${l.qty}</td>` +
+        `<td style="padding:12px 0;border-bottom:1px solid #DEDDD8;text-align:right;white-space:nowrap">${formatPaise(l.unitPrice * l.qty)}</td></tr>`,
     )
     .join('');
   const row = (label: string, v: string, bold = false) =>
     `<tr><td style="padding:4px 0${bold ? ';font-weight:600' : ''}">${label}</td><td style="padding:4px 0;text-align:right${bold ? ';font-weight:600' : ''}">${v}</td></tr>`;
   return (
-    `<table style="width:100%;border-collapse:collapse;font-size:14px">${rows}` +
+    `<table role="presentation" style="width:100%;border-collapse:collapse;font-size:14px;margin:24px 0;border-top:1px solid #DEDDD8">${rows}` +
     row('Subtotal', formatPaise(order.subtotal)) +
     (order.discount ? row(order.bookingId ? 'Deposit paid' : `Discount${order.couponCode ? ` (${escapeHtml(order.couponCode)})` : ''}`, `−${formatPaise(order.discount)}`) : '') +
     row('Shipping', order.shipping ? formatPaise(order.shipping) : 'Free') +
@@ -76,19 +77,26 @@ function formatShipBy(iso: string): string {
 }
 
 function wrap(title: string, body: string): string {
-  return `<!doctype html><html><body style="margin:0;background:#f6f4f0;font-family:Helvetica,Arial,sans-serif;color:#141414">
-<div style="max-width:560px;margin:0 auto;padding:32px 24px;background:#ffffff">
-<p style="letter-spacing:.2em;font-size:12px;margin:0 0 24px">NOWHENCE</p>
-<h1 style="font-size:20px;font-weight:600;margin:0 0 16px">${title}</h1>${body}
-<p style="font-size:12px;color:#6b6b6b;margin-top:32px">Questions? Reply to this email.</p>
-</div></body></html>`;
+  return emailLayout(title, body);
 }
 
 /** Builds the message for an order email. Pure. */
-export function renderOrderEmail(order: Order, kind: OrderEmailKind, settings: Pick<SettingsDoc, 'email'>): EmailMessage {
+export function renderOrderEmail(
+  order: Order,
+  kind: OrderEmailKind,
+  settings: Pick<SettingsDoc, 'email'>,
+  /** A14: signed document links (relative or absolute). */
+  extra: { documents?: { label: string; number: string; url: string }[] } = {},
+): EmailMessage {
   const name = escapeHtml(order.shippingAddress.name.split(' ')[0] || 'there');
   const track = `${SITE}/orders/track?number=${encodeURIComponent(order.number)}`;
-  const link = `<p><a href="${track}" style="color:#141414">Track your order</a></p>`;
+  const docs = (extra.documents ?? [])
+    .map((d) => {
+      const href = d.url.startsWith('http') ? d.url : `${SITE}${d.url}`;
+      return `<p style="margin:8px 0"><a href="${escapeHtml(href)}" style="color:#0B0B0B">Download ${escapeHtml(d.label.toLowerCase())} ${escapeHtml(d.number)} (PDF)</a></p>`;
+    })
+    .join('');
+  const link = `${docs}<p><a href="${track}" style="color:#0B0B0B;font-size:11px;letter-spacing:.18em;text-transform:uppercase">Track your order</a></p>`;
   let subject: string;
   let html: string;
   switch (kind) {
@@ -98,7 +106,7 @@ export function renderOrderEmail(order: Order, kind: OrderEmailKind, settings: P
         `Thank you, ${name}.`,
         `<p>Your order <strong>${order.number}</strong> is confirmed. We will let you know when it ships.</p>` +
           (order.preorder
-            ? `<p style="padding:12px;background:#f6f4f0"><strong>Pre-order.</strong> ${
+            ? `<p style="margin:20px 0;padding:14px 16px;border:1px solid #DEDDD8;background:#F4F4F2"><strong>Pre-order.</strong> ${
                 order.shipBy ? `Estimated to ship by <strong>${escapeHtml(formatShipBy(order.shipBy))}</strong>.` : 'Ships when the drop is ready.'
               }</p>`
             : '') +

@@ -87,6 +87,13 @@ export const Order = z.object({
   email: Email,
   phone: Phone,
   shippingAddress: Address,
+  /** A15: billing address when different from shipping. */
+  billingAddress: Address.optional(),
+  /** A14: optional buyer GSTIN (B2B invoice). */
+  buyerGstin: z.string().regex(/^\d{2}[A-Z0-9]{13}$/).optional(),
+  /** A14: tax invoice / credit note references (see src/lib/invoices). */
+  invoice: z.object({ number: z.string().min(1), fy: z.string().min(1), issuedAt: IsoDate }).optional(),
+  creditNote: z.object({ number: z.string().min(1), fy: z.string().min(1), issuedAt: IsoDate }).optional(),
   lines: z.array(OrderLine).min(1),
   subtotal: Paise,
   discount: Paise,

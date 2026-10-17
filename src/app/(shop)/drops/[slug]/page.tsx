@@ -34,27 +34,36 @@ export default async function DropPage({ params }: Props) {
 
   return (
     <>
-      <section className="relative isolate bg-ink text-paper">
+      <section className={'relative isolate ' + (drop.heroMedia ? 'bg-ink text-paper' : 'border-b border-line')}>
         {drop.heroMedia && (
-          <div className="absolute inset-0 -z-10 opacity-70">
-            <Image media={drop.heroMedia} priority sizes="100vw" className="h-full w-full object-cover" />
-          </div>
+          <>
+            <div className="absolute inset-0 -z-20">
+              <Image media={drop.heroMedia} priority sizes="100vw" className="h-full w-full object-cover" />
+            </div>
+            <div className="absolute inset-0 -z-10 bg-ink/30" aria-hidden />
+          </>
         )}
-        <div className="mx-auto flex min-h-[60vh] max-w-7xl flex-col justify-end gap-6 px-4 py-16 md:px-8">
-          <p className="text-xs uppercase tracking-widest">{upcoming ? 'Upcoming drop' : 'Out now'}</p>
-          <h1 className="font-display text-5xl md:text-7xl">{drop.name}</h1>
-          {upcoming && <Countdown releaseAt={drop.releaseAt} />}
+        <div className={'container-page grid gap-8 pb-12 md:grid-cols-12 md:items-end ' + (drop.heroMedia ? 'min-h-[70vh] pt-32' : 'pt-16 md:pt-24')}>
+          <div className="md:col-span-8">
+            <p className="care-tag">{upcoming ? 'Upcoming drop' : 'Out now'}</p>
+            <h1 className="mt-6 text-balance font-display text-hero font-light">{drop.name}</h1>
+          </div>
+          {upcoming && <Countdown releaseAt={drop.releaseAt} className="md:col-span-4 md:justify-self-end" />}
         </div>
       </section>
-      <div className="mx-auto max-w-7xl px-4 py-12 md:px-8">
-        {drop.description && <Markdown source={drop.description} className="mb-10 max-w-2xl space-y-4" />}
-        {upcoming && items[0] && (
-          <div className="mb-12 max-w-md">
-            <p className="mb-3 text-sm">Get an email the moment {drop.name} goes live.</p>
-            <NotifyMe sku={items[0].variants[0].sku} label="Notify me" />
-          </div>
-        )}
-        <h2 className="mb-8 font-display text-2xl">{upcoming ? 'Preview' : 'The pieces'}</h2>
+      <div className="container-page py-section">
+        <div className="mb-section grid gap-10 md:grid-cols-12">
+          {drop.description && <Markdown source={drop.description} className="max-w-prose space-y-4 text-ink-soft md:col-span-6" />}
+          {upcoming && items[0] && (
+            <div className="max-w-md md:col-span-5 md:col-start-8">
+              <p className="mb-3 text-small">Get an email the moment {drop.name} goes live.</p>
+              <NotifyMe sku={items[0].variants[0].sku} label="Notify me" />
+            </div>
+          )}
+        </div>
+        <div className="mb-8 border-b border-line pb-4">
+          <h2 className="font-display text-display-sm font-light">{upcoming ? 'Preview' : 'The pieces'}</h2>
+        </div>
         <ProductGrid products={items} inventory={inventory} drops={publicDrops(catalogue.drops)} empty="Pieces will be revealed soon." />
       </div>
     </>

@@ -5,6 +5,7 @@ import { ROLE_IDS, type RoleId, type User } from '@/lib/schemas/users';
 import { ROLE_LABELS } from '@/lib/roles';
 import { Button, Input, Select } from '@/components/ui';
 import { adminFetch } from './api-client';
+import { useMsgToast } from './useMsgToast';
 
 type PublicUser = Omit<User, 'passwordHash'>;
 const roleOptions = ROLE_IDS.map((r) => ({ value: r, label: ROLE_LABELS[r] }));
@@ -12,6 +13,7 @@ const roleOptions = ROLE_IDS.map((r) => ({ value: r, label: ROLE_LABELS[r] }));
 export function TeamManager({ initial, selfId }: { initial: PublicUser[]; selfId: string }) {
   const [users, setUsers] = useState(initial);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useMsgToast(msg);
   const [secret, setSecret] = useState<{ email: string; password: string } | null>(null);
 
   async function call(path: string, method: string, body?: unknown, email?: string) {

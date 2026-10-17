@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { Email, Phone } from '@/lib/schemas/common';
+import { Address, Email, Phone } from '@/lib/schemas/common';
+import { validateGstin } from '@/lib/invoices/gst';
 import { jsonError, jsonOk, parseBody } from '@/lib/commerce/http';
 import { BookingError, createBooking } from '@/lib/bookings-server';
 import { RazorpayError } from '@/lib/commerce/razorpay';
@@ -15,14 +16,23 @@ const BookingRequest = z.object({
   phone: Phone,
   code: z.string().max(64).optional(),
   acceptPolicy: z.literal(true),
+  address: Address.optional(),
+  billingAddress: Address.optional(),
+  gstin: z.string().trim().toUpperCase().max(15).optional(),
 });
 
 /** A13: create a booking and its deposit Razorpay order. The server computes the deposit. */
 export async function POST(req: Request) {
   const body = await parseBody(req, BookingRequest);
   if (!body.ok) return body.response;
+  let gstin: string | undefined;
+  if (body.data.gstin) {
+    const g = validateGstin(body.data.gstin);
+    if (!g.ok) return jsonError(400, g.error, { code: 'gstin' });
+    gstin = g.gstin;
+  }
   try {
-    return jsonOk(await createBooking(body.data));
+    return jsonOk(await createBooking({ ...body.data, gstin }));
   } catch (err) {
     if (err instanceof BookingError) return jsonError(err.status, err.message, { code: err.code });
     if (err instanceof RazorpayError) return jsonError(502, 'The payment provider is unavailable. Please retry.');

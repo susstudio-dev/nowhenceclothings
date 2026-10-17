@@ -70,7 +70,7 @@ export function InventoryTable({ rows, canEdit }: { rows: StockRow[]; canEdit: b
                       disabled={!canEdit}
                       value={stock}
                       onChange={(ev) => update(r.sku, { stock: num(ev.target.value) })}
-                      className="w-20 border border-line px-2 py-1"
+                      className="h-8 w-20 border border-line bg-paper px-2 text-right tabular-nums focus:border-ink focus:outline-none"
                     />
                     {low && <span className="ml-2 text-xs text-sale">low</span>}
                   </td>
@@ -82,7 +82,7 @@ export function InventoryTable({ rows, canEdit }: { rows: StockRow[]; canEdit: b
                       disabled={!canEdit}
                       value={e.lowStockAt ?? r.lowStockAt}
                       onChange={(ev) => update(r.sku, { lowStockAt: num(ev.target.value) })}
-                      className="w-16 border border-line px-2 py-1"
+                      className="h-8 w-16 border border-line bg-paper px-2 text-right tabular-nums focus:border-ink focus:outline-none"
                     />
                   </td>
                 </tr>

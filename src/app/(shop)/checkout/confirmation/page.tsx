@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: 'Order confirmed', robots: { index: f
 
 export default function ConfirmationPage() {
   return (
-    <div className="container-page max-w-2xl py-12">
+    <div className="container-page pb-section pt-10 md:pt-16">
       <OrderConfirmation />
     </div>
   );

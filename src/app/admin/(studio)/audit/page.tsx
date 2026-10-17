@@ -1,5 +1,6 @@
 import { requireCapability } from '@/lib/guard';
 import { readAudit } from '@/lib/audit';
+import { PageHeader, EmptyState, Table, th, td, tr, Chip } from '@/components/admin/kit';
 
 export const metadata = { title: 'Audit log' };
 
@@ -8,32 +9,32 @@ export default async function AuditPage() {
   const entries = await readAudit(300);
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-3xl">Audit log</h1>
+      <PageHeader title="Audit log" description="The last 300 changes made in the studio. Times are UTC." />
       {entries.length === 0 ? (
-        <p className="text-sm text-muted">No entries yet.</p>
+        <EmptyState title="No entries yet">Every save, publish and status change will be recorded here.</EmptyState>
       ) : (
-        <table className="w-full text-sm">
+        <Table>
           <thead>
-            <tr className="text-left text-muted">
-              <th className="py-1">When (UTC)</th>
-              <th>Who</th>
-              <th>Action</th>
-              <th>Target</th>
-              <th>Detail</th>
+            <tr>
+              <th className={th}>When (UTC)</th>
+              <th className={th}>Who</th>
+              <th className={th}>Action</th>
+              <th className={th}>Target</th>
+              <th className={th}>Detail</th>
             </tr>
           </thead>
           <tbody>
             {entries.map((e, i) => (
-              <tr key={`${e.ts}-${i}`} className="border-t border-line align-top">
-                <td className="whitespace-nowrap py-1">{e.ts.slice(0, 19).replace('T', ' ')}</td>
-                <td>{e.actor}</td>
-                <td className="font-mono text-xs">{e.action}</td>
-                <td className="font-mono text-xs">{e.target}</td>
-                <td className="text-xs">{e.detail}</td>
+              <tr key={`${e.ts}-${i}`} className={tr}>
+                <td className={`${td} whitespace-nowrap tabular-nums text-muted`}>{e.ts.slice(0, 19).replace('T', ' ')}</td>
+                <td className={td}>{e.actor}</td>
+                <td className={td}><Chip>{e.action}</Chip></td>
+                <td className={`${td} font-mono text-xs`}>{e.target}</td>
+                <td className={`${td} text-xs text-muted`}>{e.detail}</td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       )}
     </div>
   );

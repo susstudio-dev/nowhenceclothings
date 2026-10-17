@@ -23,6 +23,10 @@ export const CheckoutRequest = QuoteRequest.extend({
   address: Address,
   /** A11: access code for code-gated pre-orders (verified server-side). */
   presaleAccessCode: z.string().trim().max(64).optional(),
+  /** A15: separate billing address (absent = same as shipping). */
+  billingAddress: Address.optional(),
+  /** A14: optional buyer GSTIN. */
+  gstin: z.string().trim().toUpperCase().max(15).optional(),
 });
 export type CheckoutRequest = z.infer<typeof CheckoutRequest>;
 
@@ -115,4 +119,10 @@ export interface PublicOrder {
   shippingAddress: { name: string; city: string; state: string; pincode: string };
   tracking?: { carrier: string; number: string; url?: string };
   history: { at: string; status: string }[];
+  /** A13/A11: pre-order / booking context for the timeline. */
+  preorder?: boolean;
+  shipBy?: string;
+  depositPaid?: number;
+  /** A14: invoice / credit note download links (signed). */
+  documents?: { kind: string; label: string; number: string; url: string }[];
 }

@@ -4,6 +4,7 @@ import { formatPaise } from '@/lib/money';
 import { BOOKING_STATUSES, BookingStatus } from '@/lib/schemas/bookings';
 import { BOOKING_STATUS_LABELS, bookingTotals, filterBookings } from '@/lib/bookings';
 import { listBookingSummaries, sweepBookings } from '@/lib/bookings-server';
+import { Chip, EmptyState, PageHeader, Stat, StatGrid, Table, bookingTone, btnPrimary, btnSecondary, field, fieldLabel, fmtDate, td, th, tr } from '@/components/admin/kit';
 
 export const metadata = { title: 'Bookings' };
 export const dynamic = 'force-dynamic';
@@ -26,34 +27,25 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl">Bookings</h1>
-        <a href={`/api/admin/bookings/export${qs ? `?${qs}` : ''}`} className="border border-ink px-4 py-2 text-sm">
-          Export CSV
-        </a>
-      </div>
-      <dl className="grid gap-4 sm:grid-cols-4">
-        <div className="border border-line p-4">
-          <dt className="text-sm text-muted">Bookings</dt>
-          <dd className="text-2xl">{totals.count}</dd>
-        </div>
-        <div className="border border-line p-4">
-          <dt className="text-sm text-muted">Deposits collected</dt>
-          <dd className="text-2xl">{formatPaise(totals.depositsCollected)}</dd>
-        </div>
-        <div className="border border-line p-4">
-          <dt className="text-sm text-muted">Balance due</dt>
-          <dd className="text-2xl">{totals.byStatus.balance_due ?? 0}</dd>
-        </div>
-        <div className="border border-line p-4">
-          <dt className="text-sm text-muted">Completed</dt>
-          <dd className="text-2xl">{totals.byStatus.completed ?? 0}</dd>
-        </div>
-      </dl>
-      <form className="flex flex-wrap items-end gap-3 text-sm" method="get">
-        <label className="flex flex-col gap-1">
+      <PageHeader
+        title="Bookings"
+        description="Pre-bookings held with a deposit. Balance links go out when the sale opens."
+        actions={
+          <a href={`/api/admin/bookings/export${qs ? `?${qs}` : ''}`} className={btnSecondary}>
+            Export CSV
+          </a>
+        }
+      />
+      <StatGrid>
+        <Stat label="Bookings" value={totals.count} />
+        <Stat label="Deposits collected" value={formatPaise(totals.depositsCollected)} />
+        <Stat label="Balance due" value={totals.byStatus.balance_due ?? 0} tone={(totals.byStatus.balance_due ?? 0) > 0 ? 'alert' : undefined} />
+        <Stat label="Completed" value={totals.byStatus.completed ?? 0} />
+      </StatGrid>
+      <form className="flex flex-wrap items-end gap-3 border-b border-line pb-6" method="get">
+        <label className={fieldLabel}>
           Status
-          <select name="status" defaultValue={status} className="border border-line px-2 py-2">
+          <select name="status" defaultValue={status} className={field}>
             <option value="all">All</option>
             {BOOKING_STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -62,9 +54,9 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1">
+        <label className={fieldLabel}>
           Product
-          <select name="product" defaultValue={sp.product ?? ''} className="border border-line px-2 py-2">
+          <select name="product" defaultValue={sp.product ?? ''} className={field}>
             <option value="">All products</option>
             {products.map(([id, title]) => (
               <option key={id} value={id}>
@@ -73,61 +65,70 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1">
+        <label className={`${fieldLabel} min-w-[14rem] flex-1`}>
           Search
-          <input name="q" defaultValue={sp.q} placeholder="Booking no, name, email" className="border border-line px-3 py-2" />
+          <input name="q" defaultValue={sp.q} placeholder="Booking no, name, email" className={field} />
         </label>
-        <button type="submit" className="bg-ink px-4 py-2 text-paper">
+        <button type="submit" className={btnPrimary}>
           Filter
         </button>
       </form>
       {list.length === 0 ? (
-        <p className="text-sm text-muted">No bookings match.</p>
+        <EmptyState title={all.length ? 'No bookings match' : 'No pre-bookings yet'}>
+          {all.length
+            ? 'Clear a filter to widen the search.'
+            : 'Turn on pre-booking in a product’s Availability panel, then share its booking link or QR code.'}
+        </EmptyState>
       ) : (
-        <table className="w-full text-sm">
+        <Table>
           <thead>
-            <tr className="text-left text-muted">
-              <th className="py-1">Booking</th>
-              <th>Date</th>
-              <th>Customer</th>
-              <th>Piece</th>
-              <th>Deposit</th>
-              <th>Status</th>
+            <tr>
+              <th className={th}>Booking</th>
+              <th className={th}>Booked</th>
+              <th className={th}>Customer</th>
+              <th className={th}>Piece</th>
+              <th className={`${th} text-right`}>Deposit</th>
+              <th className={th}>Status</th>
             </tr>
           </thead>
           <tbody>
             {list.map((b) => (
-              <tr key={b.id} className="border-t border-line">
-                <td className="py-2">
-                  <Link href={`/admin/bookings/${b.id}`} className="font-mono underline">
+              <tr key={b.id} className={tr}>
+                <td className={td}>
+                  <Link
+                    href={`/admin/bookings/${b.id}`}
+                    className="font-mono text-xs font-medium hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                  >
                     {b.number}
                   </Link>
                 </td>
-                <td>{b.createdAt.slice(0, 10)}</td>
-                <td>
+                <td className={`${td} whitespace-nowrap text-muted`}>{fmtDate(b.createdAt)}</td>
+                <td className={td}>
                   {b.name}
                   <span className="block text-xs text-muted">{b.email}</span>
                 </td>
-                <td>
+                <td className={td}>
                   {b.productTitle}
                   <span className="block text-xs text-muted">
                     {b.colour} / {b.size} × {b.qty}
                   </span>
                 </td>
-                <td>
+                <td className={`${td} text-right tabular-nums`}>
                   {formatPaise(b.deposit)}
                   {!b.depositPaid && <span className="block text-xs text-muted">unpaid</span>}
                 </td>
-                <td>
-                  {BOOKING_STATUS_LABELS[b.status]}
-                  {b.balanceDueBy && b.status === 'balance_due' && <span className="block text-xs">by {b.balanceDueBy.slice(0, 10)}</span>}
-                  {b.orderNumber && <span className="block text-xs">{b.orderNumber}</span>}
-                  {b.needsReview && <span className="block text-xs text-sale">Needs review</span>}
+                <td className={td}>
+                  <span className="flex flex-wrap gap-1">
+                    <Chip tone={bookingTone(b.status)}>{BOOKING_STATUS_LABELS[b.status]}</Chip>
+                    {b.needsReview && <Chip tone="sale">Needs review</Chip>}
+                  </span>
+                  {b.balanceDueBy && b.status === 'balance_due' && <span className="mt-1 block text-xs text-muted">Due {fmtDate(b.balanceDueBy)}</span>}
+                  {b.orderNumber && <span className="mt-1 block font-mono text-xs text-muted">{b.orderNumber}</span>}
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       )}
     </div>
   );

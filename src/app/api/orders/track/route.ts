@@ -2,6 +2,7 @@ import { findOrderByNumber, readOrder, toPublicOrder } from '@/lib/commerce/orde
 import { expireIfStale } from '@/lib/commerce/lifecycle';
 import { TrackRequest } from '@/lib/commerce/types';
 import { jsonError, jsonOk, parseBody } from '@/lib/commerce/http';
+import { orderDocumentLinks } from '@/lib/invoices/links';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,8 @@ export async function POST(req: Request) {
       await expireIfStale(found.id);
       order = (await readOrder(found.id)) ?? found;
     }
-    return jsonOk({ order: toPublicOrder(order) });
+    const documents = await orderDocumentLinks(order).catch(() => []);
+    return jsonOk({ order: { ...toPublicOrder(order), documents } });
   } catch (err) {
     console.error('track failed', err instanceof Error ? err.message : '');
     return jsonError(500, 'Something went wrong. Please try again.');

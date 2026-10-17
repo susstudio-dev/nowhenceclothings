@@ -4,6 +4,7 @@ import { formatPaise } from '@/lib/money';
 import { ORDER_STATUSES, OrderStatus } from '@/lib/schemas/order';
 import { filterOrders, ORDER_STATUS_LABELS } from '@/lib/admin/orders';
 import { getOrder, listOrderSummaries } from '@/lib/admin/store';
+import { Callout, Chip, EmptyState, PageHeader, Table, btnPrimary, btnSecondary, field, fieldLabel, fmtDateTime, orderTone, td, th, tr } from '@/components/admin/kit';
 import { expireStaleOrders, needsStockCommit, STOCK_HOLDING_STATUSES } from '@/lib/commerce/lifecycle';
 
 export const metadata = { title: 'Orders' };
@@ -30,17 +31,25 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const qs = new URLSearchParams({ ...(st.success ? { status: st.data } : {}), ...(sp.q ? { q: sp.q } : {}), ...(kind !== 'all' ? { kind } : {}) }).toString();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl">Orders</h1>
-        <a href={`/api/admin/orders/export${qs ? `?${qs}` : ''}`} className="border border-ink px-4 py-2 text-sm">
-          Export CSV
-        </a>
-      </div>
-      <form className="flex flex-wrap items-end gap-3 text-sm" method="get">
-        <label className="flex flex-col gap-1">
+    <div>
+      <PageHeader
+        title="Orders"
+        description={`${list.length} order${list.length === 1 ? '' : 's'}${status !== 'all' ? ` · ${ORDER_STATUS_LABELS[status]}` : ''}`}
+        actions={
+          <>
+            <a href="/api/admin/invoices/ledger" className={btnSecondary}>
+              GST ledger (CSV)
+            </a>
+            <a href={`/api/admin/orders/export${qs ? `?${qs}` : ''}`} className={btnSecondary}>
+              Export CSV
+            </a>
+          </>
+        }
+      />
+      <form className="mb-6 flex flex-wrap items-end gap-3 border-b border-line pb-6" method="get">
+        <label className={fieldLabel}>
           Status
-          <select name="status" defaultValue={status} className="border border-line px-2 py-2">
+          <select name="status" defaultValue={status} className={field}>
             <option value="all">All</option>
             {ORDER_STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -49,68 +58,72 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1">
+        <label className={fieldLabel}>
           Type
-          <select name="kind" defaultValue={kind} className="border border-line px-2 py-2">
+          <select name="kind" defaultValue={kind} className={field}>
             <option value="all">All orders</option>
             <option value="preorder">Pre-orders</option>
             <option value="instock">In-stock orders</option>
           </select>
         </label>
-        <label className="flex flex-col gap-1">
+        <label className={`${fieldLabel} min-w-[14rem] flex-1`}>
           Search
-          <input name="q" defaultValue={sp.q} placeholder="Order no, name, email" className="border border-line px-3 py-2" />
+          <input name="q" defaultValue={sp.q} placeholder="Order no, name, email" className={field} />
         </label>
-        <button type="submit" className="bg-ink px-4 py-2 text-paper">
+        <button type="submit" className={btnPrimary}>
           Filter
         </button>
       </form>
       {unstocked.size > 0 && (
-        <p role="alert" className="border border-sale p-3 text-sm text-sale">
-          {unstocked.size} paid order{unstocked.size === 1 ? '' : 's'} without stock deducted. Open each flagged order and
-          use Commit stock.
-        </p>
+        <div className="mb-6">
+          <Callout tone="alert" title={`${unstocked.size} paid order${unstocked.size === 1 ? '' : 's'} without stock deducted`}>
+            Open each flagged order and use Commit stock.
+          </Callout>
+        </div>
       )}
       {list.length === 0 ? (
-        <p className="text-sm text-muted">No orders match.</p>
+        <EmptyState title={sp.q || status !== 'all' || kind !== 'all' ? 'No orders match these filters' : 'No orders yet'}>
+          {sp.q || status !== 'all' || kind !== 'all' ? 'Clear a filter to widen the search.' : 'Paid orders will land here as soon as checkout completes.'}
+        </EmptyState>
       ) : (
-        <table className="w-full text-sm">
+        <Table>
           <thead>
-            <tr className="text-left text-muted">
-              <th className="py-1">Order</th>
-              <th>Date</th>
-              <th>Customer</th>
-              <th>Items</th>
-              <th>Total</th>
-              <th>Status</th>
+            <tr>
+              <th className={th}>Order</th>
+              <th className={th}>Placed</th>
+              <th className={th}>Customer</th>
+              <th className={`${th} text-right`}>Items</th>
+              <th className={`${th} text-right`}>Total</th>
+              <th className={th}>Status</th>
             </tr>
           </thead>
           <tbody>
             {list.map((o) => (
-              <tr key={o.id} className="border-t border-line">
-                <td className="py-2">
-                  <Link href={`/admin/orders/${o.id}`} className="font-mono underline">
+              <tr key={o.id} className={tr}>
+                <td className={td}>
+                  <Link href={`/admin/orders/${o.id}`} className="font-mono text-xs font-medium hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink">
                     {o.number}
                   </Link>
                 </td>
-                <td>{o.createdAt.slice(0, 10)}</td>
-                <td>
+                <td className={`${td} whitespace-nowrap text-muted`}>{fmtDateTime(o.createdAt)}</td>
+                <td className={td}>
                   {o.name}
                   <span className="block text-xs text-muted">{o.email}</span>
                 </td>
-                <td>{o.itemCount}</td>
-                <td>{formatPaise(o.total)}</td>
-                <td>
-                  {ORDER_STATUS_LABELS[o.status]}
-                  {o.preorder && (
-                    <span className="block text-xs">Pre-order{o.shipBy ? ` · ships by ${o.shipBy}` : ''}</span>
-                  )}
-                  {unstocked.has(o.id) && <span className="block text-xs text-sale">Stock not deducted</span>}
+                <td className={`${td} text-right tabular-nums`}>{o.itemCount}</td>
+                <td className={`${td} text-right tabular-nums`}>{formatPaise(o.total)}</td>
+                <td className={td}>
+                  <span className="flex flex-wrap gap-1">
+                    <Chip tone={orderTone(o.status)}>{ORDER_STATUS_LABELS[o.status]}</Chip>
+                    {o.preorder && <Chip tone="neutral">Pre-order</Chip>}
+                    {unstocked.has(o.id) && <Chip tone="sale">Stock not deducted</Chip>}
+                  </span>
+                  {o.preorder && o.shipBy && <span className="mt-1 block text-xs text-muted">Ships by {o.shipBy}</span>}
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       )}
     </div>
   );

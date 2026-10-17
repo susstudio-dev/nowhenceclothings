@@ -9,6 +9,7 @@ import { Button, Input, Select } from '@/components/ui';
 import { adminFetch, toPaise, toRupees } from './api-client';
 import { MediaListEditor } from './MediaUploader';
 import { AvailabilityEditor } from './AvailabilityEditor';
+import { useMsgToast } from './useMsgToast';
 
 type Draft = Omit<Product, 'createdAt' | 'updatedAt'> & { createdAt?: string; updatedAt?: string };
 
@@ -57,6 +58,7 @@ export function ProductEditor({
   const [p, setP] = useState<Draft>(initial);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useMsgToast(msg);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setP((cur) => ({ ...cur, [k]: v }));
 
   const base = p.slug || p.id || 'item';
@@ -135,13 +137,13 @@ export function ProductEditor({
 
   return (
     <form
-      className="space-y-8"
+      className="space-y-6"
       onSubmit={(e) => {
         e.preventDefault();
         void save();
       }}
     >
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 border border-line p-5 md:grid-cols-2">
         <Input label="Title" required value={p.title} onChange={(e) => set('title', e.target.value)} />
         <Input
           label="Slug"
@@ -170,7 +172,7 @@ export function ProductEditor({
           onChange={(e) => set('dropId', e.target.value || undefined)}
         />
         <fieldset className="text-sm">
-          <legend className="mb-1">Collections</legend>
+          <legend className="mb-2 text-[11px] font-medium uppercase tracking-label text-muted">Collections</legend>
           {collections.map((c) => (
             <label key={c.id} className="mr-4 inline-flex items-center gap-1">
               <input
@@ -218,14 +220,14 @@ export function ProductEditor({
         />
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 border border-line p-5 md:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm md:col-span-2">
           Description
           <textarea
             rows={5}
             value={p.description}
             onChange={(e) => set('description', e.target.value)}
-            className="border border-line px-3 py-2"
+            className="border border-line bg-paper px-3 py-2 focus:border-ink focus:outline-none"
           />
         </label>
         <Input label="Fabric" value={p.fabric} onChange={(e) => set('fabric', e.target.value)} />
@@ -248,8 +250,8 @@ export function ProductEditor({
         onChange={(v) => setP((cur) => ({ ...cur, ...v }))}
       />
 
-      <section className="space-y-3">
-        <h2 className="text-lg">Sizes</h2>
+      <section className="space-y-3 border border-line p-5">
+        <h2 className="text-[11px] font-medium uppercase tracking-label">Sizes</h2>
         <div className="flex gap-4 text-sm">
           {SIZES.map((s) => (
             <label key={s} className="inline-flex items-center gap-1">
@@ -266,9 +268,9 @@ export function ProductEditor({
         </div>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-4 border border-line p-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg">Colours</h2>
+          <h2 className="text-[11px] font-medium uppercase tracking-label">Colours</h2>
           <Button
             variant="secondary"
             size="sm"
@@ -312,8 +314,8 @@ export function ProductEditor({
         ))}
       </section>
 
-      <section className="space-y-2">
-        <h2 className="text-lg">Variants ({variants.length})</h2>
+      <section className="space-y-2 border border-line p-5">
+        <h2 className="text-[11px] font-medium uppercase tracking-label">Variants ({variants.length})</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -347,7 +349,7 @@ export function ProductEditor({
         </div>
       </section>
 
-      <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-line bg-paper py-3">
+      <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-3 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur md:-mx-10 md:px-10">
         {moving > 0 && (
           <p role="status" className="w-full text-sm text-amber-800">
             {moving} open booking{moving === 1 ? '' : 's'} will move to the new sale date and be emailed when you save.

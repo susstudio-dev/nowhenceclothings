@@ -98,7 +98,7 @@ export default async function ProductPage({ params }: Props) {
             {settings.returns.returnsAllowed || settings.returns.exchangesAllowed
               ? `${returnsLabel(settings.returns)} within ${settings.returns.windowDays} days.`
               : 'No returns or exchanges, except faulty pieces.'}{' '}
-            <Link href="/returns" className="underline">Read the policy</Link>.
+            <Link href="/returns" className="link-quiet">Read the policy</Link>.
           </p>
         </div>
       ),
@@ -107,13 +107,13 @@ export default async function ProductPage({ params }: Props) {
   const items = details.filter((x): x is AccordionItem => !!x);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
+    <div className="container-page pb-section pt-4 md:pt-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd.filter(Boolean)).replace(/</g, '\\u003c') }} />
-      <nav aria-label="Breadcrumb" className="mb-6 text-xs text-muted">
+      <nav aria-label="Breadcrumb" className="mb-4 hidden text-caption text-muted md:mb-6 md:block">
         <ol className="flex flex-wrap gap-2">
-          <li><Link href="/shop" className="hover:underline">Shop</Link> /</li>
-          {category && <li><Link href={`/shop/${category.slug}`} className="hover:underline">{category.name}</Link> /</li>}
-          <li aria-current="page">{product.title}</li>
+          <li><Link href="/shop" className="link-underline">Shop</Link> <span aria-hidden>/</span></li>
+          {category && <li><Link href={`/shop/${category.slug}`} className="link-underline">{category.name}</Link> <span aria-hidden>/</span></li>}
+          <li aria-current="page" className="text-ink">{product.title}</li>
         </ol>
       </nav>
 
@@ -124,22 +124,27 @@ export default async function ProductPage({ params }: Props) {
         upcomingReleaseAt={!released && drop && launch.state === 'available' ? drop.releaseAt : undefined}
         launch={launch}
         maxQty={settings.orders.maxQtyPerLine}
+        eyebrow={category?.name}
+        details={
+          <>
+            {product.description && launch.state !== 'coming_soon' && (
+              <div className="mb-6 text-small text-ink-soft"><Markdown source={product.description} /></div>
+            )}
+            <Accordion items={items} />
+            {drop && (
+              <p className="mt-6 text-caption text-muted">
+                Part of <Link href={`/drops/${drop.slug}`} className="link-underline text-ink">{drop.name}</Link>.
+              </p>
+            )}
+          </>
+        }
       />
 
-      <div className="mt-12 grid gap-10 lg:grid-cols-[3fr_2fr] lg:gap-12">
-        <div>{product.description && launch.state !== 'coming_soon' && <Markdown source={product.description} />}</div>
-        <Accordion items={items} defaultOpen={['fit']} />
-      </div>
-
-      {drop && (
-        <p className="mt-8 text-sm">
-          Part of <Link href={`/drops/${drop.slug}`} className="underline">{drop.name}</Link>.
-        </p>
-      )}
-
       {related.length > 0 && (
-        <section className="mt-20" aria-labelledby="ctl">
-          <h2 id="ctl" className="mb-8 font-display text-2xl">Complete the look</h2>
+        <section className="mt-section" aria-labelledby="ctl">
+          <div className="mb-8 border-b border-line pb-4">
+            <h2 id="ctl" className="font-display text-display-sm font-light">Complete the look</h2>
+          </div>
           <ProductGrid products={related} inventory={inventory} drops={catalogue.drops} />
         </section>
       )}

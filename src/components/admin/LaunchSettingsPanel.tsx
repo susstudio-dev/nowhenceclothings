@@ -3,7 +3,7 @@
 import type { LaunchDefaults } from '@/lib/schemas/launches';
 import { Input, Select } from '@/components/ui';
 
-const textarea = 'w-full border border-line bg-paper px-3 py-2 text-sm';
+const textarea = 'w-full border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none';
 
 function Check({ label, checked, onChange, hint }: { label: string; checked: boolean; onChange: (v: boolean) => void; hint?: string }) {
   return (
@@ -31,7 +31,7 @@ export function LaunchSettingsPanel({ value, onChange }: { value: LaunchDefaults
   return (
     <div className="space-y-10">
       <section className="space-y-4">
-        <h2 className="text-lg">Coming soon defaults</h2>
+        <h2 className="text-[11px] font-medium uppercase tracking-label">Coming soon defaults</h2>
         <p className="text-sm text-muted">Used by every coming-soon product unless the product sets its own value.</p>
         <div className="grid gap-4 md:grid-cols-2">
           <Check
@@ -66,7 +66,7 @@ export function LaunchSettingsPanel({ value, onChange }: { value: LaunchDefaults
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg">Presale defaults</h2>
+        <h2 className="text-[11px] font-medium uppercase tracking-label">Presale defaults</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <Input
             label="Per-customer limit (units)"
@@ -103,7 +103,7 @@ export function LaunchSettingsPanel({ value, onChange }: { value: LaunchDefaults
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg">Pre-booking (deposit) defaults</h2>
+        <h2 className="text-[11px] font-medium uppercase tracking-label">Pre-booking (deposit) defaults</h2>
         <p className="text-sm text-muted">Used when a product or drop presale is set to &quot;Pre-book with a deposit&quot; and leaves a field blank.</p>
         <div className="grid gap-4 md:grid-cols-2">
           <Select
@@ -163,7 +163,7 @@ export function LaunchSettingsPanel({ value, onChange }: { value: LaunchDefaults
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg">Storefront</h2>
+        <h2 className="text-[11px] font-medium uppercase tracking-label">Storefront</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <Check label='Home "Coming soon" section' checked={value.home.enabled} onChange={(v) => setHome({ enabled: v })} />
           <Input label="Home section heading" maxLength={80} value={value.home.heading} onChange={(e) => setHome({ heading: e.target.value })} />

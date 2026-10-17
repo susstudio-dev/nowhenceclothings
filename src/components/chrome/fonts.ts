@@ -10,7 +10,7 @@ import { Cormorant_Garamond, DM_Sans, DM_Serif_Display, Fraunces, Inter, Inter_T
 /** Geometric display sans: headlines, editorial titles (default, A12). */
 export const fontDisplay = Jost({
   subsets: ['latin'],
-  weight: ['400', '500'],
+  weight: ['300', '400', '500'],
   display: 'swap',
   adjustFontFallback: true,
   fallback: ['system-ui', 'sans-serif'],

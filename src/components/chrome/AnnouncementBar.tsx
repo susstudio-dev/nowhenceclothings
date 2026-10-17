@@ -8,16 +8,16 @@ export interface AnnouncementBarProps {
   className?: string;
 }
 
-/** Single quiet line above the header. Ink on paper-deep, micro caps. Server component. */
+/** Single quiet line above the header: paper on ink, tracked micro caps. Server component. */
 export function AnnouncementBar({ announcement, className }: AnnouncementBarProps) {
   if (!announcement.enabled || !announcement.text.trim()) return null;
-  const text = <span className="text-micro uppercase">{announcement.text}</span>;
+  const text = <span className="text-[0.625rem] uppercase tracking-label">{announcement.text}</span>;
   return (
     <aside
       aria-label="Announcement"
-      className={cn('bg-paper-deep text-ink-soft', className)}
+      className={cn('bg-ink text-paper', className)}
     >
-      <div className="container-page flex min-h-9 items-center justify-center py-2 text-center">
+      <div className="container-page flex min-h-8 items-center justify-center py-1.5 text-center">
         {announcement.href ? (
           <Link href={announcement.href} className="link-underline">
             {text}

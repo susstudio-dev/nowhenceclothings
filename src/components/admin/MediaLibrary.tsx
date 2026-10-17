@@ -6,6 +6,7 @@ import { searchLibrary } from '@/lib/admin/media-library';
 import { adminFetch } from './api-client';
 import { mediaPreviewSrc, uploadImage } from './MediaUploader';
 import { useMediaLibrary } from './MediaPicker';
+import { useMsgToast } from './useMsgToast';
 
 /** A9c media library: upload, edit alt text, copy a reference for reuse. */
 export function MediaLibrary() {
@@ -13,6 +14,7 @@ export function MediaLibrary() {
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useMsgToast(msg);
   const [selected, setSelected] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -67,7 +69,7 @@ export function MediaLibrary() {
           placeholder="Search name, alt text or id"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          className="min-w-60 flex-1 border border-line px-3 py-2 text-sm"
+          className="h-9 min-w-60 flex-1 border border-line bg-paper px-3 text-sm focus:border-ink focus:outline-none"
         />
         {msg && (
           <span role="status" className={msg.ok ? 'text-sm' : 'text-sm text-sale'}>

@@ -23,17 +23,17 @@ export function SearchClient({ index, initialQuery = '' }: { index: SearchEntry[
       <form role="search" onSubmit={(e) => e.preventDefault()}>
         <Input type="search" label="Search the collection" hideLabel placeholder="Search" autoFocus value={q} onChange={(e) => setQ(e.target.value)} />
       </form>
-      <p className="mt-4 text-sm text-muted" aria-live="polite">
+      <p className="mt-4 text-caption text-muted" aria-live="polite">
         {q.trim() ? `${results.length} ${results.length === 1 ? 'result' : 'results'} for “${q.trim()}”` : 'Try “tee”, “black” or “cotton”.'}
       </p>
-      <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4">
+      <ul className="mt-10 grid grid-cols-2 gap-x-3 gap-y-10 md:gap-x-4 md:gap-y-14 lg:grid-cols-4">
         {results.map((r) => (
           <li key={r.slug}>
             <Link href={`/products/${r.slug}`} className="block">
-              <div className="aspect-[4/5] overflow-hidden bg-line/40">
+              <div className="aspect-garment overflow-hidden bg-paper-deep">
                 {r.image && <Image media={r.image} alt={r.image.alt || r.title} sizes="(min-width: 1024px) 25vw, 50vw" className="h-full w-full object-cover" />}
               </div>
-              <div className="mt-3 flex justify-between gap-3 text-sm">
+              <div className="mt-3 flex justify-between gap-3 text-small">
                 <span>{r.title}</span>
                 <Price amount={r.price} size="sm" />
               </div>

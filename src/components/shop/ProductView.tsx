@@ -1,16 +1,23 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, Dialog, Image, Price } from '@/components/ui';
+import { buttonClass } from '@/components/ui/Button';
+import { SizeSelector } from '@/components/ui/SizeSelector';
+import { Swatch } from '@/components/ui/Swatch';
 import type { Product, SizeChart } from '@/lib/schemas/catalogue';
 import type { MediaRef } from '@/lib/schemas/common';
 // Commerce workstream (WS-C) owns the cart store.
 import { addToCart, MixedCartError } from '@/lib/commerce/cart-client';
-import type { LaunchView } from '@/lib/launches';
+import type { LaunchView, PublicProduct } from '@/lib/launches';
+import { formatPaise } from '@/lib/money';
 import { PresaleAccessGate, presaleCodeKey } from './PresaleAccessGate';
 import { Countdown } from './Countdown';
 import { NotifyMe } from './NotifyMe';
 import { SizeGuide } from './SizeGuide';
 import { variantPrice } from './merch';
+import { QuickBuySheet } from './checkout/QuickBuySheet';
+import { quickBuyAction, sizeGridClass } from './quick-buy';
 
 export interface ProductViewProps {
   product: Product;
@@ -22,12 +29,17 @@ export interface ProductViewProps {
   maxQty?: number;
   /** A10/A11 launch state (from the public projection). */
   launch?: LaunchView;
+  /** Rendered under the buy area (details accordions). */
+  details?: React.ReactNode;
+  /** Small line above the title, e.g. category. */
+  eyebrow?: string;
 }
 
 const LOW_STOCK = 3;
 
-/** Product page interactive area (S3, S4): gallery, colour swatches, size selector, add to bag. */
-export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, launch }: ProductViewProps) {
+/** Product page interactive area (S3, S4, A16): gallery, colour, size, add to bag + buy now. */
+export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, launch, details, eyebrow }: ProductViewProps) {
+  const router = useRouter();
   const soon = launch?.state === 'coming_soon';
   const pre = launch?.state === 'presale' ? launch.presale : undefined;
   const [unlocked, setUnlocked] = useState(false);
@@ -44,6 +56,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
   const [size, setSize] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'added' | 'error'>('idle');
   const [sizeError, setSizeError] = useState(false);
+  const [quick, setQuick] = useState(false);
   const colour = product.colours.find((c) => c.id === colourId) ?? product.colours[0];
 
   const variantsBySize = useMemo(
@@ -54,199 +67,210 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
   const units = variant ? (pre ? 10 : stock[variant.sku] ?? 0) : 0;
   const price = variantPrice(product, variant);
   const upcoming = !!upcomingReleaseAt;
+  const deposit = pre?.paymentMode === 'deposit' && pre.deposit ? pre.deposit : undefined;
+  const gated = pre?.access === 'code' && !unlocked && !deposit;
+  const canBuy = !soon && !upcoming && !gated && !(variant && units === 0);
+  const action = launch ? quickBuyAction({ ...product, launch } as PublicProduct) : { mode: 'buy' as const, label: 'Buy now' };
+
+  function line() {
+    const img = colour.images[0];
+    return {
+      sku: variant!.sku,
+      qty: 1,
+      productId: product.id,
+      slug: product.slug,
+      title: product.title,
+      colour: colour.name,
+      size: variant!.size,
+      unitPrice: price.amount,
+      compareAtPrice: price.compareAt,
+      image: img ? img.src ?? (img.widths.length ? `/media/${img.id}/${img.widths[0]}.webp` : undefined) : undefined,
+      ...(pre ? { preorder: true } : {}),
+    };
+  }
+
+  function needSize(): boolean {
+    if (variant) return false;
+    setSizeError(true);
+    document.getElementById('pdp-size')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    return true;
+  }
 
   function add() {
-    if (!variant) {
-      setSizeError(true);
-      return;
-    }
+    if (needSize()) return;
     try {
-      const img = colour.images[0];
-      addToCart({
-        sku: variant.sku,
-        qty: 1,
-        productId: product.id,
-        slug: product.slug,
-        title: product.title,
-        colour: colour.name,
-        size: variant.size,
-        unitPrice: price.amount,
-        compareAtPrice: price.compareAt,
-        image: img ? img.src ?? (img.widths.length ? `/media/${img.id}/${img.widths[0]}.webp` : undefined) : undefined,
-        ...(pre ? { preorder: true } : {}),
-      });
+      addToCart(line());
       setMixMsg('');
       setStatus('added');
     } catch (e) {
-      if (e instanceof MixedCartError) {
-        setMixMsg(e.message);
-        return;
-      }
+      if (e instanceof MixedCartError) return setMixMsg(e.message);
       setStatus('error');
     }
   }
 
+  /** A16: straight to checkout (or the booking sheet for deposits), no bag detour. */
+  function buyNow() {
+    if (needSize()) return;
+    if (deposit || pre) return setQuick(true);
+    try {
+      addToCart(line(), { open: false });
+      router.push('/checkout');
+    } catch (e) {
+      if (e instanceof MixedCartError) return setMixMsg(e.message);
+      setStatus('error');
+    }
+  }
+
+  const sizeOptions = product.sizes.map((s) => {
+    const v = variantsBySize.get(s);
+    const n = v ? stock[v.sku] ?? 0 : 0;
+    const out = !v || (!pre && n === 0);
+    return { value: s, label: s, disabled: !v, note: !pre && !out && n <= LOW_STOCK ? `${n} left` : out && v ? 'Sold out' : undefined };
+  });
+
+  const primaryLabel = pre ? action.label : 'Buy now';
+
   return (
-    <div className="grid gap-8 lg:grid-cols-[3fr_2fr] lg:gap-12">
-      <Gallery key={colour.id} images={colour.images} title={`${product.title} in ${colour.name}`} />
+    <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
+      <div className="-mx-gutter lg:col-span-7 lg:mx-0">
+        <Gallery key={colour.id} images={colour.images} title={`${product.title} in ${colour.name}`} />
+      </div>
 
-      <div className="lg:sticky lg:top-24 lg:self-start">
-        <h1 className="font-display text-3xl">{product.title}</h1>
-        {launch?.badge && launch.state !== 'available' && (
-          <p className="mt-2 inline-block border border-ink px-2 py-1 text-[11px] uppercase tracking-widest">{launch.badge}</p>
-        )}
-        {!launch?.priceHidden && (
-          <>
-            <Price amount={price.amount} compareAt={price.compareAt} size="lg" className="mt-2" />
-            <p className="mt-1 text-xs text-muted">Inclusive of all taxes</p>
-          </>
-        )}
-        {soon && launch?.teaser && <p className="mt-4 text-sm">{launch.teaser}</p>}
-        {pre && <p className="mt-3 text-sm">{pre.shipCopy}</p>}
+      <div className="lg:col-span-5 lg:col-start-8">
+        <div className="lg:sticky lg:top-[calc(var(--header-h)+2rem)]">
+          <div className="flex items-center gap-3">
+            {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+            {launch?.badge && launch.state !== 'available' && <p className="care-tag">{launch.badge}</p>}
+          </div>
+          <h1 className="mt-3 text-balance font-display text-h2 font-light md:text-h1">{product.title}</h1>
+          {!launch?.priceHidden && (
+            <div className="mt-3 flex items-baseline gap-3">
+              <Price amount={price.amount} compareAt={price.compareAt} size="md" />
+              <span className="text-caption text-muted">Inclusive of all taxes</span>
+            </div>
+          )}
+          {soon && launch?.teaser && <p className="mt-6 max-w-md text-small text-ink-soft">{launch.teaser}</p>}
+          {pre && <p className="mt-4 text-small text-ink-soft">{pre.shipCopy}</p>}
 
-        <fieldset className="mt-8">
-          <legend className="text-xs uppercase tracking-widest">
-            Colour <span className="text-muted normal-case tracking-normal">· {colour.name}</span>
-          </legend>
-          <div className="mt-3 flex flex-wrap gap-3">
-            {product.colours.map((c) => (
-              <label key={c.id} className="cursor-pointer">
-                <input
-                  type="radio"
-                  name="colour"
-                  value={c.id}
-                  checked={c.id === colour.id}
-                  onChange={() => {
-                    setColourId(c.id);
+          <div className="mt-8 space-y-8 border-t border-line pt-8">
+            <Swatch
+              options={product.colours.map((c) => ({ value: c.id, label: c.name, hex: c.hex }))}
+              value={colour.id}
+              onChange={(v) => {
+                setColourId(v);
+                setStatus('idle');
+              }}
+            />
+
+            {!soon && (
+              <div id="pdp-size">
+                <SizeSelector
+                  options={sizeOptions}
+                  value={size ?? undefined}
+                  onChange={(v) => {
+                    setSize(v);
+                    setSizeError(false);
                     setStatus('idle');
                   }}
-                  className="peer sr-only"
+                  aside={sizeChart ? <SizeGuide chart={sizeChart} /> : undefined}
+                  error={sizeError ? 'Choose a size.' : undefined}
+                  className={sizeGridClass(sizeOptions.length)}
                 />
-                <span
-                  className="block h-11 w-11 rounded-full border-2 border-transparent p-1 peer-checked:border-ink peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2"
-                  title={c.name}
-                >
-                  <span className="block h-full w-full rounded-full border border-line" style={{ backgroundColor: c.hex }} />
-                </span>
-                <span className="sr-only">{c.name}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+              </div>
+            )}
 
-        {!soon && (
-        <fieldset className="mt-6" aria-describedby={sizeError ? 'size-error' : undefined}>
-          <div className="flex items-center justify-between">
-            <legend className="text-xs uppercase tracking-widest">Size</legend>
-            {sizeChart && <SizeGuide chart={sizeChart} />}
-          </div>
-          <div className="mt-3 grid grid-cols-6 gap-2">
-            {product.sizes.map((s) => {
-              const v = variantsBySize.get(s);
-              const n = v ? stock[v.sku] ?? 0 : 0;
-              const out = !v || n === 0;
-              return (
-                <label key={s} className="cursor-pointer">
-                  <input
-                    type="radio"
-                    name="size"
-                    value={s}
-                    checked={size === s}
-                    disabled={!v}
-                    onChange={() => {
-                      setSize(s);
-                      setSizeError(false);
-                      setStatus('idle');
-                    }}
-                    className="peer sr-only"
-                  />
-                  <span
-                    className={
-                      'flex min-h-[44px] items-center justify-center border text-sm peer-checked:border-ink peer-checked:bg-ink peer-checked:text-paper peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 ' +
-                      (out ? 'border-line text-muted line-through' : 'border-line hover:border-ink')
-                    }
-                  >
-                    {s}
-                  </span>
-                  <span className="sr-only">{out ? ' (sold out)' : n <= LOW_STOCK ? ` (only ${n} left)` : ''}</span>
-                </label>
-              );
-            })}
-          </div>
-          <p className="mt-2 min-h-[1.25rem] text-xs" aria-live="polite">
-            {sizeError ? (
-              <span id="size-error" className="text-sale">Choose a size.</span>
-            ) : variant && units > 0 && units <= LOW_STOCK ? (
-              `Only ${units} left in ${size}.`
-            ) : null}
-          </p>
-        </fieldset>
-        )}
-
-        <div className="mt-4 space-y-3">
-          {soon ? (
-            <>
-              {launch?.nextChangeAt && <Countdown releaseAt={launch.nextChangeAt} />}
-              {launch?.notify && (
+            <div className="space-y-4">
+              {soon ? (
                 <>
-                  <p className="text-sm">Get an email the moment this is ready.</p>
-                  <NotifyMe productId={product.id} label="Notify me" />
+                  {launch?.nextChangeAt && <Countdown releaseAt={launch.nextChangeAt} />}
+                  {launch?.notify && (
+                    <div className="space-y-3">
+                      <p className="text-small text-ink-soft">Get an email the moment this is ready.</p>
+                      <NotifyMe productId={product.id} label="Notify me" />
+                    </div>
+                  )}
                 </>
-              )}
-            </>
-          ) : pre ? (
-            <>
-              {pre.paymentMode === 'deposit' && pre.deposit ? (
+              ) : upcoming ? (
                 <>
-                  <a
-                    href={`/book/${product.slug}`}
-                    className="flex w-full items-center justify-center bg-ink px-6 py-4 text-sm uppercase tracking-widest text-paper"
-                  >
-                    {pre.deposit.ctaLabel}
-                  </a>
-                  <p className="text-sm">{pre.deposit.label} today; pay the balance when the sale starts.</p>
+                  <Countdown releaseAt={upcomingReleaseAt!} />
+                  <p className="text-small text-ink-soft">Get an email the moment this drops.</p>
+                  <NotifyMe sku={(variant ?? product.variants[0]).sku} label="Notify me" />
                 </>
-              ) : pre.access === 'code' && !unlocked ? (
+              ) : gated ? (
                 <PresaleAccessGate productId={product.id} onUnlocked={() => setUnlocked(true)} />
-              ) : (
-                <Button fullWidth size="lg" onClick={add}>
-                  {pre.ctaLabel}
-                </Button>
-              )}
-              {pre.access === 'waitlist' && (
+              ) : variant && units === 0 ? (
                 <>
-                  <p className="text-sm">Open to the waitlist only. Check out with the email you signed up with, or join below.</p>
-                  <NotifyMe productId={product.id} label="Join the waitlist" />
+                  <p className="text-small">
+                    {colour.name} / {size} is sold out. We&apos;ll let you know when it&apos;s back.
+                  </p>
+                  <NotifyMe sku={variant.sku} />
                 </>
+              ) : deposit ? (
+                <>
+                  <Button fullWidth size="lg" onClick={buyNow}>{primaryLabel}</Button>
+                  <p className="text-caption text-muted">{deposit.label} today; the balance when the sale opens.</p>
+                </>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Button fullWidth size="lg" onClick={buyNow} className="sm:order-2">
+                    {primaryLabel}
+                  </Button>
+                  <Button variant="secondary" fullWidth size="lg" onClick={add} className="sm:order-1">
+                    Add to bag
+                  </Button>
+                </div>
               )}
-              {launch?.nextChangeAt && <Countdown releaseAt={launch.nextChangeAt} />}
-              <p className="text-xs text-muted">
-                Limit {pre.perCustomerLimit} per customer. {pre.terms}
+              {pre && (
+                <div className="space-y-3 text-caption text-muted">
+                  {pre.access === 'waitlist' && (
+                    <>
+                      <p>Open to the waitlist only. Check out with the email you signed up with, or join below.</p>
+                      <NotifyMe productId={product.id} label="Join the waitlist" />
+                    </>
+                  )}
+                  {launch?.nextChangeAt && <Countdown releaseAt={launch.nextChangeAt} />}
+                  <p>Limit {pre.perCustomerLimit} per customer. {pre.terms}</p>
+                </div>
+              )}
+              <p role="status" className="min-h-[1.25rem] text-small">
+                {mixMsg ||
+                  (status === 'added' ? 'Added to your bag.' : status === 'error' ? 'Could not add to bag. Try again.' : '')}
               </p>
-            </>
-          ) : upcoming ? (
-            <>
-              <Countdown releaseAt={upcomingReleaseAt!} />
-              <p className="text-sm">Get an email the moment this drops.</p>
-              <NotifyMe sku={(variant ?? product.variants[0]).sku} label="Notify me" />
-            </>
-          ) : variant && units === 0 ? (
-            <>
-              <p className="text-sm">
-                {colour.name} / {size} is sold out. We&apos;ll let you know when it&apos;s back.
-              </p>
-              <NotifyMe sku={variant.sku} />
-            </>
-          ) : (
-            <Button fullWidth size="lg" onClick={add}>
-              Add to bag
-            </Button>
-          )}
-          <p role="status" className="text-sm">
-            {mixMsg || (status === 'added' ? 'Added to your bag.' : status === 'error' ? 'Could not add to bag. Try again.' : '')}
-          </p>
+            </div>
+          </div>
+
+          {details && <div className="mt-6">{details}</div>}
         </div>
       </div>
+
+      {/* Mobile: price + primary action always in thumb reach. */}
+      {canBuy && (
+        <div className="fixed inset-x-0 bottom-0 z-header flex items-center gap-3 border-t border-line bg-paper/95 px-gutter py-3 backdrop-blur lg:hidden">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-caption text-ink">{product.title}</p>
+            {!launch?.priceHidden && (
+              <p className="text-caption tabular-nums text-muted">
+                {formatPaise(price.amount)}
+                {size ? ` · ${colour.name} / ${size}` : ''}
+              </p>
+            )}
+          </div>
+          <button type="button" onClick={buyNow} className={buttonClass('primary', 'md')}>
+            {deposit ? 'Reserve' : pre ? 'Pre-order' : 'Buy now'}
+          </button>
+        </div>
+      )}
+      {canBuy && <div className="h-16 lg:hidden" aria-hidden />}
+
+      {quick && variant && launch && (
+        <QuickBuySheet
+          product={{ ...product, launch } as PublicProduct}
+          colourId={colour.id}
+          size={variant.size}
+          mode={deposit ? 'deposit' : pre ? 'full' : 'buy'}
+          onClose={() => setQuick(false)}
+        />
+      )}
     </div>
   );
 }
@@ -265,9 +289,9 @@ function Gallery({ images, title }: { images: MediaRef[]; title: string }) {
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
-  if (!images.length) return <div className="aspect-[4/5] bg-line/40" />;
+  if (!images.length) return <div className="aspect-garment bg-paper-deep" />;
   return (
-    <section aria-label={`${title} images`}>
+    <section aria-label={`${title} images`} className="relative">
       <div
         ref={track}
         className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth motion-reduce:scroll-auto lg:grid lg:grid-cols-2 lg:gap-2 lg:overflow-visible [&::-webkit-scrollbar]:hidden"
@@ -279,23 +303,26 @@ function Gallery({ images, title }: { images: MediaRef[]; title: string }) {
             key={m.id}
             type="button"
             onClick={() => setZoom(i)}
-            className="w-full shrink-0 snap-center cursor-zoom-in lg:first:col-span-2"
+            className={'w-full shrink-0 snap-center cursor-zoom-in bg-paper-deep' + (images.length % 2 ? ' lg:first:col-span-2' : '')}
             aria-label={`Zoom image ${i + 1} of ${images.length}`}
           >
             <Image
               media={m}
               alt={m.alt || title}
               priority={i === 0}
-              sizes="(min-width: 1024px) 60vw, 100vw"
-              className="aspect-[4/5] h-auto w-full object-cover"
+              sizes="(min-width: 1024px) 58vw, 100vw"
+              className="aspect-garment h-auto w-full object-cover"
             />
           </button>
         ))}
       </div>
       {images.length > 1 && (
-        <p className="mt-2 text-center text-xs text-muted lg:hidden" aria-live="polite">
-          {index + 1} / {images.length}
-        </p>
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1.5 lg:hidden" aria-live="polite">
+          <span className="sr-only">Image {index + 1} of {images.length}</span>
+          {images.map((m, i) => (
+            <span key={m.id} aria-hidden className={'h-px w-6 transition-colors duration-base ' + (i === index ? 'bg-ink' : 'bg-ink/25')} />
+          ))}
+        </div>
       )}
       <Dialog open={zoom != null} onClose={() => setZoom(null)} title={title} className="max-h-[95vh] max-w-[95vw]">
         {zoom != null && (

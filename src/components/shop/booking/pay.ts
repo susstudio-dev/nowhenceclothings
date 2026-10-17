@@ -1,6 +1,16 @@
 'use client';
 // A13: open Razorpay Checkout.js for a booking deposit / balance and verify.
 
+interface RazorpayInstance {
+  open(): void;
+  on(event: 'payment.failed', cb: (r: { error?: { description?: string } }) => void): void;
+}
+declare global {
+  interface Window {
+    Razorpay?: new (opts: Record<string, unknown>) => RazorpayInstance;
+  }
+}
+
 export interface CheckoutOpts {
   key: string;
   orderId: string;
@@ -26,6 +36,9 @@ function loadCheckoutJs(): Promise<void> {
 export async function payWithRazorpay(opts: CheckoutOpts, description: string): Promise<'paid' | 'dismissed'> {
   await loadCheckoutJs();
   return new Promise((resolve, reject) => {
+    // Razorpay keeps the modal open after a failed attempt so the buyer can retry;
+    // surface the failure only if they then close it.
+    let failed: string | null = null;
     const rzp = new window.Razorpay!({
       key: opts.key,
       order_id: opts.orderId,
@@ -35,7 +48,7 @@ export async function payWithRazorpay(opts: CheckoutOpts, description: string): 
       description,
       prefill: opts.prefill,
       theme: { color: '#0B0B0B' },
-      modal: { ondismiss: () => resolve('dismissed') },
+      modal: { ondismiss: () => (failed ? reject(new Error(failed)) : resolve('dismissed')) },
       handler: async (r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
         const vr = await fetch('/api/razorpay/verify', {
           method: 'POST',
@@ -47,7 +60,9 @@ export async function payWithRazorpay(opts: CheckoutOpts, description: string): 
         reject(new Error(vj.error || 'Payment could not be verified. You have not been charged twice.'));
       },
     });
-    rzp.on('payment.failed', (r) => reject(new Error(r.error?.description || 'Payment failed. Please try again.')));
+    rzp.on('payment.failed', (r) => {
+      failed = r.error?.description || 'Payment failed. Please try again.';
+    });
     rzp.open();
   });
 }

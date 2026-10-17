@@ -6,6 +6,7 @@ import type { Coupon } from '@/lib/schemas/coupons';
 import { formatPaise } from '@/lib/money';
 import { Button, Input, Select } from '@/components/ui';
 import { adminFetch, toPaise, toRupees } from './api-client';
+import { useMsgToast } from './useMsgToast';
 
 const blank = (): Coupon => ({
   id: `cpn-${Date.now().toString(36)}`,
@@ -32,6 +33,7 @@ export function CouponsEditor({ coupons }: { coupons: Coupon[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<Coupon | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useMsgToast(msg);
   const [busy, setBusy] = useState(false);
 
   async function save(c: Coupon) {

@@ -22,6 +22,9 @@ import { renderOrderEmail, sendEmail, type OrderEmailKind } from './email';
 import { razorpayConfig, refundPayment } from './razorpay';
 import { commitStock, OversellError } from './stock';
 import type { PublicOrder } from './types';
+import { ensureOrderInvoice, quietly } from '@/lib/invoices/store';
+import { invoiceDownloadPath } from '@/lib/invoices/access';
+import { KIND_TITLES } from '@/lib/invoices/compute';
 
 // ---- razorpay order id → our order id -------------------------------------
 export const razorpayMapKey = (rzpOrderId: string) => `razorpay-orders/${rzpOrderId}.json`;
@@ -122,7 +125,10 @@ export async function sendOrderEmailOnce(orderId: string, kind: OrderEmailKind):
     const order = await readOrder(orderId);
     if (!order || order.emailsSent.includes(kind)) return false;
     const settings = await getSettings();
-    const res = await sendEmail(renderOrderEmail(order, kind, settings));
+    const ref = kind === 'confirmation' ? order.invoice : kind === 'refunded' ? order.creditNote : undefined;
+    const url = ref ? await invoiceDownloadPath(ref.fy, ref.number).catch(() => null) : null;
+    const documents = ref && url ? [{ label: KIND_TITLES[kind === 'refunded' ? 'credit_note' : 'invoice'], number: ref.number, url }] : [];
+    const res = await sendEmail(renderOrderEmail(order, kind, settings, { documents }));
     if (!res.sent) {
       if (res.reason === 'error') console.error('email failed', kind, order.number, res.detail);
       return false;
@@ -190,6 +196,7 @@ export async function confirmPayment(p: {
       // Paid after we cancelled (payment window expired): refund it.
       return refundOrder(paid, p.razorpayPaymentId, 'Payment received after the order was cancelled', 'oversell_refunded');
     }
+    if (paid.status !== 'pending_payment' && paid.stockCommittedAt && !paid.invoice) await quietly('order invoice', () => ensureOrderInvoice(orderId));
     return { result: paid.status === 'pending_payment' ? 'ignored' : 'duplicate', order: paid };
   }
 
@@ -207,8 +214,9 @@ export async function confirmPayment(p: {
 
   const { order } = await updateOrder(orderId, (o) => (o.stockCommittedAt ? null : { ...o, stockCommittedAt: new Date().toISOString() }));
   if (order.couponCode) await bumpCouponUsage(order.couponCode);
+  await quietly('order invoice', () => ensureOrderInvoice(orderId));
   await sendOrderEmailOnce(orderId, 'confirmation');
-  return { result: 'applied', order };
+  return { result: 'applied', order: (await readOrder(orderId)) ?? order };
 }
 
 async function refundOrder(
@@ -282,5 +290,7 @@ export function toPublicOrder(o: Order): PublicOrder {
     },
     tracking: o.tracking,
     history: o.history.map((h) => ({ at: h.at, status: h.status })),
+    ...(o.preorder ? { preorder: true, ...(o.shipBy ? { shipBy: o.shipBy } : {}) } : {}),
+    ...(o.depositPaid ? { depositPaid: o.depositPaid } : {}),
   };
 }

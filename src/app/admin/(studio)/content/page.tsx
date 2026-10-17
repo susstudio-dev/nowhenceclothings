@@ -4,6 +4,7 @@ import { roleHas } from '@/lib/roles';
 import { changedSections } from '@/lib/admin/content';
 import { listContentVersions, readDraft } from '@/lib/admin/store';
 import { ContentEditor } from '@/components/admin/ContentEditor';
+import { PageHeader } from '@/components/admin/kit';
 
 export const metadata = { title: 'Content' };
 
@@ -12,7 +13,7 @@ export default async function ContentPage() {
   const [draft, live, versions] = await Promise.all([readDraft(), getSiteContent(), listContentVersions()]);
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-3xl">Content</h1>
+      <PageHeader title="Content" description="Edit a draft, preview it, then publish. Every publish keeps a version you can restore." />
       <ContentEditor
         initial={draft}
         initialChanged={changedSections(draft, live)}

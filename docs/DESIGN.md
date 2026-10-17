@@ -1,99 +1,93 @@
 # Nowhence design system
 
-Owner: WS-A (`design-system-engineer`). Direction: decision D11, premium minimal-editorial. Brand assets are placeholders (D12).
+Owner: WS-A (`design-system-engineer`). Decisions D11, D12, A12, A17.
+Tokens live in `tailwind.config.ts` and `src/app/globals.css`. Primitives are in `src/components/ui/` and the site frame is in `src/components/chrome/`.
 
-Source files: `tailwind.config.ts` holds the tokens, `src/app/globals.css` holds the CSS variables and base layer, `src/components/ui/` holds the primitives and `src/components/chrome/` holds the site frame.
+## Direction: "the care label"
+Nowhence sells tonal, embossed polos: the pattern shows only up close. The interface should work the same way, quiet at a glance and precise up close. The references are the restraint of Aesop, COS, Lemaire and Our Legacy, not a theme template.
 
-## Principles
-1. **Paper and ink.** An off-white page, near-black text and one muted accent. There are no gradient fills and no drop shadows.
-2. **Type does the work.** A display serif sets headlines and a grotesk sets everything else. Labels are small uppercase text with wide tracking.
-3. **Whitespace is the luxury.** Sections are spaced with `py-section`, which is 72px on mobile, 112px on tablet and 144px on desktop.
-4. **Imagery is full-bleed.** Product and editorial photography runs edge to edge. Image wells use `paper-deep` while they load.
-5. **Motion stays quiet.** Animate only opacity and transform, for 300 ms or less, and respect `prefers-reduced-motion`.
-6. **Avoid template tells.** No pill-shaped controls (radius is 0 to 2px), no emoji, no "Shop now!" banners, no badges on everything.
+- **The photography carries the colour.** The UI stays monochrome (chalk paper and near-black ink), plus one warm earth neutral, **clay**, sampled from the backdrops.
+- **One signature detail: the care label.** Status chips, badges and small labels are tracked micro caps in a 1px hairline box, like the woven label inside a collar. This is the only ornament. Do not invent others.
+- **The type is small and confident.** Display type is light and large only where an editorial moment calls for it. Everything else is 11–16px. A small wordmark signals more confidence than a big one.
+- **Hairlines, not boxes.** Use 1px `line` rules to divide content. No shadows, no gradients, and a radius of 0 (circles only for swatches).
 
 ## Colour
-Each colour is set on `:root` as space-separated RGB channels, so Tailwind alpha works (for example `bg-ink/30`).
+Each token is RGB channels on `:root`, so alpha works (`bg-ink/30`). Settings → Brand overrides `ink`, `paper` and `accent` and derives `ink-soft`, `muted`, `line` and `paper-deep` from them (`lib/brand.ts`). `clay` is not overridden.
 
-| Token | Value | Use |
+| Token | Default | Use |
 |---|---|---|
-| `paper` | 248 246 241 | Page background |
-| `paper-deep` | 238 235 227 | Image wells, skeletons, announcement bar |
-| `ink` | 22 21 19 | Text, primary buttons, focus ring |
-| `ink-soft` | 58 56 52 | Secondary text, button hover |
-| `muted` | 112 109 102 | Meta text and hints (about 4.9:1 on paper, passes AA) |
-| `line` | 222 218 209 | Hairline borders and dividers |
-| `accent` | 96 84 64 | Muted umber. The only accent; use it sparingly for editorial highlights |
-| `sale` | 146 42 30 | Oxblood, for sale prices and errors |
-| `success` | 52 88 60 | Confirmation states |
+| `paper` | #F4F4F2 | Page |
+| `paper-deep` | #EAE9E5 | Image wells, skeletons, hover fills |
+| `ink` | #0B0B0B | Text, primary button, focus ring, announcement bar |
+| `ink-soft` | #343432 | Secondary text, primary hover |
+| `muted` | #6B6B67 | Meta text (4.9:1 on paper) |
+| `line` | #DEDDD8 | Hairlines and field borders |
+| `accent` | #6B6B67 | Owner's accent (quiet grey by default) |
+| `clay` | #A8927A | Warm earth: low-stock notes, success dot, footer symbol. Never body text. |
+| `clay-soft` | #E6DFD5 | Clay wash for solid badges and selected tints |
+| `sale` | #922A1E | Oxblood: sale price, errors |
+| `success` | #34583C | Confirmation |
 
 ## Typography
-Fonts load through `next/font` in `src/components/chrome/fonts.ts` and are applied to `<html>` in the root layout.
-- `font-display` is **Cormorant Garamond** (400/500, with italics). Use it for headlines, the wordmark and pull quotes.
-- `font-sans` is **Inter Tight** (400/500). Use it for body text, UI and labels.
+- **Display: Jost** (300/400/500). Headings default to **300 (light)**. Use 400 for small display text (product names in the PDP title). Do not set long passages in Jost.
+- **Body/UI: Inter Tight** (400/500). Body text is 14px on mobile and 16px on desktop.
+- Both can be swapped from Settings → Brand (`--font-display` / `--font-sans`).
 
-The scale steps up by a ratio of 1.25 from a 16px base. Use these tokens and avoid arbitrary sizes.
-
-| Class | Size / leading | Use |
+| Token | Size / leading / tracking | Use |
 |---|---|---|
-| `text-micro` | 11 / 16, tracking 0.14em | Eyebrows, nav, labels, buttons (sm) |
-| `text-caption` | 12 / 18 | Captions, buttons (md, lg), legal |
-| `text-small` | 14 / 22 | Secondary copy, accordion bodies |
-| `text-body` | 16 / 26 | Default |
-| `text-lead` | 20 / 30 | Intro paragraphs, large prices |
-| `text-h4` … `text-h1` | 25, 31, 39, 49 | Headings (negative tracking) |
-| `text-hero` | clamp(48px, 8vw, 104px) | Home and drop heroes only |
+| `text-label` | 11 / 16 / 0.18em, uppercase | Nav, buttons, field labels, eyebrows |
+| `text-micro` | 11 / 16 / 0.14em | Legacy alias of label |
+| `text-caption` | 12 / 18 | Legal, hints, meta |
+| `text-small` | 14 / 22 | Body (mobile), card names, footer links |
+| `text-body` | 16 / 26 | Body (desktop), inputs (16px prevents iOS zoom) |
+| `text-lead` | 20 / 30 | Short intros |
+| `text-h4`…`text-h1` | 25 → 49 | Section and page titles |
+| `text-display-sm` | clamp 28→40 | Section openers |
+| `text-display` / `text-hero` | clamp 36→64 / 44→92 | One per page at most |
 
-Helper classes: `.eyebrow` (micro caps in muted), `.link-underline` (a hairline underline that grows on hover and sets `aria-current`), and `.container-page` (max width 1440px with the responsive gutter).
+Rules: tracked caps only at 10–11px. Never letterspace lowercase. Headlines use `text-wrap: balance`. Use tabular figures for prices and counters. The wordmark is 12px tall on mobile and 15px on desktop in the header, and 10px in the footer.
 
-## Space, layout and radius
-- `px-gutter` is 20px, 32px or 48px depending on breakpoint. `py-section` is section rhythm. `h-header` is the header height (60px, or 68px from md up).
-- Max widths: `max-w-page` (1440px) and `max-w-prose` (38rem) for long-form text.
-- Radius: `rounded` and `rounded-sm` are both 2px. Controls are square by default.
-- Z-index: `z-header` (40) and `z-overlay` (50).
+## Space, grid and rhythm
+- 4px base. Component padding steps are 8, 12, 16, 24 and 32. Section padding is `py-section` (64 / 96 / 128px).
+- Gutter (`px-gutter`) is 16 / 32 / 40px. The page is `container-page` (max 1440px).
+- Grid: 4 columns on mobile and 12 on desktop. Product grids are 2-up on mobile (gap 12px, 8px on 2+ rows) and 4-up on desktop (gap 16–24px). The PDP is a 7/5 split, with the buy column sticky.
+- Header is 56 / 64px. The announcement bar is 32px.
+
+## Imagery
+- Product cards: **4:5** (`aspect-garment`), `object-cover`, `paper-deep` while loading. The second image fades in on hover (desktop only).
+- PDP: stacked 4:5 images on desktop, a horizontal snap carousel on mobile, inset to the page gutter.
+- Editorial and hero: **full-bleed**, 3:4 on mobile and 16:9 or viewport height on desktop. Set text in paper on a 20–30% ink scrim placed at the bottom. Never use a solid box behind text.
+- Do not add borders, rounded corners or drop shadows on images.
 
 ## Motion
-| Token | Value |
-|---|---|
-| `duration-fast` / `base` / `slow` | 150 / 220 / 300 ms |
-| `ease-out` | cubic-bezier(0.22, 1, 0.36, 1) |
-| `ease-in-out` | cubic-bezier(0.65, 0, 0.35, 1) |
-| `animate-fade-in`, `animate-rise-in`, `animate-slide-in-{left,right,up}` | Entrance animations, 220 to 300 ms |
+- Animate only opacity and transform. Use `ease-out` (cubic-bezier .22,1,.36,1).
+- Durations: 150ms for hover/colour, 220ms for fades and accordions, 300ms for drawers and sheets. No bounce.
+- Links get a growing 1px underline (`link-underline`). Buttons press to `scale(.99)`.
+- Under `prefers-reduced-motion`, durations drop to about 0. The skeleton sheen stops.
 
-A global `prefers-reduced-motion` rule shortens every animation and transition to almost nothing.
+## Components (`@/components/ui`)
+| Component | Props | Notes |
+|---|---|---|
+| `Button` | `variant: primary \| secondary \| quiet \| ghost \| inverse \| link`, `size: sm \| md \| lg`, `loading`, `fullWidth`, `iconLeft/Right` + button attrs | Tracked caps, square. Use one primary per view. `inverse` is for dark imagery. |
+| `ButtonLink` | Next `Link` props + `variant`, `size`, `fullWidth` | A link styled as a button. `buttonClass(variant, size, full)` gives the class string. |
+| `Input` | `label`, `hint`, `error`, `hideLabel`, **`labelStyle: 'top' \| 'floating'`**, **`trailing`** + input attrs | Top labels by default. Use floating labels in checkout. |
+| `Select` | `label`, `options`, `placeholder`, `error`, `hideLabel` | Native select with a hairline chevron. |
+| `Drawer` | `open`, `onClose`, `title`, `side: left \| right \| bottom`, `footer` | Focus trap, scroll lock, Escape and backdrop close. |
+| `Sheet` | Same as Drawer minus `side` | Bottom sheet under 768px, right panel above. For quick-buy and checkout over the page. |
+| `Dialog` | `open`, `onClose`, `title`, `description`, `footer` | Native `<dialog>`. |
+| `Accordion` | `items: {id,title,content}[]`, `defaultOpen` | `<details>`, so it works without JS. |
+| `Price` | `amount` (paise), `compareAt`, `size: sm \| md \| lg` | Tabular figures, oxblood when on sale. |
+| `Badge` | `tone: neutral \| ink \| clay \| sale \| success \| inverse`, `variant: tag \| solid` | The care-label chip. At most one per card. |
+| `Swatch` | `options: {value,label,hex?,image?,disabled?}[]`, `value`, `onChange`, `label`, `size: sm \| md` | Radiogroup with an offset ring for the selected chip. |
+| `SizeSelector` | `options: {value,label,disabled?,note?}[]`, `value`, `onChange`, `label`, `aside`, `error` | Hairline grid cells. Sold out is struck through. `note` (for example "2 left") shows in clay. |
+| `QuantityStepper` | `value`, `onChange`, `min`, `max`, `label`, `size: sm \| md`, `disabled` | Minus / value / plus in a hairline box. |
+| `Skeleton` / `ProductCardSkeleton` | `shape: block \| text \| image`, `lines` | Sheen on paper-deep. |
+| `ToastProvider` / `useToast` / `Toast` | `{title, description?, tone?, action?, duration?}` | Ink toast, bottom-centre on mobile and bottom-right on desktop, max 3. |
+| `Spinner` | `size` | The brand ring turning. |
+| `LogoWordmark`, `LogoSymbol`, `Wordmark` | `className`, `title` / `text` | A passed `className` replaces the default size. |
 
-## Primitives (`@/components/ui`)
-Prop signatures are frozen (see `docs/CONTRACTS.md`); only styling and behaviour changed.
+Chrome (`@/components/chrome`): `AnnouncementBar` (paper on ink, 32px), `Header` (small centred wordmark; tracked nav on the left; on desktop a "Search" text link and the bag; icons on mobile; hairline on scroll), `MobileNav` (left drawer, Jost-light items divided by hairlines), `Footer` (newsletter and "Letters" note, link columns and contact, then one legal line with a modest wordmark and the ring symbol in clay; **no oversized logo**).
 
-| Component | Notes |
-|---|---|
-| `Button` | Variants: `primary` (ink fill), `secondary` (ink outline that fills on hover), `ghost`, `link`. Sizes: `sm` 36px, `md` 48px, `lg` 56px. `loading` keeps the button's width, shows a `Spinner` and sets `aria-busy`. Focus shows a 1px ink outline offset by 3px. |
-| `Input`, `Select` | Label sits above the field in micro caps. The field is 48px tall with a hairline border that turns ink on focus. `hint` and `error` are linked with `aria-describedby`; errors use `role="alert"` and a `sale` border. Select is a native element with a hairline chevron. |
-| `Drawer` | Rendered in a portal, with `role="dialog"` and `aria-modal`. Traps focus and restores it on close, locks scroll (ref-counted), and closes on Escape or a backdrop click. Slides in with a 300 ms transform and stays mounted until the exit finishes. |
-| `Dialog` | Built on native `<dialog>` (top layer). Closes on Escape or a backdrop click, returns focus to the opener, and enters with `rise-in`. |
-| `Accordion` | Native `<details>`, so it works without JS. A plus icon rotates into a close icon. |
-| `Price` | Tabular figures. On sale it shows the `sale` colour plus the struck-through original, with screen-reader text ("Sale price … , was …"). |
-| `Image` | `<picture>` with AVIF and WebP R2 variants, a `paper-deep` placeholder, and intrinsic dimensions so the layout doesn't shift. |
-| `Spinner`, `Wordmark`, `Icon*` | Hairline icons (`IconClose`, `IconMenu`, `IconSearch`, `IconBag`, `IconPlus`, `IconMinus`, `IconChevronDown`, `IconArrowRight`, `IconUser`) are `aria-hidden`. Label the control that contains them. |
-| `useFocusTrap`, `useScrollLock` | Exported for other custom overlays (for example the search overlay). |
-
-## Chrome (`@/components/chrome`)
-These are presentational. The storefront layout `(shop)/layout.tsx` (WS-B) supplies the data from `getSiteContent()` and `getSettings()`.
-
-```tsx
-<AnnouncementBar announcement={content.announcement} />
-<Header nav={content.nav.primary} cartSlot={<CartButton />} /> {/* or cartCount={n} */}
-<main id="main">{children}</main>
-<Footer columns={content.nav.footer} email={settings.store.email} newsletter={<NewsletterForm />} />
-```
-
-- **Header** (client component): sticky, translucent paper, and a hairline that appears once the page scrolls. Desktop has the nav on the left, the wordmark in the centre, and search and bag on the right. Below `lg` a menu button opens `MobileNav`. It includes the skip link to `#main`. The bag link has an accessible count; WS-C can replace it through `cartSlot`.
-- **MobileNav**: a left `Drawer` with top-level links in the display serif, staggered `rise-in`, and child links listed underneath.
-- **AnnouncementBar** (server component): one line of micro caps on `paper-deep`. It renders nothing when disabled.
-- **Footer** (server component): a statement line, a newsletter slot, link columns, an oversized wordmark and small print.
-
-## Rules for other workstreams
-- Use tokens and don't hard-code hex values. If a new token is needed, ask WS-A or add it without renaming existing ones.
-- Every interactive element needs a visible `focus-visible` state and a minimum 40px touch target.
-- Image `alt` text is required. Decorative images use `alt=""`.
-- Use one primary button per view. Everything else is secondary, ghost or link.
+## Do / don't
+**Do:** let photographs run large · use hairlines to separate content · write short, specific copy in sentence case (labels are the only caps) · put one primary action on each screen · keep price, size and buy within thumb reach on mobile.
+**Don't:** use gradients, shadows, pills or rounded cards · put boxed backgrounds behind hero text · use more than one badge on a card · use emoji · write "Shop now!" · put tracked caps on anything longer than 4 words · use clay for text on paper (too low contrast) · make the logo bigger than the nav needs.

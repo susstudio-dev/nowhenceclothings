@@ -32,10 +32,10 @@ export function ListingPage({
   return (
     <>
       {hero}
-      <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
-        <header className="mb-8">
-          <h1 className="font-display text-4xl">{title}</h1>
-          {intro && <p className="mt-2 max-w-xl text-muted">{intro}</p>}
+      <div className="container-page pb-section pt-10 md:pt-16">
+        <header className="mb-10 grid gap-4 md:mb-14 md:grid-cols-12 md:items-end">
+          <h1 className="text-balance font-display text-display font-light md:col-span-7">{title}</h1>
+          {intro && <p className="max-w-sm text-small text-ink-soft md:col-span-4 md:col-start-9 md:justify-self-end">{intro}</p>}
         </header>
         <ListingFilters basePath={basePath} params={params} filters={filters} sort={sort} facets={facets(products)} count={shown.length} />
         <ProductGrid products={shown} inventory={inventory} drops={drops} empty="No pieces match these filters." />

@@ -27,8 +27,9 @@ export interface HeaderProps {
 
 const iconBtn =
   'inline-flex h-10 min-w-10 items-center justify-center gap-1.5 text-ink transition-opacity duration-fast hover:opacity-60';
+const textLink = 'link-underline hidden py-1 text-label uppercase text-ink lg:inline-block';
 
-/** Sticky store header: wordmark centred, nav left (desktop), search + bag right. Hairline appears on scroll. */
+/** Sticky store header: small wordmark centred, tracked-caps nav left (desktop), search + bag right. Hairline appears on scroll. */
 export function Header({ nav, cartCount = 0, cartSlot, searchHref = '/search', className, brand }: HeaderProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -59,7 +60,7 @@ export function Header({ nav, cartCount = 0, cartSlot, searchHref = '/search', c
       </a>
       <header
         className={cn(
-          'sticky top-0 z-header border-b bg-paper/95 backdrop-blur-sm transition-colors duration-base ease-out',
+          'sticky top-0 z-header border-b bg-paper/90 backdrop-blur-md backdrop-saturate-150 transition-colors duration-base ease-out',
           scrolled ? 'border-line' : 'border-transparent',
           className,
         )}
@@ -77,13 +78,13 @@ export function Header({ nav, cartCount = 0, cartSlot, searchHref = '/search', c
               <IconMenu />
             </button>
             <nav aria-label="Primary" className="hidden lg:block">
-              <ul className="flex items-center gap-8">
+              <ul className="flex items-center gap-7">
                 {nav.map((item) => (
                   <li key={item.href}>
                     <Link
                       href={item.href}
                       aria-current={isActive(item.href) ? 'page' : undefined}
-                      className="link-underline py-1 text-micro uppercase text-ink"
+                      className="link-underline py-1 text-label uppercase text-ink"
                     >
                       {item.label}
                     </Link>
@@ -94,11 +95,14 @@ export function Header({ nav, cartCount = 0, cartSlot, searchHref = '/search', c
           </div>
 
           <Link href="/" aria-label={`${brand?.name || 'Nowhence'}, home`} className="justify-self-center">
-            <BrandMark brand={brand} />
+            <BrandMark brand={brand} imgClassName="h-5 w-auto md:h-6" svgClassName="h-3 w-auto md:h-[0.9375rem]" className="text-[1.0625rem] tracking-mark md:text-[1.1875rem]" />
           </Link>
 
-          <div className="flex items-center justify-end gap-1 md:gap-3">
-            <Link href={searchHref} aria-label="Search" className={iconBtn}>
+          <div className="flex items-center justify-end gap-1 md:gap-5">
+            <Link href={searchHref} className={textLink}>
+              Search
+            </Link>
+            <Link href={searchHref} aria-label="Search" className={cn(iconBtn, 'lg:hidden')}>
               <IconSearch />
             </Link>
             {cartSlot ?? (

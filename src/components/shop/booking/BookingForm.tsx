@@ -2,59 +2,58 @@
 
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, type FormEvent } from 'react';
-import { Button, Input, Select } from '@/components/ui';
+import { Button, Input } from '@/components/ui';
+import { Swatch } from '@/components/ui/Swatch';
+import { SizeSelector } from '@/components/ui/SizeSelector';
+import { QuantityStepper } from '@/components/ui/QuantityStepper';
 import { formatPaise } from '@/lib/money';
-import { payWithRazorpay, type CheckoutOpts } from './pay';
+import { validateDetails, type DetailErrors } from '@/lib/commerce/checkout-details';
+import { AddressFieldset, BillingFields, Check, ContactFields } from '../checkout/fields';
+import { TrustLine } from '../checkout/CheckoutView';
+import { payDeposit, useCheckoutDetails } from '../checkout/flow';
 
 export interface BookingFormProps {
   slug: string;
-  colours: { id: string; name: string }[];
+  colours: { id: string; name: string; hex?: string }[];
   /** `deposit` = server-computed deposit per unit, for display only. */
   variants: { sku: string; colourId: string; size: string; deposit: number }[];
   perCustomerLimit: number;
   access: 'public' | 'code' | 'waitlist';
   initialCode?: string;
   ctaLabel: string;
+  /** Size display order. */
+  sizes?: string[];
 }
 
 /** A13 /book/{slug}: choose colour + size, pay the deposit, land on /pay/{token}. */
 export function BookingForm(p: BookingFormProps) {
   const router = useRouter();
   const [colourId, setColourId] = useState(p.colours[0]?.id ?? '');
-  const sizes = useMemo(() => p.variants.filter((v) => v.colourId === colourId), [p.variants, colourId]);
-  const [sku, setSku] = useState('');
+  const [size, setSize] = useState('');
   const [qty, setQty] = useState(1);
-  const [f, setF] = useState({ name: '', email: '', phone: '', code: p.initialCode ?? '' });
+  const [code, setCode] = useState(p.initialCode ?? '');
   const [accept, setAccept] = useState(false);
+  const [addAddress, setAddAddress] = useState(false);
+  const { details, setDetails } = useCheckoutDetails();
+  const [errors, setErrors] = useState<DetailErrors>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const variant = p.variants.find((v) => v.sku === sku);
+  const sizeOrder = useMemo(() => p.sizes ?? [...new Set(p.variants.map((v) => v.size))], [p.sizes, p.variants]);
+  const variant = p.variants.find((v) => v.colourId === colourId && v.size === size);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!variant) return setError('Choose a size.');
-    if (!accept) return setError('Please accept the booking terms.');
+    const v = validateDetails(details, { requireAddress: addAddress });
+    if (!variant) v.size = 'Choose a size.';
+    if (p.access === 'code' && !code.trim()) v.code = 'Enter your access code.';
+    if (!accept) v.accept = 'Please accept the booking terms.';
+    setErrors(v);
+    if (Object.keys(v).length) return;
     setBusy(true);
     try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slug: p.slug,
-          sku,
-          qty,
-          name: f.name,
-          email: f.email.trim(),
-          phone: f.phone.replace(/\D/g, '').slice(-10),
-          ...(p.access === 'code' ? { code: f.code.trim() } : {}),
-          acceptPolicy: true,
-        }),
-      });
-      const json = (await res.json().catch(() => ({}))) as { error?: string; token?: string; number?: string; razorpay?: CheckoutOpts };
-      if (!res.ok || !json.token || !json.razorpay) throw new Error(json.error || 'Booking failed. Please retry.');
-      const out = await payWithRazorpay(json.razorpay, `Booking ${json.number} deposit`);
-      if (out === 'paid') router.push(`/pay/${json.token}`);
+      const out = await payDeposit({ slug: p.slug, sku: variant!.sku, qty, code: p.access === 'code' ? code.trim() : undefined, details });
+      if (out.result === 'paid') router.push(`/pay/${out.token}`);
       else setBusy(false);
     } catch (err) {
       setError((err as Error).message);
@@ -63,72 +62,88 @@ export function BookingForm(p: BookingFormProps) {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-6">
-      {p.colours.length > 1 && (
-        <Select
-          label="Colour"
-          value={colourId}
-          options={p.colours.map((c) => ({ value: c.id, label: c.name }))}
-          onChange={(e) => {
-            setColourId(e.target.value);
-            setSku('');
-          }}
+    <form onSubmit={onSubmit} noValidate className="space-y-10">
+      <div className="space-y-6">
+        {p.colours.length > 1 && (
+          <Swatch
+            options={p.colours.map((c) => ({ value: c.id, label: c.name, hex: c.hex }))}
+            value={colourId}
+            onChange={(id) => {
+              setColourId(id);
+              setSize('');
+            }}
+          />
+        )}
+        <SizeSelector
+          options={sizeOrder.map((s) => ({ value: s, label: s, disabled: !p.variants.some((v) => v.colourId === colourId && v.size === s) }))}
+          value={size}
+          onChange={setSize}
+          error={errors.size}
         />
-      )}
-      <fieldset>
-        <legend className="mb-2 text-sm">Size</legend>
-        <div className="flex flex-wrap gap-2">
-          {sizes.map((v) => (
-            <label
-              key={v.sku}
-              className={`cursor-pointer border px-4 py-2 text-sm ${sku === v.sku ? 'border-ink bg-ink text-paper' : 'border-line'}`}
-            >
-              <input type="radio" name="size" value={v.sku} className="sr-only" checked={sku === v.sku} onChange={() => setSku(v.sku)} />
-              {v.size}
-            </label>
-          ))}
+        {p.perCustomerLimit > 1 && (
+          <div className="flex items-center justify-between">
+            <span className="text-label uppercase text-ink">Quantity</span>
+            <QuantityStepper size="sm" value={qty} min={1} max={Math.min(10, p.perCustomerLimit)} onChange={setQty} />
+          </div>
+        )}
+      </div>
+
+      <section className="space-y-4" aria-label="Your details">
+        <p className="border-b border-line pb-3 text-label uppercase text-ink">Your details</p>
+        {!addAddress && (
+          <Input
+            labelStyle="floating"
+            label="Full name"
+            autoComplete="name"
+            value={details.ship.name}
+            onChange={(e) => setDetails({ ...details, ship: { ...details.ship, name: e.target.value } })}
+            error={errors['ship.name']}
+            required
+          />
+        )}
+        <ContactFields
+          value={details}
+          onChange={setDetails}
+          errors={errors}
+          emailHint={p.access === 'waitlist' ? 'Use the email you joined the waitlist with.' : 'Your private balance link is sent here.'}
+        />
+        {p.access === 'code' && (
+          <Input labelStyle="floating" label="Access code" value={code} onChange={(e) => setCode(e.target.value)} error={errors.code} required />
+        )}
+      </section>
+
+      <section className="space-y-4" aria-label="Delivery">
+        <div className="flex items-baseline justify-between border-b border-line pb-3">
+          <p className="text-label uppercase text-ink">Delivery address</p>
+          <button type="button" className="text-caption text-muted underline underline-offset-4 hover:text-ink" onClick={() => setAddAddress((a) => !a)}>
+            {addAddress ? 'Add later' : 'Add now'}
+          </button>
         </div>
-      </fieldset>
-      {p.perCustomerLimit > 1 && (
-        <Select
-          label="Quantity"
-          value={String(qty)}
-          options={Array.from({ length: Math.min(p.perCustomerLimit, 10) }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }))}
-          onChange={(e) => setQty(Number(e.target.value))}
-        />
-      )}
-      <Input label="Full name" autoComplete="name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required />
-      <Input
-        label="Email"
-        type="email"
-        autoComplete="email"
-        value={f.email}
-        onChange={(e) => setF({ ...f, email: e.target.value })}
-        hint={p.access === 'waitlist' ? 'Use the email you joined the waitlist with.' : 'Your private balance link is sent here.'}
-        required
-      />
-      <Input
-        label="Mobile number"
-        type="tel"
-        inputMode="numeric"
-        autoComplete="tel-national"
-        value={f.phone}
-        onChange={(e) => setF({ ...f, phone: e.target.value })}
-        required
-      />
-      {p.access === 'code' && <Input label="Access code" value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} required />}
-      <label className="flex items-start gap-2 text-sm">
-        <input type="checkbox" className="mt-1" checked={accept} onChange={(e) => setAccept(e.target.checked)} />
-        <span>I have read and accept the booking terms above.</span>
-      </label>
-      {error && (
-        <p role="alert" className="text-sm text-sale">
-          {error}
-        </p>
-      )}
-      <Button type="submit" fullWidth size="lg" loading={busy} disabled={busy}>
-        {variant ? `${p.ctaLabel} · ${formatPaise(variant.deposit * qty)}` : p.ctaLabel}
-      </Button>
+        {addAddress ? (
+          <>
+            <AddressFieldset prefix="ship" value={details.ship} onChange={(ship) => setDetails({ ...details, ship })} errors={errors} />
+            <BillingFields value={details} onChange={setDetails} errors={errors} />
+          </>
+        ) : (
+          <p className="text-caption text-muted">Optional now — saves time when you pay the balance.</p>
+        )}
+      </section>
+
+      <div className="space-y-4 border-t border-ink pt-6">
+        <Check checked={accept} onChange={setAccept}>
+          I have read and accept the booking terms
+        </Check>
+        {errors.accept && <p className="text-caption text-sale">{errors.accept}</p>}
+        {error && (
+          <p role="alert" className="border-l border-sale pl-3 text-small text-sale">
+            {error}
+          </p>
+        )}
+        <Button type="submit" fullWidth size="lg" loading={busy} disabled={busy}>
+          {variant ? `${p.ctaLabel} · ${formatPaise(variant.deposit * qty)}` : p.ctaLabel}
+        </Button>
+        <TrustLine />
+      </div>
     </form>
   );
 }

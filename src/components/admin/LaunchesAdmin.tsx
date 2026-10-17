@@ -55,7 +55,7 @@ export function DropPresaleEditor({ dropId, name, initial }: { dropId: string; n
     }
   }
   return (
-    <details className="border border-line p-4">
+    <details className="border border-line bg-paper p-4 open:pb-5">
       <summary className="cursor-pointer text-sm font-medium">
         {name} {initial.enabled ? '· presale on' : ''}
       </summary>

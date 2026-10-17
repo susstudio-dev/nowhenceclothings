@@ -51,14 +51,14 @@ function renderMd(blocks: MdBlock[], keyPrefix: string): ReactNode[] {
   return blocks.map((b, i) => {
     const key = `${keyPrefix}-${i}`;
     if (b.t === 'h') {
-      if (b.level === 2) return <h1 key={key} className="mb-8 text-3xl tracking-tight md:text-4xl">{renderInline(b.inline)}</h1>;
-      if (b.level === 3) return <h2 key={key} className="mb-3 mt-10 text-sm uppercase tracking-widest">{renderInline(b.inline)}</h2>;
+      if (b.level === 2) return <h1 key={key} className="mb-10 text-balance font-display text-display font-light">{renderInline(b.inline)}</h1>;
+      if (b.level === 3) return <h2 key={key} className="mb-4 mt-12 border-t border-line pt-6 text-label uppercase">{renderInline(b.inline)}</h2>;
       return <h3 key={key} className="mb-2 mt-6 font-medium">{renderInline(b.inline)}</h3>;
     }
-    if (b.t === 'p') return <p key={key} className="mb-4 leading-relaxed">{renderInline(b.inline)}</p>;
+    if (b.t === 'p') return <p key={key} className="mb-4 text-small leading-relaxed text-ink-soft md:text-body">{renderInline(b.inline)}</p>;
     const Tag = b.t;
     return (
-      <Tag key={key} className={`mb-4 space-y-2 pl-5 leading-relaxed ${b.t === 'ul' ? 'list-disc' : 'list-decimal'}`}>
+      <Tag key={key} className={`mb-4 space-y-2 pl-5 text-small leading-relaxed text-ink-soft md:text-body ${b.t === 'ul' ? 'list-disc' : 'list-decimal'}`}>
         {b.items.map((it, j) => <li key={j}>{renderInline(it)}</li>)}
       </Tag>
     );
@@ -69,11 +69,11 @@ function renderBlock(block: Block, vars: Record<string, string>): ReactNode {
   if (block.type === 'richText') return renderMd(parseMarkdown(fillTemplate(block.markdown, vars)), block.id);
   if (block.type === 'faq') {
     return (
-      <div key={block.id} className="divide-y divide-current/10 border-y border-current/10">
+      <div key={block.id} className="divide-y divide-line border-y border-line">
         {block.items.map((it, i) => (
           <details key={i} className="group py-4">
-            <summary className="cursor-pointer list-none font-medium">{it.q}</summary>
-            <div className="pt-3 leading-relaxed">{renderMd(parseMarkdown(fillTemplate(it.a, vars)), `${block.id}-${i}`)}</div>
+            <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 text-small text-ink after:text-muted after:content-['+'] group-open:after:content-['–']">{it.q}</summary>
+            <div className="pt-2 text-small leading-relaxed text-ink-soft">{renderMd(parseMarkdown(fillTemplate(it.a, vars)), `${block.id}-${i}`)}</div>
           </details>
         ))}
       </div>
@@ -101,8 +101,8 @@ export function StaticPageView({
   const hasHeading = page.blocks.some((b) => b.type === 'richText' && /^\s*#\s/.test(b.markdown));
 
   return (
-    <article className="mx-auto max-w-2xl px-4 py-16 md:py-24">
-      {!hasHeading && <h1 className="mb-8 text-3xl tracking-tight md:text-4xl">{page.title}</h1>}
+    <article className="container-page max-w-[48rem] py-16 md:py-24">
+      {!hasHeading && <h1 className="mb-10 text-balance font-display text-display font-light">{page.title}</h1>}
       {page.blocks.map((b) => <div key={b.id}>{renderBlock(b, vars)}</div>)}
       {children}
       {ld.map((d, i) => (

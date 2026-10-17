@@ -57,6 +57,7 @@ import { sendOrderEmailOnce, syncOrderIndex } from './commerce/orders';
 import { commitStock, OversellError } from './commerce/stock';
 import { unitPriceFor } from './commerce/pricing';
 import { INVENTORY_KEY } from './schemas/inventory';
+import { ensureBookingCreditNote, ensureBookingReceipt, ensureOrderInvoice, quietly } from './invoices/store';
 
 export { BookingError } from './bookings';
 
@@ -184,6 +185,10 @@ export interface CreateBookingInput {
   phone: string;
   code?: string;
   acceptPolicy: true;
+  /** A15: optional address now (prefills the balance checkout and the receipt). */
+  address?: Address;
+  billingAddress?: Address;
+  gstin?: string;
 }
 
 export interface CreateBookingResult {
@@ -262,6 +267,9 @@ export async function createBooking(input: CreateBookingInput, deps: BookingDeps
       email,
       name: input.name.trim(),
       phone: input.phone,
+      ...(input.address ? { address: input.address } : {}),
+      ...(input.billingAddress ? { billingAddress: input.billingAddress } : {}),
+      ...(input.gstin ? { buyerGstin: input.gstin } : {}),
       productId: product.id,
       productSlug: product.slug,
       productTitle: product.title,
@@ -362,6 +370,7 @@ async function confirmDeposit(
     }
     return { result: booking.status === 'deposit_pending' ? 'ignored' : 'duplicate', booking };
   }
+  await quietly('booking receipt', () => ensureBookingReceipt(id, { settings: deps.settings }));
   await sendBookingEmail(id, 'deposit_paid', deps);
   const advanced = await advanceBooking(id, deps);
   return { result: 'applied', booking: advanced ?? booking };
@@ -423,6 +432,8 @@ export function buildOrderFromBooking(b: Booking, attempt: BalanceAttempt, payme
     email: b.email,
     phone: attempt.phone,
     shippingAddress: attempt.address,
+    ...(b.billingAddress ? { billingAddress: b.billingAddress } : {}),
+    ...(b.buyerGstin ? { buyerGstin: b.buyerGstin } : {}),
     lines: [
       {
         sku: b.sku,
@@ -491,6 +502,7 @@ export async function ensureOrderForBooking(b: Booking, deps: BookingDeps = {}):
       });
       if (!(err instanceof OversellError)) throw err;
     }
+    await quietly('order invoice', () => ensureOrderInvoice(order!.id, { settings: deps.settings }));
     await sendOrderEmailOnce(order.id, 'confirmation');
   }
   return (await readJson(orderKey(order.id), Order)) ?? cur;
@@ -687,6 +699,7 @@ export async function refundDeposit(id: string, paymentId: string, reason: strin
   });
   if (refundId) {
     await releaseUnitsQuietly(booking, deps); // no-op if already released
+    if (booking.receipt) await quietly('booking credit note', () => ensureBookingCreditNote(id, { settings: deps.settings }));
     await sendBookingEmail(id, 'refunded', deps);
   }
   return booking;

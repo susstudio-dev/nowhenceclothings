@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { requireCapability } from '@/lib/guard';
 import { getCatalogue } from '@/lib/catalogue';
 import { ProductEditor } from '@/components/admin/ProductEditor';
+import { PageHeader, Chip, btnSecondary } from '@/components/admin/kit';
 
 export const metadata = { title: 'Edit product' };
 
@@ -13,12 +14,12 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   if (!product) notFound();
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-3xl">{product.title}</h1>
-      <p className="text-sm text-muted">
-        <a className="underline" href={`/products/${product.slug}`} target="_blank" rel="noreferrer">
-          View on site
-        </a>
-      </p>
+      <PageHeader
+        back={{ href: '/admin/products', label: 'Products' }}
+        title={product.title}
+        description={<span className="flex items-center gap-2 pt-1"><Chip tone={product.status === 'active' ? 'success' : 'muted'}>{product.status}</Chip><span className="font-mono text-xs">/{product.slug}</span></span>}
+        actions={<a className={btnSecondary} href={`/products/${product.slug}`} target="_blank" rel="noreferrer">View on site ↗</a>}
+      />
       <ProductEditor
         key={product.updatedAt}
         mode="update"

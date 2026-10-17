@@ -1,5 +1,6 @@
 // A13 booking emails. Pure renderers; sending goes through commerce/email.
 
+import { emailButton, emailLayout } from './email-layout';
 import { formatPaise } from './money';
 import { emailFromHeader } from './brand';
 import { escapeHtml, type EmailMessage } from './commerce/email';
@@ -16,16 +17,10 @@ const date = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '';
 
 function wrap(title: string, body: string): string {
-  return `<!doctype html><html><body style="margin:0;background:#f4f4f2;font-family:Helvetica,Arial,sans-serif;color:#0b0b0b">
-<div style="max-width:560px;margin:0 auto;padding:32px 24px;background:#ffffff">
-<p style="letter-spacing:.2em;font-size:12px;margin:0 0 24px">NOWHENCE</p>
-<h1 style="font-size:20px;font-weight:600;margin:0 0 16px">${title}</h1>${body}
-<p style="font-size:12px;color:#6b6b6b;margin-top:32px">Questions? Reply to this email.</p>
-</div></body></html>`;
+  return emailLayout(title, body);
 }
 
-const button = (href: string, label: string) =>
-  `<p style="margin:24px 0"><a href="${href}" style="background:#0b0b0b;color:#ffffff;padding:12px 20px;text-decoration:none;display:inline-block">${label}</a></p>`;
+const button = (href: string, label: string) => emailButton(href, label);
 
 /** Builds a booking email. `token` is the freshly issued balance-link token. Pure. */
 export function renderBookingEmail(

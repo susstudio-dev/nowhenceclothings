@@ -1,38 +1,71 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
-import { Button, Input } from '@/components/ui';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Button } from '@/components/ui';
 import { formatPaise } from '@/lib/money';
+import { EMPTY_ADDRESS, detailsPayload, saveRemembered, validateDetails, type AddressFields, type DetailErrors } from '@/lib/commerce/checkout-details';
+import { AddressFieldset, BillingFields, ContactFields } from '../checkout/fields';
+import { TrustLine } from '../checkout/CheckoutView';
+import { useCheckoutDetails } from '../checkout/flow';
 import { payWithRazorpay, type CheckoutOpts } from './pay';
 
-type Fields = Record<'name' | 'phone' | 'line1' | 'line2' | 'city' | 'state' | 'pincode', string>;
-
-/** A13 /pay/{token}: shipping address, then pay the server-computed balance. */
-export function BalanceForm({ token, name, phone, balance }: { token: string; name: string; phone: string; balance: number }) {
+/** A13 /pay/{token}: delivery + billing address, then pay the server-computed balance. */
+export function BalanceForm({
+  token,
+  name,
+  phone,
+  email,
+  balance,
+  address,
+}: {
+  token: string;
+  name: string;
+  phone: string;
+  balance: number;
+  email?: string;
+  /** Address given at booking, if any. */
+  address?: AddressFields;
+}) {
   const router = useRouter();
-  const [f, setF] = useState<Fields>({ name, phone, line1: '', line2: '', city: '', state: '', pincode: '' });
+  const { details, setDetails } = useCheckoutDetails();
+  const [errors, setErrors] = useState<DetailErrors>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const set = (k: keyof Fields) => (e: { target: { value: string } }) => setF((p) => ({ ...p, [k]: e.target.value }));
+
+  // The booking is the source of truth for contact; fill gaps from this device.
+  useEffect(() => {
+    setDetails((d) => ({
+      ...d,
+      email: email ?? d.email,
+      phone: phone || d.phone,
+      ship: address ?? (d.ship.line1 ? d.ship : { ...EMPTY_ADDRESS, name }),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!f.name.trim() || !f.line1.trim() || !f.city.trim() || !f.state.trim()) return setError('Fill in your shipping address.');
-    if (!/^[1-9]\d{5}$/.test(f.pincode.trim())) return setError('Enter a 6-digit PIN code.');
+    const v = validateDetails(details);
+    setErrors(v);
+    if (Object.keys(v).length) return;
     setBusy(true);
     try {
+      const p = detailsPayload(details);
       const res = await fetch(`/api/pay/${encodeURIComponent(token)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: f.phone.replace(/\D/g, '').slice(-10),
-          address: { name: f.name, line1: f.line1, line2: f.line2, city: f.city, state: f.state, pincode: f.pincode.trim(), country: 'IN' },
+          phone: p.phone,
+          address: p.address,
+          ...(p.billingAddress ? { billingAddress: p.billingAddress } : {}),
+          ...(p.gstin ? { gstin: p.gstin } : {}),
         }),
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string; number?: string; razorpay?: CheckoutOpts };
       if (!res.ok || !json.razorpay) throw new Error(json.error || 'Could not start the payment.');
+      saveRemembered(details);
       const out = await payWithRazorpay(json.razorpay, `Booking ${json.number} balance`);
       if (out === 'paid') router.refresh();
       setBusy(false);
@@ -43,24 +76,30 @@ export function BalanceForm({ token, name, phone, balance }: { token: string; na
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-4">
-      <Input label="Full name" autoComplete="name" value={f.name} onChange={set('name')} required />
-      <Input label="Mobile number" type="tel" inputMode="numeric" autoComplete="tel-national" value={f.phone} onChange={set('phone')} required />
-      <Input label="Address" autoComplete="address-line1" value={f.line1} onChange={set('line1')} required />
-      <Input label="Apartment, landmark (optional)" autoComplete="address-line2" value={f.line2} onChange={set('line2')} />
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Input label="City" autoComplete="address-level2" value={f.city} onChange={set('city')} required />
-        <Input label="State" autoComplete="address-level1" value={f.state} onChange={set('state')} required />
-        <Input label="PIN code" inputMode="numeric" maxLength={6} autoComplete="postal-code" value={f.pincode} onChange={set('pincode')} required />
+    <form onSubmit={onSubmit} noValidate className="space-y-10">
+      <section className="space-y-4" aria-label="Contact">
+        <p className="border-b border-line pb-3 text-label uppercase text-ink">Contact</p>
+        <ContactFields value={details} onChange={setDetails} errors={errors} />
+      </section>
+      <section className="space-y-4" aria-label="Delivery">
+        <p className="border-b border-line pb-3 text-label uppercase text-ink">Delivery</p>
+        <AddressFieldset prefix="ship" value={details.ship} onChange={(ship) => setDetails({ ...details, ship })} errors={errors} />
+      </section>
+      <section className="space-y-4" aria-label="Billing">
+        <p className="border-b border-line pb-3 text-label uppercase text-ink">Billing</p>
+        <BillingFields value={details} onChange={setDetails} errors={errors} />
+      </section>
+      <div className="space-y-4 border-t border-ink pt-6">
+        {error && (
+          <p role="alert" className="border-l border-sale pl-3 text-small text-sale">
+            {error}
+          </p>
+        )}
+        <Button type="submit" fullWidth size="lg" loading={busy} disabled={busy}>
+          Pay balance · {formatPaise(balance)}
+        </Button>
+        <TrustLine />
       </div>
-      {error && (
-        <p role="alert" className="text-sm text-sale">
-          {error}
-        </p>
-      )}
-      <Button type="submit" fullWidth size="lg" loading={busy} disabled={busy}>
-        Pay balance · {formatPaise(balance)}
-      </Button>
     </form>
   );
 }

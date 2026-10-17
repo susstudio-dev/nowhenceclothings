@@ -13,8 +13,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const [{ q }, catalogue, products] = await Promise.all([searchParams, getCatalogue(), getStorefrontProducts('shop')]);
   const names = Object.fromEntries(catalogue.categories.map((c) => [c.id, c.name]));
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
-      <h1 className="mb-6 font-display text-4xl">Search</h1>
+    <div className="container-page pb-section pt-10 md:pt-16">
+      <h1 className="mb-8 font-display text-display font-light">Search</h1>
       <SearchClient index={buildSearchIndex(products.filter(isIndexable), names)} initialQuery={Array.isArray(q) ? q[0] : q ?? ''} />
     </div>
   );

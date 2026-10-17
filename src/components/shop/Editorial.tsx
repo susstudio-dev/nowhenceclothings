@@ -22,34 +22,36 @@ export function articleMetadata(a: Article, base: string): Metadata {
 
 export function ArticleIndex({ title, intro, base, articles }: { title: string; intro?: string; base: string; articles: Article[] }) {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
-      <h1 className="font-display text-4xl">{title}</h1>
-      {intro && <p className="mt-2 max-w-xl text-muted">{intro}</p>}
+    <div className="container-page pb-section pt-10 md:pt-16">
+      <header className="grid gap-4 border-b border-line pb-8 md:grid-cols-12 md:items-end">
+        <h1 className="text-balance font-display text-display font-light md:col-span-7">{title}</h1>
+        {intro && <p className="max-w-sm text-small text-ink-soft md:col-span-4 md:col-start-9 md:justify-self-end">{intro}</p>}
+      </header>
       {articles.length === 0 ? (
-        <p className="py-16 text-center text-muted">Stories are on their way.</p>
+        <p className="py-24 text-center font-display text-h4 font-light text-muted">Stories are on their way.</p>
       ) : (
-        <ul className="mt-10 grid gap-x-6 gap-y-12 md:grid-cols-2">
+        <ul className="mt-10 grid gap-x-6 gap-y-14 md:grid-cols-2">
           {articles.map((a, i) => (
             <li key={a.slug}>
               <Link href={`${base}/${a.slug}`} className="group block">
-                <div className="aspect-[4/3] overflow-hidden bg-line/40">
+                <div className="aspect-[4/3] overflow-hidden bg-paper-deep">
                   {a.cover && (
                     <Image
                       media={a.cover}
                       alt=""
                       priority={i < 2}
                       sizes="(min-width: 768px) 50vw, 100vw"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
+                      className="h-full w-full object-cover transition-transform duration-slow ease-out group-hover:scale-[1.02] motion-reduce:transition-none"
                     />
                   )}
                 </div>
-                <h2 className="mt-4 font-display text-2xl">{a.title}</h2>
+                <h2 className="mt-5 text-balance font-display text-h3 font-light">{a.title}</h2>
                 {a.publishedAt && (
-                  <time dateTime={a.publishedAt} className="text-xs uppercase tracking-widest text-muted">
+                  <time dateTime={a.publishedAt} className="mt-2 block text-label uppercase text-muted">
                     {new Date(a.publishedAt).toLocaleDateString('en-IN', { dateStyle: 'long' })}
                   </time>
                 )}
-                {a.excerpt && <p className="mt-2 text-muted">{a.excerpt}</p>}
+                {a.excerpt && <p className="mt-3 max-w-prose text-small text-ink-soft">{a.excerpt}</p>}
               </Link>
             </li>
           ))}
@@ -64,17 +66,17 @@ export function ArticleView({ article, ctx, backHref, backLabel }: { article: Ar
   return (
     <article>
       {!startsWithHero && (
-        <header className="mx-auto max-w-3xl px-4 pb-6 pt-12 text-center">
-          <Link href={backHref} className="text-xs uppercase tracking-widest text-muted hover:underline">
+        <header className="container-page pb-6 pt-12 text-center md:pt-20">
+          <Link href={backHref} className="link-underline text-label uppercase text-muted">
             {backLabel}
           </Link>
-          <h1 className="mt-4 font-display text-4xl md:text-5xl">{article.title}</h1>
+          <h1 className="mx-auto mt-6 max-w-3xl text-balance font-display text-display font-light">{article.title}</h1>
           {article.publishedAt && (
-            <time dateTime={article.publishedAt} className="mt-2 block text-sm text-muted">
+            <time dateTime={article.publishedAt} className="mt-4 block text-caption text-muted">
               {new Date(article.publishedAt).toLocaleDateString('en-IN', { dateStyle: 'long' })}
             </time>
           )}
-          {article.cover && <Image media={article.cover} priority sizes="100vw" className="mt-8 h-auto w-full" />}
+          {article.cover && <Image media={article.cover} priority sizes="100vw" className="mt-12 h-auto w-full" />}
         </header>
       )}
       <BlockRenderer blocks={article.blocks} ctx={ctx} firstIsHero={startsWithHero} />

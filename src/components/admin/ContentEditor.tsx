@@ -188,7 +188,7 @@ export function ContentEditor({
               rows={28}
               value={sectionText(tab)}
               onChange={(e) => onJson(tab, e.target.value)}
-              className="w-full border border-line p-3 font-mono text-xs"
+              className="w-full border border-line bg-paper p-3 font-mono text-xs focus:border-ink focus:outline-none"
             />
             {jsonError && (
               <p role="alert" className="text-xs text-sale">

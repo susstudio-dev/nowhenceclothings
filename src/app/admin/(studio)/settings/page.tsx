@@ -3,6 +3,7 @@ import { getSettings } from '@/lib/content';
 import { roleHas } from '@/lib/roles';
 import type { SettingsTab } from '@/lib/brand';
 import { SettingsForm } from '@/components/admin/SettingsForm';
+import { PageHeader } from '@/components/admin/kit';
 
 export const metadata = { title: 'Settings' };
 
@@ -14,7 +15,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const tab = TABS.find((t) => t === sp.tab) ?? 'brand';
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-3xl">Settings</h1>
+      <PageHeader title="Settings" description="Brand, shipping, returns, legal, email and launch defaults." />
       <SettingsForm key={tab} initial={settings} initialTab={tab} canEdit={roleHas(admin.role, 'settings.write')} />
     </div>
   );

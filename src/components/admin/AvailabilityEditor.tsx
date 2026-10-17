@@ -9,7 +9,7 @@ import { Button, Input, Select } from '@/components/ui';
 import { adminFetch, toPaise, toRupees } from './api-client';
 import { mediaPreviewSrc, uploadImage } from './MediaUploader';
 
-const textarea = 'w-full border border-line bg-paper px-3 py-2 text-sm';
+const textarea = 'w-full border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none';
 
 /** Optional boolean: undefined = use the Settings → Launches default. */
 function TriState({ label, value, onChange }: { label: string; value: boolean | undefined; onChange: (v: boolean | undefined) => void }) {
@@ -165,8 +165,8 @@ export function DepositFields({ value, onChange }: { value: DepositConfig; onCha
   const set = (patch: Partial<DepositConfig>) => onChange({ ...value, ...patch });
   const percent = value.depositType === 'percent';
   return (
-    <fieldset className="grid gap-4 border border-line p-3 md:grid-cols-2">
-      <legend className="px-1 text-sm font-medium">Pre-booking (deposit)</legend>
+    <fieldset className="grid gap-4 border border-line bg-paper-deep/30 p-4 md:grid-cols-2">
+      <legend className="px-1 text-[11px] font-medium uppercase tracking-label text-muted">Pre-booking (deposit)</legend>
       <Select
         label="Deposit type"
         value={value.depositType ?? ''}
@@ -307,8 +307,8 @@ export function AvailabilityEditor({
   }
 
   return (
-    <section className="space-y-6 border border-line p-4">
-      <h2 className="text-lg">Availability</h2>
+    <section className="space-y-6 border border-line p-5">
+      <h2 className="text-[11px] font-medium uppercase tracking-label">Availability</h2>
       <div className="grid gap-4 md:grid-cols-2">
         <Select
           label="Availability"
@@ -327,7 +327,7 @@ export function AvailabilityEditor({
       </div>
 
       <fieldset className="space-y-4">
-        <legend className="text-sm font-medium">Coming soon</legend>
+        <legend className="mb-3 text-[11px] font-medium uppercase tracking-label text-muted">Coming soon</legend>
         <div className="grid gap-4 md:grid-cols-3">
           <TriState label="Blur images" value={cs.blur} onChange={(v) => setCs({ blur: v })} />
           <Input
@@ -393,7 +393,7 @@ export function AvailabilityEditor({
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="text-sm font-medium">Presale</legend>
+        <legend className="mb-3 text-[11px] font-medium uppercase tracking-label text-muted">Presale</legend>
         <p className="text-xs text-muted">Products in a drop inherit the drop&apos;s presale (Launches page) unless enabled here.</p>
         <PresaleFields value={ps} onChange={(presale) => onChange({ ...value, presale })} />
         {slug && ps.enabled && ps.paymentMode === 'deposit' && (

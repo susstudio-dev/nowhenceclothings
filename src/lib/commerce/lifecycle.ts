@@ -11,6 +11,7 @@ import { readOrder, sendOrderEmailOnce, updateOrder, withStatus } from './orders
 import { commitStock, OversellError, restockLines } from './stock';
 import { releasePresaleUnits } from '@/lib/launches-server';
 import { inventoryLines } from './order-lines';
+import { ensureOrderCreditNote, quietly } from '@/lib/invoices/store';
 
 /** A11: give back an order's presale units (cancel / refund / expiry). Never throws. */
 export async function releaseOrderPresale(o: Pick<Order, 'id' | 'preorder' | 'lines'>): Promise<void> {
@@ -156,6 +157,9 @@ export async function afterAdminStatusChange(
   }
   if (before.status !== after.status && (after.status === 'cancelled' || after.status === 'refunded')) {
     await releaseOrderPresale(after);
+  }
+  if (before.status !== after.status && after.status === 'refunded' && after.invoice) {
+    await quietly('credit note', () => ensureOrderCreditNote(after.id));
   }
   if (before.status !== after.status && (after.status === 'shipped' || after.status === 'refunded')) {
     if (await sendOrderEmailOnce(after.id, after.status)) emailed = after.status;

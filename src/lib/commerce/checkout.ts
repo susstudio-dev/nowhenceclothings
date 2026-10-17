@@ -10,6 +10,7 @@ import type { CheckoutRequest, CheckoutResponse, QuoteResponse } from './types';
 import { MIXED_CART_MESSAGE, PresaleRuleError, assertPresaleAccess, resolveLaunch } from '@/lib/launches';
 import { releasePresaleUnits, reservePresaleUnits, waitlistEmails } from '@/lib/launches-server';
 import type { Product } from '@/lib/schemas/catalogue';
+import { validateGstin } from '@/lib/invoices/gst';
 
 export class CheckoutError extends Error {
   constructor(
@@ -38,6 +39,8 @@ export function buildPendingOrder(
     email: req.email,
     phone: req.phone,
     shippingAddress: req.address,
+    ...(req.billingAddress ? { billingAddress: req.billingAddress } : {}),
+    ...(req.gstin ? { buyerGstin: req.gstin.trim().toUpperCase() } : {}),
     lines: q.lines.map((l) => ({
       sku: l.sku,
       productId: l.productId,
@@ -79,6 +82,13 @@ export async function placeOrder(
 ): Promise<CheckoutResponse> {
   const cfg = deps.cfg === undefined ? razorpayConfig() : deps.cfg;
   if (!cfg) throw new CheckoutError('Payments are not configured.', 503, 'payments_unconfigured');
+  if (req.gstin?.trim()) {
+    const g = validateGstin(req.gstin);
+    if (!g.ok) throw new CheckoutError(g.error, 400, 'gstin');
+    req = { ...req, gstin: g.gstin };
+  } else if (req.gstin !== undefined) {
+    req = { ...req, gstin: undefined };
+  }
   const ctx = deps.ctx ?? (await loadQuoteContext());
   const now = new Date();
   const q = buildQuote({ ...ctx, now }, req.lines, req.couponCode);
@@ -116,6 +126,7 @@ export async function placeOrder(
     },
   };
 }
+
 
 export interface PresaleGateDeps {
   waitlist?: (product: Product) => Promise<string[]>;

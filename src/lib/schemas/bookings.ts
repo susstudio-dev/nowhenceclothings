@@ -72,6 +72,13 @@ export const Booking = z.object({
   email: Email,
   name: z.string().trim().min(1).max(100),
   phone: Phone,
+  /** A15: address captured at booking (prefills the balance checkout). */
+  address: Address.optional(),
+  billingAddress: Address.optional(),
+  buyerGstin: z.string().regex(/^\d{2}[A-Z0-9]{13}$/).optional(),
+  /** A14: receipt voucher for the deposit; credit note on refund. */
+  receipt: z.object({ number: z.string().min(1), fy: z.string().min(1), issuedAt: IsoDate }).optional(),
+  creditNote: z.object({ number: z.string().min(1), fy: z.string().min(1), issuedAt: IsoDate }).optional(),
   productId: Id,
   productSlug: z.string().min(1),
   productTitle: z.string().min(1),

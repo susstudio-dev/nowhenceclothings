@@ -17,10 +17,13 @@ export default async function ComingSoonPage() {
   const products = productsFor(raw, settings.launches, 'comingSoonPage');
   const { title, intro } = settings.launches.page;
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
-      <header className="mb-10 max-w-2xl">
-        <h1 className="font-display text-4xl">{title}</h1>
-        {intro && <p className="mt-4 text-muted">{intro}</p>}
+    <div className="container-page pb-section pt-10 md:pt-16">
+      <header className="mb-10 grid gap-4 border-b border-line pb-8 md:mb-14 md:grid-cols-12 md:items-end">
+        <div className="md:col-span-7">
+          <p className="eyebrow">In the workroom</p>
+          <h1 className="mt-4 text-balance font-display text-display font-light">{title}</h1>
+        </div>
+        {intro && <p className="max-w-sm text-small text-ink-soft md:col-span-4 md:col-start-9 md:justify-self-end">{intro}</p>}
       </header>
       <ProductGrid products={products} inventory={inventory} drops={publicDrops(raw.drops)} empty="Nothing announced yet. Check back soon." />
     </div>

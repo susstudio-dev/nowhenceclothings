@@ -6,6 +6,7 @@ import type { OrderStatus, Tracking } from '@/lib/schemas/order';
 import { Button, Input, Select } from '@/components/ui';
 import { adminFetch, toPaise } from './api-client';
 import { ORDER_STATUS_LABELS } from '@/lib/admin/orders';
+import { useMsgToast } from './useMsgToast';
 
 const LABEL = ORDER_STATUS_LABELS;
 
@@ -28,6 +29,7 @@ export function OrderActions({
 }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useMsgToast(msg);
   const [busy, setBusy] = useState(false);
   const [carrier, setCarrier] = useState(tracking?.carrier ?? '');
   const [number, setNumber] = useState(tracking?.number ?? '');
@@ -66,7 +68,7 @@ export function OrderActions({
           );
         }}
       >
-        <h2 className="text-lg">Status</h2>
+        <h2 className="text-[11px] font-medium uppercase tracking-label">Status</h2>
         {next.filter((s) => s !== 'refunded').length === 0 ? (
           <p className="text-sm text-muted">No further status changes from {LABEL[status]}.</p>
         ) : (
@@ -92,7 +94,7 @@ export function OrderActions({
           void send({ tracking: trackingBody() ?? null }, 'Tracking saved');
         }}
       >
-        <h2 className="text-lg">Tracking</h2>
+        <h2 className="text-[11px] font-medium uppercase tracking-label">Tracking</h2>
         <div className="grid gap-3 md:grid-cols-3">
           <Input label="Carrier" value={carrier} onChange={(e) => setCarrier(e.target.value)} />
           <Input label="Tracking number" value={number} onChange={(e) => setNumber(e.target.value)} />
@@ -113,7 +115,7 @@ export function OrderActions({
       >
         <label className="flex flex-col gap-1 text-sm">
           Internal notes
-          <textarea name="notes" defaultValue={notes} rows={3} className="border border-line px-3 py-2" />
+          <textarea name="notes" defaultValue={notes} rows={3} className="border border-line bg-paper px-3 py-2 focus:border-ink focus:outline-none" />
         </label>
         <Button type="submit" variant="secondary" loading={busy}>
           Save notes
@@ -141,7 +143,7 @@ export function OrderActions({
             );
           }}
         >
-          <h2 className="text-lg">Mark refunded</h2>
+          <h2 className="text-[11px] font-medium uppercase tracking-label">Mark refunded</h2>
           <p className="text-xs text-muted">Issue the refund in the Razorpay dashboard, then record it here.</p>
           <div className="grid gap-3 md:grid-cols-3">
             <Input label="Amount (₹)" name="amount" type="number" min={1} max={total / 100} step="0.01" defaultValue={total / 100} />

@@ -32,11 +32,11 @@ export function BookingLinkPanel({ slug, code }: { slug: string; code?: string }
   const download = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 
   return (
-    <div className="flex flex-wrap items-start gap-4 border border-line p-3">
-      {svg && <div aria-label="QR code for the booking link" role="img" className="h-32 w-32" dangerouslySetInnerHTML={{ __html: svg }} />}
+    <div className="flex flex-wrap items-start gap-5 border border-line bg-paper p-4">
+      {svg && <div aria-label="QR code for the booking link" role="img" className="h-32 w-32 shrink-0 border border-line bg-white p-2" dangerouslySetInnerHTML={{ __html: svg }} />}
       <div className="min-w-0 flex-1 space-y-2 text-sm">
-        <p className="font-medium">Booking link</p>
-        <p className="break-all font-mono text-xs">{url}</p>
+        <p className="text-[11px] font-medium uppercase tracking-label">Booking link</p>
+        <p className="break-all border border-line bg-paper-deep/40 px-2 py-1.5 font-mono text-xs">{url}</p>
         {code && (
           <label className="flex items-center gap-2 text-xs">
             <input type="checkbox" checked={withCode} onChange={(e) => setWithCode(e.target.checked)} />
@@ -48,7 +48,7 @@ export function BookingLinkPanel({ slug, code }: { slug: string; code?: string }
             {copied ? 'Copied' : 'Copy link'}
           </Button>
           {svg && (
-            <a href={download} download={`book-${slug}.svg`} className="border border-line px-3 py-1 text-xs">
+            <a href={download} download={`book-${slug}.svg`} className="inline-flex h-8 items-center border border-line px-3 text-[11px] uppercase tracking-label transition-colors hover:border-ink">
               Download QR (SVG)
             </a>
           )}

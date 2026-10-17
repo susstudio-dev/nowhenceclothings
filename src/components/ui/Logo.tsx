@@ -1,4 +1,3 @@
-import { cn } from './cn';
 
 /**
  * Owner wordmark (A12), inlined from assets/brand/logo/logo_black_vector.svg.
@@ -6,7 +5,7 @@ import { cn } from './cn';
  */
 export function LogoWordmark({ className, title = 'Nowhence' }: { className?: string; title?: string }) {
   return (
-    <svg viewBox="0 0 192 23" fill="currentColor" role="img" aria-label={title} className={cn('h-[1.125rem] w-auto md:h-5', className)}>
+    <svg viewBox="0 0 192 23" fill="currentColor" role="img" aria-label={title} className={className ?? 'h-[1.125rem] w-auto md:h-5'}>
     <path d="M0 21.33V2.13H2.93L14.98 16.92H13.52V2.13H17.06V21.33H14.13L2.08 6.54H3.53V21.33H0Z" />
     <path d="M54.83 21.33L48.46 2.13H52.17L57.85 19.50H56.01L61.91 2.13H65.20L70.94 19.50H69.15L74.97 2.13H78.37L72.01 21.33H68.22L62.98 5.67H63.97L58.64 21.33H54.83Z" />
     <path d="M98.10 21.33V2.13H101.67V21.33H98.10ZM84.60 21.33V2.13H88.17V21.33H84.60ZM87.87 13.10V10.06H98.37V13.10H87.87Z" />

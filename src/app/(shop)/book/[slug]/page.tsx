@@ -45,44 +45,44 @@ export default async function BookPage({ params, searchParams }: Props) {
   const img = pub.colours[0]?.images[0];
   const dep = win.dep;
 
+  const steps = [
+    { t: 'Reserve today', d: `${depositLabel(dep)} holds your size.` },
+    { t: dep.saleStartsAt ? `Sale opens ${fmt(dep.saleStartsAt)}` : 'Sale opens', d: 'We email you a private link.' },
+    { t: 'Pay the balance', d: `Within ${dep.balanceWindowDays} days, plus shipping. Then it ships.` },
+  ];
+
   return (
-    <div className="container-page grid gap-10 py-12 lg:grid-cols-2">
-      <div>{img && <Image media={img} sizes="(min-width: 1024px) 50vw, 100vw" priority className="w-full" />}</div>
-      <div className="space-y-6">
-        <p className="text-xs uppercase tracking-widest">Pre-booking</p>
-        <h1 className="font-display text-3xl">{pub.title}</h1>
-        <p className="text-sm">
-          Price {formatPaise(pub.price)} · {depositLabel(dep)} today, balance when the sale starts
-          {dep.saleStartsAt ? ` on ${fmt(dep.saleStartsAt)}` : ''}.
-        </p>
+    <div className="container-page grid gap-10 pb-section pt-6 md:pt-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
+      <div className="lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:self-start">
+        <div className="relative aspect-garment overflow-hidden bg-paper-deep">
+          {img && <Image media={img} sizes="(min-width: 1024px) 58vw, 100vw" priority className="absolute inset-0 h-full w-full object-cover" />}
+        </div>
+      </div>
+      <div className="space-y-10">
+        <header className="space-y-4">
+          <p className="care-tag text-clay">Pre-booking</p>
+          <h1 className="font-display text-display font-light text-ink">{pub.title}</h1>
+          <p className="text-body text-ink-soft">
+            <span className="tabular-nums text-ink">{formatPaise(pub.price)}</span> · {depositLabel(dep)} today, balance when the sale opens.
+          </p>
+        </header>
+
+        <ol className="grid grid-cols-3 gap-4 border-y border-line py-5">
+          {steps.map((s, i) => (
+            <li key={i} className="space-y-1.5">
+              <span className="block text-label tabular-nums text-muted">0{i + 1}</span>
+              <span className="block text-small text-ink">{s.t}</span>
+              <span className="block text-caption text-muted">{s.d}</span>
+            </li>
+          ))}
+        </ol>
 
         {win.state === 'open' ? (
           <>
-            <section className="space-y-2 border border-line p-4 text-sm">
-              <h2 className="font-medium">Booking terms</h2>
-              <ul className="list-disc space-y-1 pl-5">
-                <li>Pay the balance within {dep.balanceWindowDays} days of the sale start. We email you a private link.</li>
-                <li>
-                  {dep.priceLock === 'booking'
-                    ? 'Your price is locked today.'
-                    : 'The final price is the price on the day the sale starts.'}{' '}
-                  Shipping is added to the balance.
-                </li>
-                <li>
-                  Deposit is {dep.depositRefundable ? 'refundable' : 'non-refundable'}.{' '}
-                  {dep.unpaidOutcome === 'refund'
-                    ? 'If the balance is not paid in time, the deposit is refunded.'
-                    : dep.unpaidOutcome === 'forfeit'
-                      ? 'If the balance is not paid in time, the deposit is kept.'
-                      : 'If the balance is not paid in time, we contact you about the deposit.'}
-                </li>
-                <li>Limit {win.pre.perCustomerLimit} per customer.</li>
-              </ul>
-              <Markdown source={dep.policyMarkdown} className="space-y-2 text-muted" />
-            </section>
             <BookingForm
               slug={product.slug}
-              colours={product.colours.map((c) => ({ id: c.id, name: c.name }))}
+              colours={product.colours.map((c) => ({ id: c.id, name: c.name, hex: c.hex }))}
+              sizes={product.sizes}
               variants={product.variants.map((v) => ({
                 sku: v.sku,
                 colourId: v.colourId,
@@ -94,15 +94,38 @@ export default async function BookPage({ params, searchParams }: Props) {
               initialCode={code?.slice(0, 64)}
               ctaLabel={dep.bookCtaLabel}
             />
+            <details className="group border-t border-line pt-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between text-label uppercase text-ink">
+                Booking terms
+                <span aria-hidden="true" className="text-muted transition-transform duration-base group-open:rotate-45">+</span>
+              </summary>
+              <div className="mt-4 space-y-3 text-small text-ink-soft">
+                <ul className="space-y-2">
+                  <li>Pay the balance within {dep.balanceWindowDays} days of the sale start. We email you a private link.</li>
+                  <li>
+                    {dep.priceLock === 'booking' ? 'Your price is locked today.' : 'The final price is the price on the day the sale starts.'} Shipping is added
+                    to the balance.
+                  </li>
+                  <li>
+                    Deposit is {dep.depositRefundable ? 'refundable' : 'non-refundable'}.{' '}
+                    {dep.unpaidOutcome === 'refund'
+                      ? 'If the balance is not paid in time, the deposit is refunded.'
+                      : dep.unpaidOutcome === 'forfeit'
+                        ? 'If the balance is not paid in time, the deposit is kept.'
+                        : 'If the balance is not paid in time, we contact you about the deposit.'}
+                  </li>
+                  <li>Limit {win.pre.perCustomerLimit} per customer. A receipt voucher is issued for your deposit.</li>
+                </ul>
+                <Markdown source={dep.policyMarkdown} className="space-y-2 text-muted" />
+              </div>
+            </details>
           </>
         ) : win.state === 'not_open' ? (
-          <p className="border border-line p-4 text-sm">
-            Bookings open {win.opensAt ? `on ${fmt(win.opensAt)}` : 'soon'}.
-          </p>
+          <p className="border-l border-clay pl-4 text-small text-ink-soft">Bookings open {win.opensAt ? `on ${fmt(win.opensAt)}` : 'soon'}.</p>
         ) : (
-          <p className="border border-line p-4 text-sm">
+          <p className="border-l border-line pl-4 text-small text-ink-soft">
             Bookings for this piece are closed.{' '}
-            <Link href={`/products/${product.slug}`} className="underline">
+            <Link href={`/products/${product.slug}`} className="link-quiet">
               See the piece
             </Link>
           </p>

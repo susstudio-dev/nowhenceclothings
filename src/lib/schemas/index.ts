@@ -12,3 +12,4 @@ export * from './users';
 export * from './media';
 export * from './launches';
 export * from './bookings';
+export * from './invoices';

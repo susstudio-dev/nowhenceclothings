@@ -2,59 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Nowhence tokens (D11). See docs/DESIGN.md. Channels are space-separated RGB. */
+/* Nowhence tokens (D11, A17). See docs/DESIGN.md. Channels are space-separated RGB.
+   Settings -> Brand (lib/brand brandCssVars) overrides ink/paper/accent and the
+   derived tones at request time; clay stays (it is sampled from the photography). */
 :root {
-  /* Monochrome defaults (A12): the product colours carry the palette. */
-  --c-paper: 244 244 242;      /* #F4F4F2 page */
-  --c-paper-deep: 233 233 230; /* image wells, skeletons */
+  --c-paper: 244 244 242;      /* #F4F4F2 chalk page */
+  --c-paper-deep: 234 233 229; /* #EAE9E5 image wells, skeletons */
   --c-ink: 11 11 11;           /* #0B0B0B text */
   --c-ink-soft: 52 52 50;      /* secondary emphasis */
   --c-muted: 107 107 103;      /* meta text, 4.9:1 on paper */
-  --c-line: 220 220 216;       /* hairlines */
-  --c-accent: 107 107 103;     /* #6B6B67 quiet grey, the single accent */
+  --c-line: 222 221 216;       /* hairlines */
+  --c-accent: 107 107 103;     /* quiet grey, the brand accent (owner-overridable) */
+  --c-clay: 168 146 122;       /* #A8927A warm earth, sampled from the backdrops */
+  --c-clay-soft: 230 223 213;  /* #E6DFD5 clay wash for wells and selected tints */
   --c-sale: 146 42 30;         /* oxblood, sale + error */
   --c-success: 52 88 60;
 
-  /* Font aliases; the root layout overrides them from settings.brand (A9). */
   --font-display: var(--font-jost);
   --font-sans: var(--font-inter-tight);
 
-  --gutter: 1.25rem;
-  --section: 4.5rem;
-  --header-h: 3.75rem;
+  --gutter: 1rem;
+  --section: 4rem;
+  --header-h: 3.5rem;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   color-scheme: light;
 }
 @media (min-width: 768px) {
-  :root { --gutter: 2rem; --section: 7rem; --header-h: 4.25rem; }
+  :root { --gutter: 2rem; --section: 6rem; --header-h: 4rem; }
 }
 @media (min-width: 1280px) {
-  :root { --gutter: 3rem; --section: 9rem; }
+  :root { --gutter: 2.5rem; --section: 8rem; }
 }
 
 @layer base {
   html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; }
   body {
-    @apply bg-paper text-body text-ink font-sans antialiased;
-    font-feature-settings: 'kern', 'liga', 'ss01';
+    @apply bg-paper text-small text-ink font-sans antialiased md:text-body;
+    font-feature-settings: 'kern', 'liga';
   }
-  h1, h2, h3, h4 { @apply font-display font-normal; text-wrap: balance; font-feature-settings: 'kern'; }
+  h1, h2, h3, h4 { @apply font-display font-light; text-wrap: balance; font-feature-settings: 'kern'; }
   p { text-wrap: pretty; }
   ::selection { @apply bg-ink text-paper; }
   :focus-visible { outline: 1px solid rgb(var(--c-ink)); outline-offset: 3px; }
   [data-scroll-locked] { overflow: hidden; }
+  img { -webkit-user-drag: none; }
 }
 
 @layer components {
   .container-page { @apply mx-auto w-full max-w-page px-gutter; }
-  .eyebrow { @apply font-sans text-micro uppercase text-muted; }
+  /* Small tracked caps: nav, labels, buttons. */
+  .eyebrow { @apply font-sans text-label uppercase text-muted; }
+  .label { @apply font-sans text-label uppercase text-ink; }
+  /* Garment care-label tag: the one signature detail (badges, status chips). */
+  .care-tag {
+    @apply inline-flex h-6 items-center border border-current px-2 font-sans text-[0.625rem] uppercase leading-none tracking-label;
+  }
+  .hairline { @apply border-line; }
   .link-underline {
     background-image: linear-gradient(currentColor, currentColor);
     background-size: 0% 1px;
     background-position: 0 100%;
     background-repeat: no-repeat;
-    transition: background-size 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition: background-size 260ms var(--ease-out);
   }
   .link-underline:hover, .link-underline:focus-visible, .link-underline[aria-current='page'] { background-size: 100% 1px; }
+  .link-quiet { @apply underline decoration-line decoration-1 underline-offset-4 transition-colors duration-fast hover:decoration-ink; }
+  .skeleton {
+    background: linear-gradient(90deg, rgb(var(--c-paper-deep)) 0%, rgb(var(--c-paper)) 50%, rgb(var(--c-paper-deep)) 100%);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
   .skip-link {
     @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-overlay focus:bg-ink focus:px-4 focus:py-2 focus:text-small focus:text-paper;
   }

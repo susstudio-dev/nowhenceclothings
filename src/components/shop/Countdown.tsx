@@ -29,15 +29,15 @@ export function Countdown({ releaseAt, className }: { releaseAt: string; classNa
   ];
   return (
     <div className={className}>
-      <p className="text-xs uppercase tracking-widest text-muted">
+      <p className="text-label uppercase text-muted">
         Releases <time dateTime={releaseAt}>{label} IST</time>
       </p>
       {/* Visual ticker hidden from AT; the sentence above is the accessible version. */}
-      <div aria-hidden className="mt-2 flex gap-4 font-display text-3xl tabular-nums">
+      <div aria-hidden className="mt-3 flex gap-6 font-display text-h3 font-light tabular-nums">
         {cells.map(([n, l]) => (
-          <span key={l} className="flex flex-col items-center">
+          <span key={l} className="flex flex-col items-start">
             {now ? String(n).padStart(2, '0') : '--'}
-            <span className="font-sans text-[10px] uppercase tracking-widest text-muted">{l}</span>
+            <span className="mt-1 font-sans text-[10px] uppercase tracking-label text-muted">{l}</span>
           </span>
         ))}
       </div>

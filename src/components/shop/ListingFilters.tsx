@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { SORT_OPTIONS, listingHref, type ListingFilters as Filters, type SortKey } from './merch';
 import type { Size } from '@/lib/schemas/common';
 import { cn } from '@/components/ui';
+import { FilterSheet } from './FilterSheet';
 
 type Params = Record<string, string | string[] | undefined>;
 
@@ -27,26 +28,17 @@ const PRICE_BANDS: { label: string; min?: string; max?: string }[] = [
 export function ListingFilters({ basePath, params, filters, sort, facets, count }: ListingFiltersProps) {
   const chip = (active: boolean) =>
     cn(
-      'inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 border px-3 text-xs uppercase tracking-widest',
+      'inline-flex min-h-[40px] min-w-[44px] items-center justify-center gap-2 border px-3 text-caption transition-colors duration-fast',
       active ? 'border-ink bg-ink text-paper' : 'border-line hover:border-ink',
     );
   const active = filters.sizes.length + filters.colours.length + (filters.minPrice != null || filters.maxPrice != null ? 1 : 0);
   const priceActive = (b: (typeof PRICE_BANDS)[number]) =>
     String((filters.minPrice ?? -100) / 100) === (b.min ?? '-1') && String((filters.maxPrice ?? -100) / 100) === (b.max ?? '-1');
 
-  return (
-    <details className="group mb-8 border-y border-line" open={active > 0}>
-      <summary className="flex min-h-[48px] cursor-pointer list-none items-center justify-between text-sm uppercase tracking-widest">
-        <span>
-          Filter &amp; sort{active > 0 && ` (${active})`}
-        </span>
-        <span className="text-muted normal-case tracking-normal" aria-live="polite">
-          {count} {count === 1 ? 'piece' : 'pieces'}
-        </span>
-      </summary>
-      <div className="grid gap-6 pb-6 md:grid-cols-4">
+  const body = (
+      <div className="space-y-8">
         <fieldset>
-          <legend className="mb-2 text-xs uppercase tracking-widest text-muted">Size</legend>
+          <legend className="mb-3 text-label uppercase text-muted">Size</legend>
           <div className="flex flex-wrap gap-2">
             {facets.sizes.map((s) => {
               const on = filters.sizes.includes(s);
@@ -59,7 +51,7 @@ export function ListingFilters({ basePath, params, filters, sort, facets, count 
           </div>
         </fieldset>
         <fieldset>
-          <legend className="mb-2 text-xs uppercase tracking-widest text-muted">Colour</legend>
+          <legend className="mb-3 text-label uppercase text-muted">Colour</legend>
           <div className="flex flex-wrap gap-2">
             {facets.colours.map((c) => {
               const on = filters.colours.includes(c.name.toLowerCase());
@@ -79,7 +71,7 @@ export function ListingFilters({ basePath, params, filters, sort, facets, count 
           </div>
         </fieldset>
         <fieldset>
-          <legend className="mb-2 text-xs uppercase tracking-widest text-muted">Price</legend>
+          <legend className="mb-3 text-label uppercase text-muted">Price</legend>
           <div className="flex flex-wrap gap-2">
             {PRICE_BANDS.map((b) => {
               const on = priceActive(b);
@@ -99,7 +91,7 @@ export function ListingFilters({ basePath, params, filters, sort, facets, count 
           </div>
         </fieldset>
         <fieldset>
-          <legend className="mb-2 text-xs uppercase tracking-widest text-muted">Sort</legend>
+          <legend className="mb-3 text-label uppercase text-muted">Sort</legend>
           <div className="flex flex-wrap gap-2">
             {SORT_OPTIONS.map((o) => (
               <Link
@@ -114,12 +106,26 @@ export function ListingFilters({ basePath, params, filters, sort, facets, count 
             ))}
           </div>
         </fieldset>
-        {active > 0 && (
-          <Link href={basePath} className="text-sm underline md:col-span-4">
-            Clear all filters
-          </Link>
-        )}
       </div>
-    </details>
+  );
+  const sortLabel = SORT_OPTIONS.find((o) => o.value === sort)?.label;
+  return (
+    <div className="mb-8 flex items-center justify-between gap-4 border-y border-line md:mb-10">
+      <FilterSheet
+        label={`Filter & sort${active > 0 ? ` (${active})` : ''}`}
+        footer={
+          <div className="flex items-center justify-between gap-4">
+            {active > 0 ? <Link href={basePath} className="link-underline text-label uppercase">Clear all</Link> : <span />}
+            <span className="text-caption text-muted">{count} {count === 1 ? 'piece' : 'pieces'}</span>
+          </div>
+        }
+      >
+        {body}
+      </FilterSheet>
+      <p className="text-caption text-muted" aria-live="polite">
+        {sort !== 'featured' && sortLabel ? `${sortLabel} · ` : ''}
+        {count} {count === 1 ? 'piece' : 'pieces'}
+      </p>
+    </div>
   );
 }

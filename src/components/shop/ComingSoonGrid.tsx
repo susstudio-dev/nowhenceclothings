@@ -18,12 +18,15 @@ export function ComingSoonSection({
 }) {
   if (!products.length) return null;
   return (
-    <section aria-labelledby="coming-soon-heading" className="mx-auto max-w-7xl px-4 py-16 md:px-8">
-      <div className="mb-8 flex items-baseline justify-between gap-4">
-        <h2 id="coming-soon-heading" className="font-display text-3xl">
-          {heading}
-        </h2>
-        <Link href="/coming-soon" className="text-sm underline">
+    <section aria-labelledby="coming-soon-heading" className="container-page py-section">
+      <div className="mb-8 flex items-end justify-between gap-6 border-b border-line pb-4 md:mb-10">
+        <div>
+          <p className="eyebrow">In the workroom</p>
+          <h2 id="coming-soon-heading" className="mt-3 font-display text-display-sm font-light">
+            {heading}
+          </h2>
+        </div>
+        <Link href="/coming-soon" className="link-underline shrink-0 text-label uppercase">
           See all
         </Link>
       </div>

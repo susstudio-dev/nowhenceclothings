@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { BlockRenderer } from '@/components/shop/BlockRenderer';
 import { ComingSoonSection } from '@/components/shop/ComingSoonGrid';
+import { PresaleHero } from '@/components/shop/PresaleHero';
+import { heroPresaleProduct } from '@/components/shop/quick-buy';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
 import { getSettings, getSiteContent } from '@/lib/content';
 import { productsFor, publicDrops } from '@/lib/launches-server';
@@ -14,25 +16,40 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: { absolute: home.seo.title ?? 'Nowhence — premium unisex clothing' }, description: home.seo.description?.trim() || DEFAULT_DESCRIPTION };
 }
 
-/** Home (S1): driven by site-content `home.blocks`, plus the A10 "Coming soon" section from Settings → Launches. */
+const isPlaceholderCopy = (s: string) => /placeholder/i.test(s);
+
+/**
+ * Home (S1, A16): when a presale / pre-booking piece is open it leads the page and can be bought in place;
+ * otherwise the editorial hero from site content leads. Then content blocks and the A10 "Coming soon" section.
+ */
 export default async function HomePage() {
   const [content, raw, inventory, settings] = await Promise.all([getSiteContent(), getCatalogue(), getInventory(), getSettings()]);
   const d = settings.launches;
   const now = new Date();
   // Only projected products reach rendering (A10 secrecy).
-  const catalogue = { ...raw, drops: publicDrops(raw.drops), products: productsFor(raw, d, 'shop', now) };
+  const products = productsFor(raw, d, 'shop', now);
+  const catalogue = { ...raw, drops: publicDrops(raw.drops), products };
   const soon = d.home.enabled ? productsFor(raw, d, 'home', now).slice(0, d.home.limit) : [];
-  // A12: a hero still on the placeholder image falls back to the bundled black polo photo.
-  const blocks = content.home.blocks.map((b) => (b.type === 'hero' && isPlaceholderMedia(b.media) ? { ...b, media: DEFAULT_HERO_MEDIA } : b));
+  const featured = heroPresaleProduct(products);
+
+  const blocks = content.home.blocks
+    // A12: a hero still on the placeholder image falls back to the bundled black polo photo.
+    .map((b) => (b.type === 'hero' && isPlaceholderMedia(b.media) ? { ...b, media: DEFAULT_HERO_MEDIA } : b))
+    // The footer already carries the newsletter; unfinished story copy never ships.
+    .filter((b) => b.type !== 'newsletter' && !(b.type === 'story' && isPlaceholderCopy(b.body)));
+  // The presale piece takes the lead slot in place of the editorial hero.
+  const ordered = featured ? blocks.filter((b) => b.type !== 'hero') : blocks;
+
   return (
     <>
-      <BlockRenderer blocks={blocks} ctx={{ catalogue, inventory }} />
-      <ComingSoonSection heading={d.home.heading} products={soon} inventory={inventory} drops={publicDrops(raw.drops)} />
-      {catalogue.products.length === 0 && soon.length === 0 && (
-        <section className="mx-auto max-w-3xl px-4 py-24 text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-muted">Nowhence</p>
-          <h2 className="mt-4 font-display text-3xl md:text-4xl">The first drop is almost here.</h2>
-          <p className="mt-4 text-muted">Considered unisex essentials, made in small runs. Join the list below to hear first.</p>
+      {featured && <PresaleHero product={featured} inventory={inventory} />}
+      <BlockRenderer blocks={ordered} ctx={{ catalogue, inventory }} firstIsHero={!featured} />
+      <ComingSoonSection heading={d.home.heading} products={soon} inventory={inventory} drops={catalogue.drops} />
+      {products.length === 0 && soon.length === 0 && (
+        <section className="container-page py-section text-center">
+          <p className="eyebrow">Nowhence</p>
+          <h2 className="mx-auto mt-4 max-w-xl text-balance font-display text-display-sm font-light">The first drop is almost here.</h2>
+          <p className="mx-auto mt-4 max-w-sm text-small text-muted">Considered unisex essentials, made in small runs. Join the list below to hear first.</p>
         </section>
       )}
     </>

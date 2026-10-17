@@ -28,15 +28,15 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
+    <form onSubmit={onSubmit} className="space-y-5" noValidate>
       <Input label="Email" name="email" type="email" autoComplete="username" required />
       <Input label="Password" name="password" type="password" autoComplete="current-password" required />
       {error && (
-        <p role="alert" className="text-sm text-sale">
+        <p role="alert" className="border border-sale/40 bg-sale/[0.04] px-3 py-2 text-sm text-sale">
           {error}
         </p>
       )}
-      <Button type="submit" fullWidth loading={busy}>
+      <Button type="submit" size="lg" fullWidth loading={busy}>
         Sign in
       </Button>
     </form>
@@ -47,7 +47,7 @@ export function LogoutButton() {
   return (
     <button
       type="button"
-      className="text-sm underline"
+      className="hover:text-ink focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
       onClick={async () => {
         await fetch('/api/admin/auth/logout', { method: 'POST' });
         window.location.href = '/admin/login';

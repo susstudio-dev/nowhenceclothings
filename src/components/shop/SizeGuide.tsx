@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Button, Dialog } from '@/components/ui';
+import { Sheet } from '@/components/ui/Sheet';
 import type { SizeChart } from '@/lib/schemas/catalogue';
 import { sizeChartTable } from './merch';
 
@@ -16,58 +16,56 @@ export function SizeChartTable({ chart }: { chart: SizeChart }) {
             type="button"
             aria-pressed={unit === u}
             onClick={() => setUnit(u)}
-            className={'min-h-[44px] min-w-[44px] border px-3 text-xs uppercase ' + (unit === u ? 'border-ink bg-ink text-paper' : 'border-line')}
+            className={'min-h-[40px] min-w-[48px] border px-3 text-label uppercase transition-colors duration-fast ' + (unit === u ? 'border-ink bg-ink text-paper' : 'border-line hover:border-ink')}
           >
             {u}
           </button>
         ))}
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm tabular-nums">
+        <table className="w-full text-left text-small tabular-nums">
           <caption className="sr-only">
             {chart.name}, measurements in {unit === 'cm' ? 'centimetres' : 'inches'}
           </caption>
           <thead>
             <tr className="border-b border-line">
-              <th scope="col" className="py-2 pr-4">Size</th>
+              <th scope="col" className="py-3 pr-4 text-label font-normal uppercase text-muted">Size</th>
               {chart.measurements.map((m) => (
-                <th key={m} scope="col" className="py-2 pr-4 capitalize">{m}</th>
+                <th key={m} scope="col" className="py-3 pr-4 text-label font-normal uppercase text-muted">{m}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.size} className="border-b border-line">
-                <th scope="row" className="py-2 pr-4">{r.size}</th>
+                <th scope="row" className="py-3 pr-4 font-medium">{r.size}</th>
                 {r.values.map((v, i) => (
-                  <td key={i} className="py-2 pr-4">{v ?? '–'}</td>
+                  <td key={i} className="py-3 pr-4">{v ?? '–'}</td>
                 ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-xs text-muted">
+      <p className="mt-4 text-caption text-muted">
         Garment measurements, laid flat. Unisex fit{chart.modelNote ? ` · ${chart.modelNote}` : ''}.
       </p>
     </div>
   );
 }
 
-/** "Size guide" link that opens the chart in a dialog (S3). */
+/** "Size guide" link that opens the chart in a sheet (S3). */
 export function SizeGuide({ chart }: { chart: SizeChart }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant="link" size="sm" onClick={() => setOpen(true)}>
+      <button type="button" onClick={() => setOpen(true)} className="link-underline text-caption text-ink-soft">
         Size guide
-      </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Size guide" description={chart.name}>
+      </button>
+      <Sheet open={open} onClose={() => setOpen(false)} title="Size guide">
+        <p className="mb-6 text-small text-muted">{chart.name}</p>
         <SizeChartTable chart={chart} />
-        <Button variant="secondary" className="mt-4" onClick={() => setOpen(false)}>
-          Close
-        </Button>
-      </Dialog>
+      </Sheet>
     </>
   );
 }

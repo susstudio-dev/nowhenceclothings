@@ -2,7 +2,7 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { cn } from './cn';
 import { Spinner } from './Spinner';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'link';
+export type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'ghost' | 'link' | 'inverse';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -15,26 +15,38 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  'relative inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-none font-sans ' +
-  'transition-[background-color,color,border-color,opacity,transform] duration-base ease-out ' +
+  'relative inline-flex select-none items-center justify-center gap-2.5 whitespace-nowrap rounded-none font-sans font-medium ' +
+  'transition-[background-color,color,border-color,opacity,transform] duration-base ease-out active:scale-[0.99] ' +
   'focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[3px] focus-visible:outline-ink ' +
-  'disabled:cursor-not-allowed disabled:opacity-40';
+  'disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100';
 
-const variants: Record<ButtonVariant, string> = {
-  primary: 'border border-ink bg-ink text-paper uppercase tracking-[0.12em] hover:bg-ink-soft active:translate-y-px',
-  secondary:
-    'border border-ink bg-transparent text-ink uppercase tracking-[0.12em] hover:bg-ink hover:text-paper active:translate-y-px',
-  ghost: 'border border-transparent bg-transparent text-ink uppercase tracking-[0.12em] hover:border-line active:translate-y-px',
-  link: 'h-auto p-0 text-small text-ink underline decoration-1 underline-offset-4 hover:decoration-transparent',
+const caps = 'uppercase tracking-label';
+
+/** Variant classes; exported so links can look like buttons (see ButtonLink). */
+export const buttonVariants: Record<ButtonVariant, string> = {
+  primary: `${caps} border border-ink bg-ink text-paper hover:bg-ink-soft hover:border-ink-soft`,
+  secondary: `${caps} border border-ink/80 bg-transparent text-ink hover:bg-ink hover:text-paper`,
+  quiet: `${caps} border border-line bg-paper text-ink hover:border-ink`,
+  ghost: `${caps} border border-transparent bg-transparent text-ink hover:bg-ink/[0.04]`,
+  inverse: `${caps} border border-paper bg-paper text-ink hover:bg-transparent hover:text-paper`,
+  link: 'h-auto p-0 text-small text-ink underline decoration-ink/30 decoration-1 underline-offset-[5px] hover:decoration-ink',
 };
 
-const sizes: Record<ButtonSize, string> = {
-  sm: 'h-9 px-4 text-micro',
-  md: 'h-12 px-6 text-caption',
-  lg: 'h-14 px-8 text-caption',
+export const buttonSizes: Record<ButtonSize, string> = {
+  sm: 'h-9 px-4 text-[0.625rem]',
+  md: 'h-12 px-7 text-label',
+  lg: 'h-14 px-9 text-label',
 };
 
-/** Square-cornered, uppercase-tracked button. `link` renders as inline underlined text. */
+/** Class string for a button-styled element (anchors, Next links). */
+export function buttonClass(variant: ButtonVariant = 'primary', size: ButtonSize = 'md', fullWidth = false): string {
+  return [base, buttonVariants[variant], variant !== 'link' ? buttonSizes[size] : '', fullWidth ? 'w-full' : ''].join(' ');
+}
+
+/**
+ * Square-cornered, tracked-caps button. primary = ink fill (one per view), secondary = ink outline,
+ * quiet = hairline on paper, ghost = no border, inverse = for dark imagery, link = inline underline.
+ */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
     variant = 'primary',
@@ -61,8 +73,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       data-size={size}
       className={cn(
         base,
-        variants[variant],
-        variant !== 'link' && sizes[size],
+        buttonVariants[variant],
+        variant !== 'link' && buttonSizes[size],
         fullWidth && 'w-full',
         loading && 'disabled:opacity-100',
         className,

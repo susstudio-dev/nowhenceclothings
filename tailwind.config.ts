@@ -16,6 +16,9 @@ const config: Config = {
         accent: 'rgb(var(--c-accent) / <alpha-value>)',
         sale: 'rgb(var(--c-sale) / <alpha-value>)',
         success: 'rgb(var(--c-success) / <alpha-value>)',
+        // Warm earth neutral sampled from the product backdrops (A17). Wells, hover tints, selected states.
+        clay: 'rgb(var(--c-clay) / <alpha-value>)',
+        'clay-soft': 'rgb(var(--c-clay-soft) / <alpha-value>)',
       },
       fontFamily: {
         display: ['var(--font-display)', 'system-ui', 'sans-serif'],
@@ -32,6 +35,10 @@ const config: Config = {
         h3: ['1.9375rem', { lineHeight: '2.375rem', letterSpacing: '-0.015em' }],
         h2: ['2.4375rem', { lineHeight: '2.75rem', letterSpacing: '-0.02em' }],
         h1: ['3.0625rem', { lineHeight: '3.375rem', letterSpacing: '-0.02em' }],
+        // Restrained display sizes (Jost light, tight leading). Use sparingly.
+        'display-sm': ['clamp(1.75rem, 3.2vw, 2.5rem)', { lineHeight: '1.08', letterSpacing: '-0.015em' }],
+        display: ['clamp(2.25rem, 5vw, 4rem)', { lineHeight: '1.02', letterSpacing: '-0.02em' }],
+        label: ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0.18em' }],
         hero: ['clamp(2.75rem, 7vw, 5.75rem)', { lineHeight: '1', letterSpacing: '-0.02em' }],
       },
       spacing: {
@@ -39,6 +46,8 @@ const config: Config = {
         section: 'var(--section)',
         header: 'var(--header-h)',
       },
+      letterSpacing: { label: '0.18em', wide: '0.12em', mark: '0.32em' },
+      aspectRatio: { garment: '4 / 5', portrait: '3 / 4', landscape: '3 / 2', banner: '16 / 9' },
       maxWidth: {
         page: '90rem',
         prose: '38rem',
@@ -62,6 +71,7 @@ const config: Config = {
         'slide-in-right': { from: { transform: 'translateX(100%)' }, to: { transform: 'translateX(0)' } },
         'slide-in-left': { from: { transform: 'translateX(-100%)' }, to: { transform: 'translateX(0)' } },
         'slide-in-up': { from: { transform: 'translateY(100%)' }, to: { transform: 'translateY(0)' } },
+        shimmer: { from: { backgroundPosition: '200% 0' }, to: { backgroundPosition: '-200% 0' } },
         'rise-in': {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
@@ -72,9 +82,10 @@ const config: Config = {
         'slide-in-right': 'slide-in-right 300ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'slide-in-left': 'slide-in-left 300ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'slide-in-up': 'slide-in-up 300ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        shimmer: 'shimmer 1.6s linear infinite',
         'rise-in': 'rise-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both',
       },
-      zIndex: { header: '40', overlay: '50' },
+      zIndex: { header: '40', overlay: '50', toast: '60' },
     },
   },
   plugins: [],

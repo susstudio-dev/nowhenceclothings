@@ -80,7 +80,7 @@ export function MediaPickerField({
             <span className="text-xs text-muted">None</span>
           )}
         </div>
-        <button type="button" disabled={disabled} className="border border-line px-3 py-1.5 text-sm" onClick={() => setOpen((o) => !o)}>
+        <button type="button" disabled={disabled} className="h-8 border border-line px-3 text-[11px] uppercase tracking-label transition-colors hover:border-ink" onClick={() => setOpen((o) => !o)}>
           {open ? 'Close library' : 'Choose from library'}
         </button>
         <label className={`cursor-pointer border border-dashed border-line px-3 py-1.5 text-sm ${disabled ? 'pointer-events-none opacity-50' : ''}`}>

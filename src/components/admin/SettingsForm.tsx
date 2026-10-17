@@ -8,6 +8,7 @@ import { adminFetch, toPaise, toRupees } from './api-client';
 import { MediaPickerField } from './MediaPicker';
 import { LaunchSettingsPanel } from './LaunchSettingsPanel';
 import { mediaPreviewSrc } from './MediaUploader';
+import { useMsgToast } from './useMsgToast';
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'brand', label: 'Brand' },
@@ -18,7 +19,7 @@ const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'launches', label: 'Launches' },
 ];
 
-const textarea = 'w-full border border-line bg-paper px-3 py-2 text-sm';
+const textarea = 'w-full border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none';
 
 function ColourField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
@@ -59,6 +60,7 @@ export function SettingsForm({
   const [s, setS] = useState(initial);
   const [tab, setTab] = useState<SettingsTab>(initialTab);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useMsgToast(msg);
   const [busy, setBusy] = useState(false);
   const sec = <K extends keyof SettingsDoc>(k: K, patch: Partial<SettingsDoc[K]>) =>
     setS((cur) => ({ ...cur, [k]: { ...(cur[k] as object), ...patch } }));

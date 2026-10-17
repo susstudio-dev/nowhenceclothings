@@ -90,7 +90,7 @@ export function MediaListEditor({
 
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm font-medium">{label}</legend>
+      <legend className="mb-3 text-[11px] font-medium uppercase tracking-label text-muted">{label}</legend>
       <ul className="flex flex-wrap gap-3">
         {value.map((m, i) => (
           <li

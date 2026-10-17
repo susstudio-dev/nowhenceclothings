@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui';
 import { adminFetch } from './api-client';
+import { useMsgToast } from './useMsgToast';
 
 /** F8: retry the stock decrement for a paid order missing stockCommittedAt. */
 export function CommitStockButton({ orderId }: { orderId: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useMsgToast(msg);
   return (
     <div className="space-y-2 border border-sale p-4 text-sm">
       <p className="font-medium text-sale">Stock was not deducted for this paid order.</p>

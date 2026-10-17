@@ -15,18 +15,18 @@ export function MobileNav({ id, open, onClose, nav }: MobileNavProps) {
   return (
     <Drawer open={open} onClose={onClose} title="Menu" side="left">
       <nav id={id} aria-label="Mobile">
-        <ul className="flex flex-col gap-6">
+        <ul className="flex flex-col divide-y divide-line border-y border-line">
           {nav.map((item, i) => (
             <li
               key={item.href}
-              className="animate-rise-in"
+              className="animate-rise-in py-4"
               style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}
             >
-              <Link href={item.href} onClick={onClose} className="font-display text-h3 text-ink">
+              <Link href={item.href} onClick={onClose} className="flex items-center justify-between font-display text-[1.625rem] font-light leading-tight text-ink">
                 {item.label}
               </Link>
               {item.children.length > 0 && (
-                <ul className="mt-3 flex flex-col gap-2">
+                <ul className="mt-3 flex flex-col gap-2 pl-0.5">
                   {item.children.map((c) => (
                     <li key={c.href}>
                       <Link href={c.href} onClick={onClose} className="text-small text-muted hover:text-ink">
@@ -39,7 +39,7 @@ export function MobileNav({ id, open, onClose, nav }: MobileNavProps) {
             </li>
           ))}
         </ul>
-        <div className="mt-12 border-t border-line pt-6">
+        <div className="mt-10 flex gap-6">
           <Link href="/search" onClick={onClose} className="eyebrow hover:text-ink">
             Search
           </Link>

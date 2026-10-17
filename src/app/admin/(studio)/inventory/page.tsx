@@ -1,8 +1,8 @@
-import Link from 'next/link';
 import { requireCapability } from '@/lib/guard';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
 import { stockRows } from '@/lib/admin/catalogue-mutations';
 import { InventoryTable } from '@/components/admin/InventoryTable';
+import { PageHeader, EmptyState, Tabs } from '@/components/admin/kit';
 
 export const metadata = { title: 'Inventory' };
 
@@ -13,16 +13,16 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
   const rows = stockRows(cat, inv, { lowOnly: low === '1' });
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-3xl">Inventory</h1>
-      <nav className="flex gap-4 text-sm" aria-label="Filter">
-        <Link href="/admin/inventory" className={low === '1' ? 'text-muted' : 'underline'}>
-          All variants
-        </Link>
-        <Link href="/admin/inventory?low=1" className={low === '1' ? 'underline' : 'text-muted'}>
-          Low stock
-        </Link>
-      </nav>
-      {rows.length === 0 ? <p className="text-sm text-muted">Nothing here.</p> : <InventoryTable rows={rows} canEdit />}
+      <PageHeader title="Inventory" description="Stock per colour and size. Variants at or below their threshold count as low." />
+      <Tabs
+        label="Filter"
+        current={low === '1' ? 'low' : 'all'}
+        items={[
+          { key: 'all', label: 'All variants', href: '/admin/inventory' },
+          { key: 'low', label: 'Low stock', href: '/admin/inventory?low=1' },
+        ]}
+      />
+      {rows.length === 0 ? <EmptyState title={low === '1' ? 'Nothing is running low' : 'No variants yet'}>{low === '1' ? 'Every variant is above its low-stock threshold.' : 'Add colours and sizes to a product to track stock here.'}</EmptyState> : <InventoryTable rows={rows} canEdit />}
     </div>
   );
 }
