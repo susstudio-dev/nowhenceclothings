@@ -61,7 +61,7 @@ Phase 5  Integration & QA  ◄─────────────┘  (qa-re
 - [ ] Typecheck, lint, tests, OpenNext build green
 - [ ] End-to-end walk: browse → cart → checkout (Razorpay test mode) → admin marks shipped
 - [ ] Security review (auth, webhook, CAS, CSP), a11y + perf audit
-- [ ] Write `docs/QA-REPORT.md` with findings + fixes
+- [x] Write `docs/QA-REPORT.md` with findings + fixes
 
 ## WS-F — Owner customisation (A9) · agent `admin-engineer`
 - [ ] Settings schema: brand (logo, favicon, wordmark, fonts, colours), returns policy, legal (address, jurisdiction, dates), email sender name
