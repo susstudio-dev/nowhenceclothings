@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Image } from '@/components/ui';
 import type { Article } from '@/lib/schemas/site-content';
+import { buildMetadata } from '@/lib/seo';
 import { BlockRenderer, type BlockContext } from './BlockRenderer';
 
 /** Published articles, newest first. */
@@ -12,12 +13,16 @@ export function publishedArticles(list: Article[], now: Date = new Date()): Arti
 }
 
 export function articleMetadata(a: Article, base: string): Metadata {
-  return {
-    title: a.seo.title ?? a.title,
-    description: a.seo.description ?? (a.excerpt || undefined),
-    alternates: { canonical: `${base}/${a.slug}` },
-    openGraph: { type: 'article', title: a.title, publishedTime: a.publishedAt },
-  };
+  return buildMetadata({
+    title: a.title,
+    path: `${base}/${a.slug}`,
+    seo: a.seo,
+    description: a.excerpt,
+    image: a.cover,
+    type: 'article',
+    publishedTime: a.publishedAt,
+    modifiedTime: a.updatedAt,
+  });
 }
 
 export function ArticleIndex({ title, intro, base, articles }: { title: string; intro?: string; base: string; articles: Article[] }) {

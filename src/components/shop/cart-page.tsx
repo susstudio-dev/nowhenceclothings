@@ -24,7 +24,7 @@ export function CartPageClient() {
         </div>
         <CartLines lines={cart.lines} quote={quote} />
       </section>
-      <aside className="space-y-6 lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start" aria-label="Summary">
+      <aside className="space-y-6 lg:sticky lg:top-[calc(var(--sticky-offset)+2rem)] lg:self-start" aria-label="Summary">
         <p className="border-b border-ink pb-3 text-label uppercase text-ink">Summary</p>
         <FreeShippingProgress quote={quote} />
         <PresaleNotice quote={quote} />

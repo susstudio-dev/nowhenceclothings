@@ -10,6 +10,9 @@ import { LaunchSettingsPanel } from './LaunchSettingsPanel';
 import { mediaPreviewSrc } from './MediaUploader';
 import { useMsgToast } from './useMsgToast';
 import { META_PIXEL_ID_RE } from '@/lib/analytics/meta';
+import { INDEXNOW_KEY_RE } from '@/lib/indexnow';
+import { usableFavicon } from '@/lib/icons';
+import { extractVerificationToken } from '@/lib/seo';
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'brand', label: 'Brand' },
@@ -71,6 +74,8 @@ export function SettingsForm({
 
   const checks = brandContrastChecks(s.brand.colours);
   const pixelOk = !s.analytics.metaPixelId.trim() || META_PIXEL_ID_RE.test(s.analytics.metaPixelId.trim());
+  const indexNowOk = !s.seo.indexNowKey.trim() || INDEXNOW_KEY_RE.test(s.seo.indexNowKey.trim());
+  const faviconTooSmall = !!s.brand.favicon && !usableFavicon(s.brand.favicon);
   const readiness = launchReadiness(s);
   const missingByTab = (t: SettingsTab) => readiness.filter((r) => r.tab === t && !r.ok).length;
 
@@ -123,12 +128,18 @@ export function SettingsForm({
           />
           <MediaPickerField
             label="Favicon / app icon"
-            hint="Square, at least 512×512. Served at /icon.png."
+            hint="Optional. Leave empty to use the Nowhence symbol. Square, at least 512×512 (never under 48×48). Served at /icon.png."
             value={s.brand.favicon}
             disabled={!canEdit}
             previewClassName="h-12 w-12 object-contain"
             onChange={(m) => sec('brand', { favicon: m })}
           />
+          {faviconTooSmall && (
+            <p role="alert" className="border border-sale p-3 text-sm text-sale">
+              This image is smaller than 48×48, too small for browser tabs and Google results. The storefront shows the Nowhence symbol instead until
+              you upload a larger one or remove this.
+            </p>
+          )}
           <div className="grid gap-4 md:grid-cols-2">
             {(['displayFont', 'bodyFont'] as const).map((k) => (
               <label key={k} className="flex flex-col gap-1 text-sm">
@@ -280,6 +291,35 @@ export function SettingsForm({
           )}
         </p>
         <p className="text-xs text-muted">Coming-soon pieces with a hidden title or price are never sent to Meta.</p>
+        <fieldset className="space-y-4 border-t border-line pt-6">
+          <legend className="mb-2 text-sm font-medium">Search engines</legend>
+          <Input
+            label="Google Search Console verification"
+            hint={'Search Console → Settings → Ownership verification → HTML tag. Paste the whole tag or just the content="…" value.'}
+            autoComplete="off"
+            maxLength={400}
+            value={s.seo.googleSiteVerification}
+            onChange={(e) => sec('seo', { googleSiteVerification: extractVerificationToken(e.target.value) })}
+          />
+          <Input
+            label="Bing Webmaster verification"
+            hint="Optional. Bing Webmaster Tools → HTML meta tag (msvalidate.01)."
+            autoComplete="off"
+            maxLength={400}
+            value={s.seo.bingSiteVerification}
+            onChange={(e) => sec('seo', { bingSiteVerification: extractVerificationToken(e.target.value) })}
+          />
+          <Input
+            label="IndexNow key"
+            hint="Optional. 8 to 128 letters, digits or dashes. Served at /{key}.txt; changed pages are sent to Bing and others when you publish. The INDEXNOW_KEY secret overrides this."
+            autoComplete="off"
+            maxLength={128}
+            value={s.seo.indexNowKey}
+            error={indexNowOk ? undefined : 'Use 8 to 128 letters, digits or dashes.'}
+            onChange={(e) => sec('seo', { indexNowKey: e.target.value.replace(/\s+/g, '') })}
+          />
+          <p className="text-xs text-muted">Sitemap: https://nowhenceclothings.com/sitemap.xml. Pieces that are coming soon are never listed or submitted.</p>
+        </fieldset>
       </div>
     ),
     email: (

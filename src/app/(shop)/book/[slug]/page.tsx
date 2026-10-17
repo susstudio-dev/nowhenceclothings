@@ -59,7 +59,7 @@ export default async function BookPage({ params, searchParams }: Props) {
 
   return (
     <div className="container-page grid gap-10 pb-section pt-6 md:pt-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
-      <div className="lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:self-start">
+      <div className="lg:sticky lg:top-[calc(var(--sticky-offset)+1.5rem)] lg:self-start">
         <div className="relative aspect-garment overflow-hidden bg-paper-deep">
           {img && <Image media={img} sizes="(min-width: 1024px) 58vw, 100vw" priority className="absolute inset-0 h-full w-full object-cover" />}
         </div>

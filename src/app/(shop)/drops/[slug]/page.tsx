@@ -7,6 +7,8 @@ import { NotifyMe } from '@/components/shop/NotifyMe';
 import { ProductGrid } from '@/components/shop/ProductCard';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
 import { getStorefrontProducts, publicDrops } from '@/lib/launches-server';
+import { isPlaceholderMedia } from '@/lib/brand-defaults';
+import { buildMetadata, paths, plainText } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,11 +18,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const drop = (await getCatalogue()).drops.find((d) => d.slug === slug);
   if (!drop) return {};
-  return {
-    title: drop.seo.title ?? drop.name,
-    description: drop.seo.description ?? (drop.description.slice(0, 160) || undefined),
-    alternates: { canonical: `/drops/${drop.slug}` },
-  };
+  return buildMetadata({
+    title: drop.name,
+    path: paths.drop(drop.slug),
+    seo: drop.seo,
+    description: plainText(drop.description),
+    descriptionSupport: `${drop.name}: a Nowhence drop. Small runs of heavyweight unisex clothing, designed in India.`,
+    image: isPlaceholderMedia(drop.heroMedia) ? undefined : drop.heroMedia,
+  });
 }
 
 /** Drop page (S4): countdown + notify before release; shoppable grid after. */

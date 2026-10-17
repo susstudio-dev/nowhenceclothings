@@ -5,6 +5,7 @@ import { ProductBody, ProductStatusInput } from '@/lib/admin/inputs';
 import { saveProduct } from '@/lib/admin/products';
 import { setProductStatus } from '@/lib/admin/catalogue-mutations';
 import { purgeEdge } from '@/lib/edge-purge';
+import { notifyProductsChanged } from '@/lib/indexnow-server';
 import { getCatalogue } from '@/lib/catalogue';
 import { getSettings } from '@/lib/content';
 import { bookingsToMove, reapplyAfterCatalogueChange } from '@/lib/bookings-server';
@@ -29,6 +30,7 @@ export async function PUT(req: Request, { params }: Ctx) {
       await log('bookings_sale_date_moved', `catalogue.json#product:${id}`, `${bookings.moved.length} moved, ${bookings.emailed.length} emailed: ${bookings.moved.join(' ')}`.slice(0, 500));
     }
     await purgeEdge({ productSlugs: [product.slug] });
+    await notifyProductsChanged([id]);
     return json({ product, bookings });
   });
 }
@@ -57,6 +59,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     await writeJsonCas(CATALOGUE_KEY, CatalogueDoc, (cur) => setProductStatus(cur ?? CatalogueDoc.parse({}), id, status));
     await log('product_status', `catalogue.json#product:${id}`, status);
     await purgeEdge();
+    await notifyProductsChanged([id]);
     return json({ ok: true, status });
   });
 }

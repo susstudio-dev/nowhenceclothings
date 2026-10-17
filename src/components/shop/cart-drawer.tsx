@@ -81,17 +81,37 @@ export function CartDrawer() {
 
 /**
  * Header bag button with live count; also mounts the drawer. Pass as
- * `<Header cartSlot={<CartButton />} />`.
+ * `<Header cartSlot={<CartButton />} />`. `variant="text"` reads "Bag 2" in tracked caps
+ * (the storefront header); `icon` is the bag glyph with a count dot.
  */
-export function CartButton({ className }: { className?: string }) {
+export function CartButton({ className, variant = 'icon' }: { className?: string; variant?: 'icon' | 'text' }) {
   const { count } = useCart();
+  const label = `Open bag, ${count} item${count === 1 ? '' : 's'}`;
+  if (variant === 'text') {
+    return (
+      <>
+        <button
+          type="button"
+          className={className ?? 'inline-flex h-10 items-center gap-[0.55em] font-sans text-label uppercase text-current transition-opacity duration-fast hover:opacity-60'}
+          onClick={openCart}
+          aria-label={label}
+        >
+          <span aria-hidden="true">Bag</span>
+          <span aria-hidden="true" className="tabular-nums">
+            {count}
+          </span>
+        </button>
+        <CartDrawer />
+      </>
+    );
+  }
   return (
     <>
       <button
         type="button"
         className={className ?? 'relative inline-flex h-10 min-w-10 items-center justify-center text-ink transition-opacity duration-fast hover:opacity-60'}
         onClick={openCart}
-        aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}
+        aria-label={label}
       >
         <IconBag aria-hidden="true" />
         {count > 0 && (

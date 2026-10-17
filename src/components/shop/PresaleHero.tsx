@@ -27,6 +27,7 @@ export function PresaleHero({ product }: { product: PublicProduct }) {
   return (
     <section
       aria-labelledby="hero-title"
+      data-chrome-hero=""
       className="relative isolate flex h-[75svh] min-h-[30rem] items-end overflow-hidden bg-ink text-paper md:h-[calc(100svh-6rem)] md:max-h-[68rem] md:min-h-[38rem]"
     >
       <Image

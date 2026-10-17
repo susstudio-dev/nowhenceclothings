@@ -1,6 +1,7 @@
 import { adminRoute, json } from '@/lib/admin/api';
 import { publishDraft } from '@/lib/admin/store';
 import { purgeEdge } from '@/lib/edge-purge';
+import { notifyContentPublished } from '@/lib/indexnow-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,7 @@ export async function POST() {
     const { snapshot } = await publishDraft(admin.email);
     await log('content_publish', 'site-content.json', snapshot ?? 'first publish');
     await purgeEdge();
+    await notifyContentPublished();
     return json({ ok: true, snapshot });
   });
 }

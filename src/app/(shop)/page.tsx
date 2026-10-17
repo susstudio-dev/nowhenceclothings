@@ -8,13 +8,19 @@ import { getCatalogue, getInventory } from '@/lib/catalogue';
 import { getSettings, getSiteContent } from '@/lib/content';
 import { productsFor, publicDrops } from '@/lib/launches-server';
 import { DEFAULT_HERO_MEDIA, isPlaceholderMedia } from '@/lib/brand-defaults';
-import { DEFAULT_DESCRIPTION } from '@/lib/seo';
+import { DEFAULT_DESCRIPTION, buildMetadata, paths } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { home } = await getSiteContent();
-  return { title: { absolute: home.seo.title ?? 'Nowhence — premium unisex clothing' }, description: home.seo.description?.trim() || DEFAULT_DESCRIPTION };
+  return buildMetadata({
+    title: 'Nowhence | Considered unisex clothing, designed in India',
+    exactTitle: true,
+    path: paths.home(),
+    seo: home.seo,
+    description: DEFAULT_DESCRIPTION,
+  });
 }
 
 const isPlaceholderCopy = (s: string) => /placeholder/i.test(s);

@@ -77,6 +77,52 @@
   }
 }
 
+/* Site header (chrome/Header). One element, four states, all CSS so the
+   server render is already right (no flash, no layout shift):
+   - default: paper, ink type; the hairline shows once the page scrolls.
+   - over a hero (`#main > [data-chrome-hero]:first-child`): it overlays the
+     photograph, transparent with paper type and a soft legibility shade, and
+     pulls the page up under itself with a negative margin.
+   - [data-solid]: past the hero or menu open, back to paper.
+   - [data-hidden]: slid up while reading down; returns on the first scroll up.
+   Only opacity, transform and colour move. */
+.site-header {
+  --hdr-fg: rgb(var(--c-ink));
+  color: var(--hdr-fg);
+  transition: transform 300ms var(--ease-out), color 220ms var(--ease-out);
+}
+.site-header[data-hidden] { transform: translate3d(0, -100%, 0); }
+.site-header .hdr-bg { opacity: 1; transition: opacity 220ms var(--ease-out); }
+.site-header .hdr-rule { opacity: 0; transition: opacity 220ms var(--ease-out); }
+.site-header[data-scrolled] .hdr-rule,
+.site-header[data-open] .hdr-rule { opacity: 1; }
+/* Legibility over photographs: ink fading to nothing below the bar. Never a box. */
+.site-header .hdr-shade {
+  opacity: 0;
+  height: calc(var(--header-h) + 3.5rem);
+  background: rgb(var(--c-ink) / 0.42);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
+  transition: opacity 220ms var(--ease-out);
+}
+.hdr-on-hero { display: none; }
+body:has(#main > [data-chrome-hero]:first-child) .site-header { margin-bottom: calc(var(--header-h) * -1); }
+body:has(#main > [data-chrome-hero]:first-child) .site-header:not([data-solid]) {
+  --hdr-fg: rgb(var(--c-paper));
+}
+body:has(#main > [data-chrome-hero]:first-child) .site-header:not([data-solid]) .hdr-bg,
+body:has(#main > [data-chrome-hero]:first-child) .site-header:not([data-solid]) .hdr-rule { opacity: 0; }
+body:has(#main > [data-chrome-hero]:first-child) .site-header:not([data-solid]) .hdr-shade { opacity: 1; }
+body:has(#main > [data-chrome-hero]:first-child) .site-header:not([data-solid]) .hdr-on-hero { display: inline-flex; }
+body:has(#main > [data-chrome-hero]:first-child) .site-header:not([data-solid]) .hdr-on-paper { display: none; }
+.site-header :focus-visible { outline-color: var(--hdr-fg); }
+/* Header actions inherit the state colour (cart slot included). */
+.site-header .hdr-bar { color: var(--hdr-fg); }
+
+/* The status dot breathes slowly: the one ambient motion, off under reduced motion. */
+@keyframes nh-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.nh-live { animation: nh-breathe 2.8s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+
 /* Brand motif: the ring with three button-holes from the O of the wordmark. */
 @keyframes nh-turn { to { transform: rotate(360deg); } }
 .nh-ring-spin { animation: nh-turn 1.2s linear infinite; transform-origin: 50% 50%; }
@@ -89,3 +135,7 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Sticky side columns follow the header: below it when shown, to the top when it hides on scroll. */
+:root { --sticky-offset: var(--header-h); }
+:root:has(.site-header[data-hidden]) { --sticky-offset: 0px; }

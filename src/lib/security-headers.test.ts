@@ -59,4 +59,27 @@ describe('security + cache headers (next.config.mjs)', async () => {
     const r = rules.find((x) => JSON.stringify(x.missing ?? []).includes('"host"'))!;
     expect(r.headers).toContainEqual({ key: 'X-Robots-Tag', value: 'noindex, nofollow' });
   });
+  it('keeps booking, payment and search pages out of the index; bookings and payments are never cached', () => {
+    for (const s of ['/book/:path*', '/pay/:path*']) {
+      expect(header(s, 'Cache-Control')).toBe('no-store, private');
+      expect(header(s, 'X-Robots-Tag')).toContain('noindex');
+    }
+    expect(header('/search', 'X-Robots-Tag')).toBe('noindex, follow');
+    // The shared-cache rule for public HTML no longer matches them.
+    const pub = rules.find((r) => r.headers.some((h) => h.value.includes('s-maxage')))!;
+    const re = new RegExp(`^${pub.source}$`);
+    expect(re.test('/book/polo')).toBe(false);
+    expect(re.test('/pay/abc')).toBe(false);
+    expect(re.test('/booking-polo')).toBe(true);
+  });
+
+  it('routes /{key}.txt to the IndexNow key handler, and apple-touch-icon probes to the bundled icon', async () => {
+    const rewrites = (await nextConfig.rewrites()) as { source: string; destination: string }[];
+    const key = rewrites.find((r) => r.destination.startsWith('/api/indexnow/'))!;
+    expect(key.source).toContain('.txt');
+    const redirects = (await nextConfig.redirects()) as { source: string; destination: string }[];
+    expect(redirects.find((r) => r.source === '/apple-touch-icon.png')?.destination).toBe('/brand-default/icon-180.png');
+    // www still redirects to the apex.
+    expect(redirects.some((r) => r.destination.startsWith('https://nowhenceclothings.com/'))).toBe(true);
+  });
 });

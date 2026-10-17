@@ -17,7 +17,7 @@ export const DEFAULT_STATIC_PAGES: Record<StaticSlug, Page> = {
     slug: 'about',
     title: 'About',
     seo: {
-      title: 'About',
+      title: 'About Nowhence',
       description:
         'Nowhence is a unisex clothing label. Fewer pieces, better cloth, cut to be worn by anyone and kept for years.',
     },
@@ -45,7 +45,7 @@ We make a small range of unisex pieces. Heavyweight cotton. Honest twill. Colour
   contact: {
     slug: 'contact',
     title: 'Contact',
-    seo: { title: 'Contact', description: 'Questions about an order, a size or a piece? Write to Nowhence. We reply within one working day.' },
+    seo: { title: 'Contact Nowhence', description: 'Questions about an order, a size or a piece? Write to Nowhence. We reply within one working day.' },
     blocks: [
       md(
         'contact-body',
@@ -64,7 +64,7 @@ For an order, include your order number. It starts with NWH and is in your confi
   faq: {
     slug: 'faq',
     title: 'FAQ',
-    seo: { title: 'FAQ', description: 'Sizing, shipping, returns and care. Short answers to common questions about Nowhence.' },
+    seo: { title: 'FAQ: sizing, shipping and returns', description: 'Sizing, shipping, returns and care. Short answers to common questions about Nowhence.' },
     blocks: [
       {
         type: 'faq',
@@ -85,7 +85,7 @@ For an order, include your order number. It starts with NWH and is in your confi
   'size-guide': {
     slug: 'size-guide',
     title: 'Size guide',
-    seo: { title: 'Size guide', description: 'Unisex measurements for every Nowhence piece, in centimetres and inches, with notes on how to measure.' },
+    seo: { title: 'Size guide, XS to XXL', description: 'Unisex measurements for every Nowhence piece, in centimetres and inches, with notes on how to measure.' },
     blocks: [
       md(
         'size-guide-intro',
@@ -106,7 +106,7 @@ Compare with a piece you already own and like. That is the most reliable guide.`
   shipping: {
     slug: 'shipping',
     title: 'Shipping',
-    seo: { title: 'Shipping', description: 'Nowhence ships across India. Flat-rate shipping, free above a threshold, tracked to your door.' },
+    seo: { title: 'Shipping across India', description: 'Nowhence ships across India. Flat-rate shipping, free above a threshold, tracked to your door.' },
     blocks: [
       md(
         'shipping-body',

@@ -197,7 +197,7 @@ export function CheckoutView() {
       </form>
 
       <aside aria-label="Order summary" className="hidden border-l border-line pl-12 lg:block xl:pl-16">
-        <div className="sticky top-[calc(var(--header-h)+2rem)] space-y-6">
+        <div className="sticky top-[calc(var(--sticky-offset)+2rem)] space-y-6">
           <p className="border-b border-ink pb-3 text-label uppercase text-ink">In your bag</p>
           {summary}
         </div>

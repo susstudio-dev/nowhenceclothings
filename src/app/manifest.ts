@@ -1,29 +1,28 @@
 import type { MetadataRoute } from 'next';
 import { DEFAULT_DESCRIPTION } from '@/lib/seo';
 import { getSettings } from '@/lib/content';
-import { DEFAULT_ICON } from '@/lib/brand-defaults';
-import { faviconAsset, iconSizes } from '@/lib/brand';
+import { manifestIcons } from '@/lib/icons';
 
 export const dynamic = 'force-dynamic';
 
-/** Web app manifest from settings (A9: name, colours; icon via /icon.png). */
+/** Web app manifest from settings (A9: name, colours; icons from lib/icons: bundled symbol or the owner's upload). */
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const s = await getSettings();
   const name = s.store.name || 'Nowhence';
   return {
+    id: '/',
     name,
     short_name: name,
     description: DEFAULT_DESCRIPTION,
+    lang: 'en-IN',
     start_url: '/',
+    scope: '/',
     display: 'standalone',
+    categories: ['shopping', 'fashion'],
     background_color: s.brand.colours.paper,
-    theme_color: s.brand.colours.ink,
+    // Same as the page's <meta name="theme-color"> so the browser frame does not change colour on install.
+    theme_color: s.brand.colours.paper,
     // Declared sizes must match the files actually served (Chrome flags a mismatch).
-    icons: s.brand.favicon
-      ? [{ src: '/icon.png', sizes: iconSizes(faviconAsset(s.brand.favicon)), type: faviconAsset(s.brand.favicon).type, purpose: 'any' }]
-      : [
-          { src: DEFAULT_ICON.png192, sizes: '192x192', type: 'image/png' },
-          { src: DEFAULT_ICON.png512, sizes: '512x512', type: 'image/png', purpose: 'any' },
-        ],
+    icons: manifestIcons(s.brand.favicon),
   };
 }

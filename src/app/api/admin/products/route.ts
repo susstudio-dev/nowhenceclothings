@@ -3,6 +3,7 @@ import { ProductBody } from '@/lib/admin/inputs';
 import { saveProduct } from '@/lib/admin/products';
 import { getCatalogue } from '@/lib/catalogue';
 import { purgeEdge } from '@/lib/edge-purge';
+import { notifyProductsChanged } from '@/lib/indexnow-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
     const product = await saveProduct(body, 'create');
     await log('product_create', `catalogue.json#product:${product.id}`, product.title);
     await purgeEdge({ productSlugs: [product.slug] });
+    await notifyProductsChanged([product.id]);
     return json({ product }, 201);
   });
 }

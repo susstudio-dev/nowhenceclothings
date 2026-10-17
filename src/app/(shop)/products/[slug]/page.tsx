@@ -5,12 +5,14 @@ import { Accordion, type AccordionItem } from '@/components/ui';
 import { Markdown } from '@/components/shop/Markdown';
 import { ProductGrid } from '@/components/shop/ProductCard';
 import { ProductView } from '@/components/shop/ProductView';
-import { completeTheLook, dropFor, isSoldOut, stockMap, variantPrice } from '@/components/shop/merch';
+import { completeTheLook, dropFor, stockMap } from '@/components/shop/merch';
 import { getInventory, isReleased } from '@/lib/catalogue';
 import { isIndexable } from '@/lib/launches';
 import { getStorefrontCatalogue } from '@/lib/launches-server';
 import { getSettings } from '@/lib/content';
+import { productBreadcrumb, productLd, jsonLdScript } from '@/lib/jsonld';
 import { formatPaise } from '@/lib/money';
+import { buildMetadata, paths, plainText } from '@/lib/seo';
 import { returnsLabel } from '@/lib/static-pages';
 
 export const dynamic = 'force-dynamic';
@@ -19,18 +21,21 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  // A10: projected product only — hidden titles/images never reach metadata.
+  // A10: projected product only: hidden titles/images never reach metadata.
   const p = (await getStorefrontCatalogue()).products.find((x) => x.slug === slug);
   if (!p) return {};
-  const img = p.seo.ogImage ?? p.colours[0]?.images[0];
-  const ogUrl = img?.src ?? (img && img.widths.length ? `/media/${img.id}/${img.widths[img.widths.length - 1]}.webp` : undefined);
-  return {
-    title: p.seo.title ?? p.title,
-    description: p.seo.description ?? p.description.slice(0, 160),
-    alternates: { canonical: `/products/${p.slug}` },
-    ...(isIndexable(p) ? {} : { robots: { index: false, follow: true } }),
-    openGraph: { type: 'website', title: p.title, images: ogUrl ? [{ url: ogUrl, width: img!.width, height: img!.height, alt: img!.alt }] : undefined },
-  };
+  const preorder = p.launch.state === 'presale';
+  return buildMetadata({
+    // Admin SEO title wins; presale pieces say so, e.g. "Ring Embroidered Polo — Pre-order | Nowhence".
+    title: preorder ? `${p.title} — Pre-order` : p.title,
+    path: paths.product(p.slug),
+    seo: p.seo,
+    description: plainText(p.description),
+    descriptionSupport: `${p.title}${preorder ? ', available to pre-order' : ''} from Nowhence. Heavyweight unisex clothing, designed in India.`,
+    image: p.colours[0]?.images[0],
+    noindex: !isIndexable(p),
+    follow: true,
+  });
 }
 
 export default async function ProductPage({ params }: Props) {
@@ -45,41 +50,11 @@ export default async function ProductPage({ params }: Props) {
   const chart = catalogue.sizeCharts.find((c) => c.id === product.sizeChartId);
   const category = catalogue.categories.find((c) => c.id === product.categoryId);
   const related = completeTheLook(product, catalogue.products);
-  const price = variantPrice(product);
-  const site = 'https://nowhenceclothings.com';
 
-  const jsonLd = [
-    // A10: no Product JSON-LD while coming soon.
-    isIndexable(product) && {
-      '@context': 'https://schema.org',
-      '@type': 'Product',
-      name: product.title,
-      description: product.description,
-      sku: product.variants[0].sku,
-      brand: { '@type': 'Brand', name: 'Nowhence' },
-      image: product.colours.flatMap((c) => c.images.map((m) => m.src ?? `${site}/media/${m.id}/${m.widths.at(-1) ?? 0}.webp`)),
-      offers: {
-        '@type': 'Offer',
-        url: `${site}/products/${product.slug}`,
-        priceCurrency: 'INR',
-        price: (price.amount / 100).toFixed(2),
-        availability: launch.state === 'presale' || !released
-          ? 'https://schema.org/PreOrder'
-          : launch.state === 'sold_out' || isSoldOut(product, inventory)
-            ? 'https://schema.org/OutOfStock'
-            : 'https://schema.org/InStock',
-      },
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Shop', item: `${site}/shop` },
-        ...(category ? [{ '@type': 'ListItem', position: 2, name: category.name, item: `${site}/shop/${category.slug}` }] : []),
-        { '@type': 'ListItem', position: category ? 3 : 2, name: product.title, item: `${site}/products/${product.slug}` },
-      ],
-    },
-  ];
+  // A10: no Product / breadcrumb JSON-LD while coming soon.
+  const jsonLd = isIndexable(product)
+    ? [productLd(product, { stock: stockMap(product, inventory), drop, settings, category }), productBreadcrumb(product, category)]
+    : [];
 
   const ship = settings.shipping;
   const details: (AccordionItem | false | '')[] = [
@@ -108,7 +83,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="container-page pt-4 md:pt-8">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd.filter(Boolean)).replace(/</g, '\\u003c') }} />
+      {jsonLd.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />}
       <nav aria-label="Breadcrumb" className="mb-4 hidden text-caption text-muted md:mb-6 md:block">
         <ol className="flex flex-wrap gap-2">
           <li><Link href="/shop" className="link-underline">Shop</Link> <span aria-hidden>/</span></li>

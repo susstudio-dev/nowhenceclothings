@@ -3,12 +3,18 @@ import { ProductGrid } from '@/components/shop/ProductCard';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
 import { getSettings } from '@/lib/content';
 import { productsFor, publicDrops } from '@/lib/launches-server';
+import { buildMetadata, plainText } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { launches } = await getSettings();
-  return { title: launches.page.title, description: launches.page.intro.slice(0, 160), alternates: { canonical: '/coming-soon' } };
+  return buildMetadata({
+    title: launches.page.title,
+    path: '/coming-soon',
+    description: plainText(launches.page.intro),
+    descriptionSupport: 'First looks at what Nowhence is making next. Leave your email to hear the moment each piece lands.',
+  });
 }
 
 /** A10 /coming-soon: every piece flagged "show on the coming-soon page". */

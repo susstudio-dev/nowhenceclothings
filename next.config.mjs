@@ -39,6 +39,8 @@ const NO_STORE = [
   { key: 'Cache-Control', value: 'no-store, private' },
   { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
 ];
+// Search results stay cacheable but are never indexed (mirrors robots.txt and the page's robots meta).
+const NOINDEX_FOLLOW = [{ key: 'X-Robots-Tag', value: 'noindex, follow' }];
 
 const nextConfig = {
   reactStrictMode: true,
@@ -46,9 +48,18 @@ const nextConfig = {
   htmlLimitedBots: /.*/,
   distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
   images: { unoptimized: true },
+  // IndexNow key file: /{key}.txt is answered by /api/indexnow/{key}, which
+  // serves it only for the configured key (INDEXNOW_KEY or Settings -> Marketing).
+  // Real routes (robots.txt, sitemap.xml, ...) are matched first; 8+ chars keeps it off them.
+  async rewrites() {
+    return [{ source: '/:indexnowkey([A-Za-z0-9-]{8,128}).txt', destination: '/api/indexnow/:indexnowkey' }];
+  },
   async redirects() {
     // www → apex; the apex is the only canonical origin.
     return [
+      // Crawlers and iOS probe these root paths when a page declares no icon; send them to the bundled symbol.
+      { source: '/apple-touch-icon.png', destination: '/brand-default/icon-180.png', permanent: false },
+      { source: '/apple-touch-icon-precomposed.png', destination: '/brand-default/icon-180.png', permanent: false },
       {
         source: '/:path*',
         has: [{ type: 'host', value: `www.${CANONICAL_HOST}` }],
@@ -79,7 +90,7 @@ const nextConfig = {
       // Cache Rule (hostname = nowhenceclothings.com AND path not /admin, /api,
       // /cart, /checkout, /orders → Eligible for cache, respect origin).
       {
-        source: '/((?!admin(?:/|$)|api(?:/|$)|media(?:/|$)|cart(?:/|$)|checkout(?:/|$)|orders(?:/|$)|_next(?:/|$)).*)',
+        source: '/((?!admin(?:/|$)|api(?:/|$)|media(?:/|$)|cart(?:/|$)|checkout(?:/|$)|orders(?:/|$)|book(?:/|$)|pay(?:/|$)|_next(?:/|$)).*)',
         missing: [{ type: 'cookie', key: 'nowhence_admin' }],
         headers: [{ key: 'Cache-Control', value: 'public, max-age=0, s-maxage=60, stale-while-revalidate=600' }],
       },
@@ -108,6 +119,15 @@ const nextConfig = {
       { source: '/checkout/:path*', headers: NO_STORE },
       { source: '/checkout', headers: NO_STORE },
       { source: '/orders/:path*', headers: NO_STORE },
+      // Pre-booking and balance-payment pages carry a personal token.
+      { source: '/book/:path*', headers: NO_STORE },
+      { source: '/pay/:path*', headers: NO_STORE },
+      { source: '/search', headers: NOINDEX_FOLLOW },
+      // Bundled icons and social card: not content-hashed, so a day at the edge and a week stale-while-revalidate.
+      {
+        source: '/brand-default/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
+      },
       // Only nowhenceclothings.com is indexable: workers.dev, previews and any
       // other host get noindex on every response.
       {

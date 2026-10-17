@@ -46,7 +46,7 @@ Razorpay dashboard → Settings → Webhooks → **Add new webhook**
 
 ## 4 · Cloudflare edge 🧑
 **Caching rule** — Caching → Cache Rules → Create:
-- When: hostname equals `nowhenceclothings.com` AND URI path does not start with `/admin` AND not `/api` AND not `/cart` AND not `/checkout` AND not `/orders`
+- When: hostname equals `nowhenceclothings.com` AND URI path does not start with `/admin` AND not `/api` AND not `/cart` AND not `/checkout` AND not `/orders` AND not `/book` AND not `/pay`
 - Then: Eligible for cache · Edge TTL: **use cache-control header** (the app sends `s-maxage=60, stale-while-revalidate=600`)
 - [ ] Rule added; `curl -sI https://nowhenceclothings.com/ | grep cf-cache-status` shows `HIT` on the 2nd request
 
@@ -74,7 +74,13 @@ The dashboard **Launch readiness** list shows what is missing; each item links t
 - [ ] Home, lookbook and about content
 
 ## 6 · Search & analytics 🧑
-- [ ] Google Search Console: add domain property, submit `https://nowhenceclothings.com/sitemap.xml`
+- [ ] **Google Search Console** (https://search.google.com/search-console): Add property → **URL prefix** `https://nowhenceclothings.com` → verification method **HTML tag** → copy the `content="…"` value (or the whole tag) → Admin → Settings → Marketing → *Google Search Console verification* → Save → back in Search Console click **Verify**
+- [ ] Search Console → Sitemaps → add `sitemap.xml` → Submit (status should read *Success*, with the discovered page count)
+- [ ] Search Console → URL Inspection → paste `https://nowhenceclothings.com/` → **Request indexing**; repeat for `/shop` and each product page
+- [ ] Optional: Bing Webmaster Tools → import from Search Console, or paste its `msvalidate.01` token in the Bing field
+- [ ] Optional IndexNow: generate a key (8–128 letters/digits/dashes), save it in Settings → Marketing (or set the `INDEXNOW_KEY` secret), then open `https://nowhenceclothings.com/<key>.txt` — it must show the key. Product and content publishes then notify Bing and others
+- [ ] Rich results check: run https://search.google.com/test/rich-results on a product page (expects Product, BreadcrumbList; Organization and WebSite on every page)
+- [ ] Favicon: leave Settings → Brand → Favicon **empty** to use the bundled Nowhence symbol (an upload under 48 px is ignored). Google refreshes favicons slowly (days to weeks)
 - [ ] Cloudflare Web Analytics on (CSP already allows it)
 
 ## 7 · Engineering (in progress)

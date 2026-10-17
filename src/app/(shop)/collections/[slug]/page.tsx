@@ -4,6 +4,9 @@ import { Image } from '@/components/ui';
 import { ListingPage } from '@/components/shop/ListingPage';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
 import { getStorefrontProducts, publicDrops } from '@/lib/launches-server';
+import { isPlaceholderMedia } from '@/lib/brand-defaults';
+import { breadcrumbLd, jsonLdScript } from '@/lib/jsonld';
+import { buildMetadata, paths } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,11 +16,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const col = (await getCatalogue()).collections.find((c) => c.slug === slug);
   if (!col) return {};
-  return {
-    title: col.seo.title ?? col.name,
-    description: col.seo.description ?? (col.description || undefined),
-    alternates: { canonical: `/collections/${col.slug}` },
-  };
+  return buildMetadata({
+    title: col.name,
+    path: paths.collection(col.slug),
+    seo: col.seo,
+    description: col.description,
+    descriptionSupport: `Shop the ${col.name} collection at Nowhence: heavyweight unisex cotton, designed in India.`,
+    image: isPlaceholderMedia(col.heroMedia) ? undefined : col.heroMedia,
+  });
 }
 
 export default async function CollectionPage({ params, searchParams }: Props) {
@@ -30,7 +36,16 @@ export default async function CollectionPage({ params, searchParams }: Props) {
   ]);
   const col = catalogue.collections.find((c) => c.slug === slug);
   if (!col) notFound();
+  const crumbs = jsonLdScript(
+    breadcrumbLd([
+      { name: 'Home', path: paths.home() },
+      { name: 'Shop', path: paths.shop() },
+      { name: col.name, path: paths.collection(col.slug) },
+    ]),
+  );
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: crumbs }} />
     <ListingPage
       title={col.name}
       intro={col.description}
@@ -45,5 +60,6 @@ export default async function CollectionPage({ params, searchParams }: Props) {
         ) : undefined
       }
     />
+    </>
   );
 }

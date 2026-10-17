@@ -18,12 +18,12 @@ Each token is RGB channels on `:root`, so alpha works (`bg-ink/30`). Settings �
 |---|---|---|
 | `paper` | #F4F4F2 | Page |
 | `paper-deep` | #EAE9E5 | Image wells, skeletons, hover fills |
-| `ink` | #0B0B0B | Text, primary button, focus ring, announcement bar |
+| `ink` | #0B0B0B | Text, primary button, focus ring |
 | `ink-soft` | #343432 | Secondary text, primary hover |
 | `muted` | #6B6B67 | Meta text (4.9:1 on paper) |
 | `line` | #DEDDD8 | Hairlines and field borders |
 | `accent` | #6B6B67 | Owner's accent (quiet grey by default) |
-| `clay` | #A8927A | Warm earth: low-stock notes, success dot, footer symbol. Never body text. |
+| `clay` | #A8927A | Warm earth: low-stock notes, success dot, the header status dot, footer symbol. Never body text. |
 | `clay-soft` | #E6DFD5 | Clay wash for solid badges and selected tints |
 | `sale` | #922A1E | Oxblood: sale price, errors |
 | `success` | #34583C | Confirmation |
@@ -51,7 +51,7 @@ Rules: tracked caps only at 10–11px. Never letterspace lowercase. Headlines us
 - 4px base. Component padding steps are 8, 12, 16, 24 and 32. Section padding is `py-section` (64 / 96 / 128px).
 - Gutter (`px-gutter`) is 16 / 32 / 40px. The page is `container-page` (max 1440px).
 - Grid: 4 columns on mobile and 12 on desktop. Product grids are 2-up on mobile (gap 12px, 8px on 2+ rows) and 4-up on desktop (gap 16–24px). The PDP is a 7/5 split, with the buy column sticky.
-- Header is 56 / 64px. The announcement bar is 32px.
+- Header is 56 / 64px. There is no separate announcement bar; the announcement lives in the header (see Header).
 
 ## Imagery
 - Product cards: **4:5** (`aspect-garment`), `object-cover`, `paper-deep` while loading. The second image fades in on hover (desktop only).
@@ -86,7 +86,27 @@ Rules: tracked caps only at 10–11px. Never letterspace lowercase. Headlines us
 | `Spinner` | `size` | The brand ring turning. |
 | `LogoWordmark`, `LogoSymbol`, `Wordmark` | `className`, `title` / `text` | A passed `className` replaces the default size. |
 
-Chrome (`@/components/chrome`): `AnnouncementBar` (paper on ink, 32px), `Header` (small centred wordmark; tracked nav on the left; on desktop a "Search" text link and the bag; icons on mobile; hairline on scroll), `MobileNav` (left drawer, Jost-light items divided by hairlines), `Footer` (newsletter and "Letters" note, link columns and contact, then one legal line with a modest wordmark and the ring symbol in clay; **no oversized logo**).
+Chrome (`@/components/chrome`): `Header` (below), `SiteMenu` (the menu panel the header owns), `HeaderStatus` (the announcement line), `Footer` (newsletter and "Letters" note, link columns and contact, then one legal line with a modest wordmark and the ring symbol in clay; **no oversized logo**). `AnnouncementBar` and `MobileNav` are kept for compatibility but the storefront no longer mounts them.
+
+## Header: "the masthead"
+The top of the site is one quiet line of type, like the masthead and dateline of a printed journal. No slab, no second bar, no icons where a word will do.
+
+**Composition (56px mobile, 64px from 768px).**
+- Left: the wordmark, small (12px tall on mobile, 15px on desktop), at the gutter. It shares its left edge with the hero caption below, which gives the page one strong vertical.
+- Beside the wordmark (768px and up): **the status line**, the site-content announcement folded into the header. A 6px clay dot that breathes slowly, the owner's words in 10px tracked caps, a 16px hairline, then a quiet sentence-case note such as "Sale opens 31 Oct". The whole line is a link. A small arrow slides in on hover.
+- Right (1024px and up): the first **two** primary nav items, then `Menu`, then a gap, then the search glyph and `Bag 2`. Everything is 11px tracked caps on a 40px hit area with one shared baseline. The current page gets the 1px underline.
+- Mobile: wordmark, then `Menu` and `Bag 0` only. `Menu` carries the clay dot when an announcement is live, and the status line sits at the top of the menu.
+- The bag is a word with a count ("Bag 2", tabular figures), never an icon with a pill badge. `CartButton variant="text"` with `headerActionClass` provides this.
+
+**Announcement rules** (`resolveAnnouncement` in `chrome/announcement.ts`). The site-content `announcement` text is used as typed. An owner `href` always wins. When there is no href and a pre-order piece is open, the status links to that product. The sale or close date is appended only when the text is about pre-orders and has no date of its own. `enabled: false` or blank text removes the status line and the mobile dot.
+
+**Over a hero.** When the first element in `<main>` carries `data-chrome-hero` (the home `PresaleHero` and a leading `hero` block), the header overlays the photograph. It is transparent with paper type, and a soft ink shade (42% fading to nothing about 56px below the bar) keeps the type legible on light corners of the photograph. This shade is the only gradient in the system: a legibility mask, never decoration. The overlay is pure CSS (`body:has(...)` with a negative bottom margin), so the server render is already right and there is no flash or layout shift. When the hero has slid under the bar, the header turns to paper with a hairline (`data-solid`). Every other page starts in solid paper and gains the hairline once the page scrolls.
+
+**Scroll.** Past 160px, reading down slides the header up (`translateY(-100%)`, 300ms ease-out). The first scroll up brings it back. It never hides while the menu is open or while focus is inside it. Under reduced motion the move is instant and the dot stops breathing.
+
+**Menu (`SiteMenu`).** `Menu` becomes `Close`, and the bar stays in place. On desktop a paper panel drops beneath the bar with a hairline, over the page dimmed to ink/25. On mobile and tablet the panel is full screen. Contents: every primary item in Jost light (38 → 48 → 60px; on hover the others dim to 35%), with children as small links beneath; a hairline search field; the footer columns as small lists; and on mobile the status line at the top. Items rise in 45ms apart. On mobile the search field and lists sit at the bottom of the screen. Accessibility: `aria-expanded`/`aria-controls` on the trigger, focus moves to the first item, Tab is trapped across the bar and panel, Escape and backdrop click close it, focus returns to `Menu`, `#main` and the footer are `inert`, the page scroll locks, and opening the bag closes the menu first.
+
+**Brand.** All header colour comes from `--hdr-fg` (ink, or paper over a hero), so Settings → Brand colours apply. Uploaded logos switch between `logoLight` on paper and `logoDark` over the hero.
 
 ## Do / don't
 **Do:** let photographs run large · use hairlines to separate content · write short, specific copy in sentence case (labels are the only caps) · put one primary action on each screen · keep price, size and buy within thumb reach on mobile.

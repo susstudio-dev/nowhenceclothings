@@ -100,6 +100,30 @@ const Analytics = z
   })
   .default({});
 
+/**
+ * Search-engine setup (Settings -> Marketing). Additive: older docs get ''.
+ * Verification values are the `content` token only, not the whole meta tag.
+ */
+const VerificationToken = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9_-]{0,120}$/, 'Paste only the token from content="..."')
+  .default('');
+const Seo = z
+  .object({
+    /** Google Search Console HTML-tag verification token (`google-site-verification`). */
+    googleSiteVerification: VerificationToken,
+    /** Bing Webmaster Tools token (`msvalidate.01`). */
+    bingSiteVerification: VerificationToken,
+    /** IndexNow key (8-128 chars of letters, digits, dashes); served at /{key}.txt. The INDEXNOW_KEY env var wins when set. */
+    indexNowKey: z
+      .string()
+      .trim()
+      .regex(/^([A-Za-z0-9-]{8,128})?$/, 'IndexNow keys are 8 to 128 letters, digits or dashes')
+      .default(''),
+  })
+  .default({});
+
 const SettingsShape = z.object({
   /** F13: ISO timestamp of the last save; the admin form echoes it back as an optimistic-concurrency precondition. */
   updatedAt: z.string().default(''),
@@ -168,6 +192,7 @@ const SettingsShape = z.object({
   /** A10/A11 global defaults (Settings -> Launches). */
   launches: LaunchDefaults,
   analytics: Analytics,
+  seo: Seo,
 });
 
 type Raw = Record<string, unknown>;

@@ -151,7 +151,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
       </div>
 
       <div className="lg:col-span-5 lg:col-start-8">
-        <div className="lg:sticky lg:top-[calc(var(--header-h)+2rem)]">
+        <div className="lg:sticky lg:top-[calc(var(--sticky-offset)+2rem)]">
           <div className="flex items-center gap-3">
             {eyebrow && <p className="eyebrow">{eyebrow}</p>}
             {launch?.badge && launch.state !== 'available' && <p className="care-tag">{launch.badge}</p>}

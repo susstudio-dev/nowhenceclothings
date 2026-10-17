@@ -50,7 +50,8 @@ function BlockView({ block: b, ctx, priority }: { block: Block; ctx: BlockContex
     case 'hero': {
       const H = priority ? 'h1' : 'h2';
       return (
-        <section className="relative isolate flex min-h-[calc(100svh-6rem)] items-end overflow-hidden bg-ink text-paper md:min-h-[88vh]">
+        // data-chrome-hero: the header overlays this photograph when it leads the page.
+        <section data-chrome-hero="" className="relative isolate flex min-h-[calc(100svh-6rem)] items-end overflow-hidden bg-ink text-paper md:min-h-[88vh]">
           {b.media && (
             <div className="absolute inset-0 -z-20">
               <Image media={b.media} priority={priority} sizes="100vw" className="h-full w-full object-cover" />
