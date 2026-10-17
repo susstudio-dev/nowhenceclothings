@@ -42,7 +42,7 @@ export function canBookingTransition(from: BookingStatus, to: BookingStatus): bo
 /** NWB-YYMMDD-XXXX */
 export const BookingNumber = z.string().regex(/^NWB-\d{6}-[A-Z0-9]{4}$/);
 
-export const BOOKING_EMAILS = ['deposit_paid', 'balance_due', 'expired', 'refunded', 'cancelled'] as const;
+export const BOOKING_EMAILS = ['deposit_paid', 'balance_due', 'expired', 'refunded', 'cancelled', 'sale_date_moved'] as const;
 export const BookingEmailKind = z.enum(BOOKING_EMAILS);
 export type BookingEmailKind = z.infer<typeof BookingEmailKind>;
 
@@ -109,6 +109,8 @@ export const Booking = z.object({
   /** Expired with outcome 'manual', or a refund that needs doing by hand. */
   needsReview: z.boolean().optional(),
   emailsSent: z.array(BookingEmailKind).default([]),
+  /** F23: saleTermsKey of the last sale-date change the customer was emailed about. */
+  saleDateEmailFor: z.string().max(80).optional(),
   history: z.array(BookingHistoryEntry).min(1),
   notes: z.string().default(''),
   createdAt: IsoDate,

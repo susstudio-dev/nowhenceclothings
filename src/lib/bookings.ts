@@ -10,7 +10,7 @@ import {
   type BookingStatus,
   type BookingSummary,
 } from './schemas/bookings';
-import { resolveLaunch, type EffectiveDeposit, type EffectivePresale } from './launches';
+import { presaleFor, resolveLaunch, type EffectiveDeposit, type EffectivePresale } from './launches';
 import { shippingFee, unitPriceFor } from './commerce/pricing';
 
 export class BookingError extends Error {
@@ -263,4 +263,93 @@ export function bookingsToCsv(list: BookingSummary[]): string {
 export function bookingMonthForNumber(number: string): string | null {
   const m = /^NWB-(\d{2})(\d{2})\d{2}-/.exec(number);
   return m ? `20${m[1]}-${m[2]}` : null;
+}
+
+// ---- F23: re-apply a moved sale date to open bookings ---------------------------------
+
+export interface SaleTerms {
+  saleStartsAt: string;
+  balanceWindowDays: number;
+}
+
+/** Stable key for one sale-date change (used to send the "date moved" email once). */
+export const saleTermsKey = (t: SaleTerms) => `${new Date(t.saleStartsAt).toISOString()}|${t.balanceWindowDays}`;
+
+/** True when the admin individually extended this booking's balance deadline. */
+export const wasDeadlineExtended = (b: Pick<Booking, 'history'>) =>
+  b.history.some((h) => h.note?.startsWith('Deadline extended'));
+
+/**
+ * Owner decision (F23): open bookings follow the product's sale date.
+ * Returns the updated booking, or null when nothing changes. Pure, idempotent.
+ * - terms.saleStartsAt / balanceWindowDays take the new values;
+ * - balanceDueBy = saleStartsAt + window, but an admin-extended deadline keeps
+ *   the later of (extended, new computed);
+ * - a balance_due booking whose new sale date is in the future goes back to
+ *   deposit_paid (final price unfrozen; it is re-frozen at the new sale start).
+ */
+export function reapplySaleTerms(b: Booking, next: SaleTerms, now: Date, by: string): Booking | null {
+  if (!OPEN_STATUSES.includes(b.status)) return null;
+  const saleStartsAt = new Date(next.saleStartsAt).toISOString();
+  const sameTerms =
+    Date.parse(b.terms.saleStartsAt) === Date.parse(saleStartsAt) && b.terms.balanceWindowDays === next.balanceWindowDays;
+  if (sameTerms) return null;
+  const computed = balanceDeadline(saleStartsAt, next.balanceWindowDays);
+  const extended = wasDeadlineExtended(b) && b.balanceDueBy ? b.balanceDueBy : undefined;
+  const deadline = extended && Date.parse(extended) > Date.parse(computed) ? extended : computed;
+  const at = now.toISOString();
+  const backToPaid = b.status === 'balance_due' && Date.parse(saleStartsAt) > now.getTime();
+  const status: BookingStatus = backToPaid ? 'deposit_paid' : b.status;
+  const out: Booking = {
+    ...b,
+    status,
+    terms: { ...b.terms, saleStartsAt, balanceWindowDays: next.balanceWindowDays },
+    updatedAt: at,
+    history: [
+      ...b.history,
+      { at, status, by, note: `Sale date moved to ${saleStartsAt} (balance window ${next.balanceWindowDays} days)` },
+    ],
+  };
+  if (b.status === 'deposit_pending') {
+    delete out.balanceDueBy;
+  } else if (status === 'balance_due' || extended) {
+    out.balanceDueBy = deadline;
+  } else {
+    // deposit_paid: the deadline is set at sale start from the new terms.
+    delete out.balanceDueBy;
+  }
+  if (backToPaid) {
+    delete out.finalUnitPrice;
+    // The balance email goes out again at the new sale start.
+    out.emailsSent = b.emailsSent.filter((k) => k !== 'balance_due');
+  }
+  return out;
+}
+
+/** The sale terms bookings for this product follow (deposit presale with a sale date), else null. Pure. */
+export function saleTermsFor(product: Product, drops: Drop[], d: LaunchDefaults): SaleTerms | null {
+  const pre = presaleFor(product, drops, d);
+  const dep = pre?.paymentMode === 'deposit' ? pre.deposit : undefined;
+  return dep?.saleStartsAt ? { saleStartsAt: dep.saleStartsAt, balanceWindowDays: dep.balanceWindowDays } : null;
+}
+
+/**
+ * Products whose effective sale terms differ between two catalogue versions
+ * (and still have a sale date, so bookings have something to follow). Pure.
+ */
+export function productsWithMovedSaleTerms(
+  before: { products: Product[]; drops: Drop[] },
+  after: { products: Product[]; drops: Drop[] },
+  d: LaunchDefaults,
+): Array<{ productId: string; terms: SaleTerms }> {
+  const out: Array<{ productId: string; terms: SaleTerms }> = [];
+  for (const p of after.products) {
+    const next = saleTermsFor(p, after.drops, d);
+    if (!next) continue;
+    const prevProduct = before.products.find((x) => x.id === p.id);
+    const prev = prevProduct ? saleTermsFor(prevProduct, before.drops, d) : null;
+    if (prev && saleTermsKey(prev) === saleTermsKey(next)) continue;
+    out.push({ productId: p.id, terms: next });
+  }
+  return out;
 }

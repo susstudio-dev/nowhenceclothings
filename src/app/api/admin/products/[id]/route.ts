@@ -5,6 +5,11 @@ import { ProductBody, ProductStatusInput } from '@/lib/admin/inputs';
 import { saveProduct } from '@/lib/admin/products';
 import { setProductStatus } from '@/lib/admin/catalogue-mutations';
 import { purgeEdge } from '@/lib/edge-purge';
+import { getCatalogue } from '@/lib/catalogue';
+import { getSettings } from '@/lib/content';
+import { bookingsToMove, reapplyAfterCatalogueChange } from '@/lib/bookings-server';
+import { saleTermsFor } from '@/lib/bookings';
+import type { Product } from '@/lib/schemas/catalogue';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,13 +17,35 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function PUT(req: Request, { params }: Ctx) {
   const { id } = await params;
-  return adminRoute({ cap: 'catalogue.write' }, async ({ log }) => {
+  return adminRoute({ cap: 'catalogue.write' }, async ({ admin, log }) => {
     const body = await readBody(req, ProductBody);
     if (body.id !== id) throw new HttpError(400, 'Product id does not match the URL');
+    const before = await getCatalogue();
     const product = await saveProduct(body, 'update');
     await log('product_update', `catalogue.json#product:${id}`, product.title);
+    // F23: open bookings follow a moved sale date.
+    const bookings = await reapplyAfterCatalogueChange(before, await getCatalogue(), admin.email);
+    if (bookings.moved.length) {
+      await log('bookings_sale_date_moved', `catalogue.json#product:${id}`, `${bookings.moved.length} moved, ${bookings.emailed.length} emailed: ${bookings.moved.join(' ')}`.slice(0, 500));
+    }
     await purgeEdge({ productSlugs: [product.slug] });
-    return json({ product });
+    return json({ product, bookings });
+  });
+}
+
+/**
+ * F23 preview: POST the edited product (not saved) and get how many open
+ * bookings would move to its sale date.
+ */
+export async function POST(req: Request, { params }: Ctx) {
+  const { id } = await params;
+  return adminRoute({ cap: 'catalogue.write' }, async () => {
+    const body = await readBody(req, ProductBody);
+    if (body.id !== id) throw new HttpError(400, 'Product id does not match the URL');
+    const [cat, settings] = await Promise.all([getCatalogue(), getSettings()]);
+    const terms = saleTermsFor(body as Product, cat.drops, settings.launches);
+    const list = terms ? await bookingsToMove([id], terms) : [];
+    return json({ count: list.length, saleStartsAt: terms?.saleStartsAt ?? null });
   });
 }
 

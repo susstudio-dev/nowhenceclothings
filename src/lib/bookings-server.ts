@@ -40,7 +40,11 @@ import {
   hashBookingToken,
   newBookingNumber,
   newBookingToken,
+  productsWithMovedSaleTerms,
+  reapplySaleTerms,
+  saleTermsKey,
   startBalanceDue,
+  type SaleTerms,
   withBookingStatus,
   type BalanceBreakdown,
 } from './bookings';
@@ -151,7 +155,7 @@ export async function sendBookingEmail(id: string, kind: BookingEmailKind, deps:
     const b = await readBooking(id);
     if (!b || (once && b.emailsSent.includes(kind))) return false;
     const settings = await settingsOf(deps);
-    const withLink = kind === 'deposit_paid' || kind === 'balance_due';
+    const withLink = kind === 'deposit_paid' || kind === 'balance_due' || kind === 'sale_date_moved';
     const token = withLink ? await issueBookingToken(id, deps.now) : null;
     const fresh = (await readBooking(id)) ?? b;
     let balance: number | undefined;
@@ -765,4 +769,109 @@ export async function purgeBookingKeys(b: Booking): Promise<void> {
   await writeJsonCas(bookingsIndexKey(b.createdAt), BookingsIndexDoc, (cur) => ({
     bookings: (cur?.bookings ?? []).filter((x) => x.id !== b.id),
   }), { initial: () => ({ bookings: [] }) }).catch(() => undefined);
+}
+
+// ---- F23: open bookings follow a moved sale date ---------------------------------------------
+
+/** Statuses whose sale date follows the product (owner decision, F23). */
+const FOLLOW_STATUSES = OPEN_STATUSES;
+
+/** Open bookings (deposit_pending / deposit_paid / balance_due) for these products. */
+export async function openBookingsFor(productIds: string[]): Promise<BookingSummary[]> {
+  if (!productIds.length) return [];
+  const ids = new Set(productIds);
+  return (await listBookingSummaries()).filter((s) => ids.has(s.productId) && FOLLOW_STATUSES.includes(s.status));
+}
+
+/** Open bookings whose dates would move if the product/drop changed to these terms (admin preview). */
+export async function bookingsToMove(productIds: string[], terms: SaleTerms): Promise<BookingSummary[]> {
+  const key = saleTermsKey(terms);
+  const open = await openBookingsFor(productIds);
+  const out: BookingSummary[] = [];
+  for (const s of open) {
+    const b = await readBooking(s.id);
+    if (b && saleTermsKey(b.terms) !== key) out.push(s);
+  }
+  return out;
+}
+
+export interface ReapplyResult {
+  checked: number;
+  moved: string[];
+  emailed: string[];
+}
+
+/**
+ * Re-apply the current sale terms to every open booking of the given products
+ * (CAS per booking, idempotent). Customers with a paid deposit get one
+ * "sale date moved" email per change. Then applies any now-due transition.
+ */
+export async function reapplySaleDates(
+  changes: Array<{ productId: string; terms: SaleTerms }>,
+  by: string,
+  deps: BookingDeps = {},
+): Promise<ReapplyResult> {
+  const now = deps.now ?? new Date();
+  const result: ReapplyResult = { checked: 0, moved: [], emailed: [] };
+  for (const { productId, terms } of changes) {
+    for (const s of await openBookingsFor([productId])) {
+      result.checked++;
+      try {
+        const { booking, changed } = await updateBooking(s.id, (b) => reapplySaleTerms(b, terms, now, by));
+        if (!changed) continue;
+        result.moved.push(booking.number);
+        if (await notifySaleDateMoved(booking.id, deps)) result.emailed.push(booking.number);
+        await advanceBooking(booking.id, deps);
+      } catch (err) {
+        console.error('reapplySaleDates', s.number, err instanceof Error ? err.message : '');
+      }
+    }
+  }
+  return result;
+}
+
+/** Email the customer once per sale-terms change (claimed on the booking via CAS). Never throws. */
+export async function notifySaleDateMoved(id: string, deps: BookingDeps = {}): Promise<boolean> {
+  let key = '';
+  let prev: string | undefined;
+  try {
+    const { changed } = await updateBooking(id, (b) => {
+      if (b.status !== 'deposit_paid' && b.status !== 'balance_due') return null;
+      key = saleTermsKey(b.terms);
+      prev = b.saleDateEmailFor;
+      return b.saleDateEmailFor === key ? null : { ...b, saleDateEmailFor: key };
+    });
+    if (!changed) return false;
+    const sent = await sendBookingEmail(id, 'sale_date_moved', deps, false);
+    if (!sent) {
+      // Not sent (no Resend key or provider error): release the claim.
+      await updateBooking(id, (b) => {
+        if (b.saleDateEmailFor !== key) return null;
+        const next = { ...b };
+        if (prev) next.saleDateEmailFor = prev;
+        else delete next.saleDateEmailFor;
+        return next;
+      });
+    }
+    return sent;
+  } catch (err) {
+    console.error('notifySaleDateMoved', id, err instanceof Error ? err.message : '');
+    return false;
+  }
+}
+
+/**
+ * Call around a catalogue write: re-applies moved sale terms to open bookings.
+ * `before`/`after` are the catalogue before and after the save.
+ */
+export async function reapplyAfterCatalogueChange(
+  before: CatalogueDoc,
+  after: CatalogueDoc,
+  by: string,
+  deps: BookingDeps = {},
+): Promise<ReapplyResult> {
+  const settings = await settingsOf(deps);
+  const changes = productsWithMovedSaleTerms(before, after, settings.launches);
+  if (!changes.length) return { checked: 0, moved: [], emailed: [] };
+  return reapplySaleDates(changes, by, { ...deps, catalogue: deps.catalogue ?? after, settings });
 }

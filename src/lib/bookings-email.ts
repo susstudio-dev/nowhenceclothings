@@ -79,6 +79,19 @@ export function renderBookingEmail(
         `<p>We have refunded <strong>${formatPaise(b.refund?.amount ?? b.deposit)}</strong> for booking <strong>${b.number}</strong>. It usually reaches your account in 5–7 working days.</p>`,
       );
       break;
+    case 'sale_date_moved':
+      subject = `Your sale date has moved to ${date(b.terms.saleStartsAt)} (booking ${b.number})`;
+      html = wrap(
+        `Your sale date has moved, ${name}.`,
+        `<p>The sale for ${item} (booking <strong>${b.number}</strong>) now starts on <strong>${date(b.terms.saleStartsAt)}</strong>.</p>` +
+          `<p>${
+            b.status === 'balance_due'
+              ? `You can pay the balance now. Please pay by <strong>${date(b.balanceDueBy)}</strong>.`
+              : `We will email you when it starts; you will then have until <strong>${date(b.balanceDueBy) || date(new Date(Date.parse(b.terms.saleStartsAt) + b.terms.balanceWindowDays * 86_400_000).toISOString())}</strong> to pay the balance.`
+          } Your booking and deposit are unchanged.</p>` +
+          (link ? button(link, b.status === 'balance_due' ? 'Pay the balance' : 'View your booking') : ''),
+      );
+      break;
     case 'cancelled':
       subject = `Booking ${b.number} cancelled`;
       html = wrap('Your booking was cancelled.', `<p>Booking <strong>${b.number}</strong> for ${item} has been cancelled.</p>`);

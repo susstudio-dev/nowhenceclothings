@@ -17,7 +17,12 @@ import {
   hashBookingToken,
   newBookingNumber,
   newBookingToken,
+  productsWithMovedSaleTerms,
+  reapplySaleTerms,
+  saleTermsFor,
+  saleTermsKey,
   startBalanceDue,
+  wasDeadlineExtended,
   TOKEN_RE,
   withBookingStatus,
 } from './bookings';
@@ -274,5 +279,108 @@ describe('admin list helpers', () => {
     expect(head).toBe(BOOKING_CSV_HEADER.join(','));
     expect(line).toContain(`"'=HYPERLINK(""x"")"`);
     expect(line).toContain('999.00');
+  });
+});
+
+describe('F23: open bookings follow a moved sale date', () => {
+  const NEW = '2026-12-01T04:30:00.000Z';
+  const NOW = new Date('2026-10-25T00:00:00.000Z');
+  const terms = { saleStartsAt: NEW, balanceWindowDays: 7 };
+
+  it('moves a deposit_paid booking (no deadline until the new sale start) and records history', () => {
+    const b = reapplySaleTerms(booking(), terms, NOW, 'admin@x')!;
+    expect(b.status).toBe('deposit_paid');
+    expect(b.terms.saleStartsAt).toBe(NEW);
+    expect(b.balanceDueBy).toBeUndefined();
+    expect(b.history.at(-1)).toMatchObject({ status: 'deposit_paid', by: 'admin@x' });
+    expect(b.history.at(-1)!.note).toContain(NEW);
+    expect(Booking.parse(b)).toBeTruthy();
+    // the deadline is computed from the new date at sale start
+    expect(startBalanceDue(b, undefined, new Date(NEW)).balanceDueBy).toBe('2026-12-08T04:30:00.000Z');
+  });
+
+  it('is idempotent and ignores closed bookings', () => {
+    const once = reapplySaleTerms(booking(), terms, NOW, 'a')!;
+    expect(reapplySaleTerms(once, terms, NOW, 'a')).toBeNull();
+    expect(reapplySaleTerms(booking(), { saleStartsAt: SALE, balanceWindowDays: 7 }, NOW, 'a')).toBeNull();
+    for (const status of ['completed', 'expired', 'cancelled', 'refunded'] as const) {
+      expect(reapplySaleTerms(booking({ status }), terms, NOW, 'a')).toBeNull();
+    }
+  });
+
+  it('a balance_due booking whose new date is in the future goes back to deposit_paid', () => {
+    const due = startBalanceDue(booking({ emailsSent: ['deposit_paid', 'balance_due'] }), 349900, new Date(SALE));
+    const b = reapplySaleTerms({ ...due, terms: { ...due.terms, priceLock: 'sale' } }, terms, new Date(SALE), 'a')!;
+    expect(b.status).toBe('deposit_paid');
+    expect(b.finalUnitPrice).toBeUndefined();
+    expect(b.balanceDueBy).toBeUndefined();
+    expect(b.emailsSent).toEqual(['deposit_paid']); // balance email goes out again at the new date
+    expect(dueTransition(b, new Date(SALE), 30)).toBeNull();
+    expect(dueTransition(b, new Date(NEW), 30)).toEqual({ to: 'balance_due' });
+  });
+
+  it('a balance_due booking with an earlier (past) date keeps status and gets the new deadline', () => {
+    const due = startBalanceDue(booking(), undefined, new Date(SALE));
+    const earlier = { saleStartsAt: '2026-11-10T04:30:00.000Z', balanceWindowDays: 3 };
+    const b = reapplySaleTerms(due, earlier, new Date(SALE), 'a')!;
+    expect(b.status).toBe('balance_due');
+    expect(b.balanceDueBy).toBe('2026-11-13T04:30:00.000Z');
+  });
+
+  it('a window change alone moves the deadline', () => {
+    const due = startBalanceDue(booking(), undefined, new Date(SALE));
+    const b = reapplySaleTerms(due, { saleStartsAt: SALE, balanceWindowDays: 10 }, new Date(SALE), 'a')!;
+    expect(b.balanceDueBy).toBe('2026-11-25T04:30:00.000Z');
+  });
+
+  it('an admin-extended deadline keeps the later of extended and new computed', () => {
+    const ext = (until: string) =>
+      booking({
+        status: 'balance_due',
+        balanceDueBy: until,
+        history: [
+          { at: '2026-10-20T00:00:00.000Z', status: 'deposit_pending', by: 'customer' },
+          { at: '2026-11-16T00:00:00.000Z', status: 'balance_due', by: 'admin', note: `Deadline extended to ${until}` },
+        ],
+      });
+    expect(wasDeadlineExtended(ext('2026-12-31T00:00:00.000Z'))).toBe(true);
+    expect(wasDeadlineExtended(booking())).toBe(false);
+    const now = new Date('2026-11-16T00:00:00.000Z');
+    const pastSale = { saleStartsAt: '2026-11-15T00:00:00.000Z', balanceWindowDays: 3 };
+    // extension later than the new computed deadline: kept
+    expect(reapplySaleTerms(ext('2026-12-31T00:00:00.000Z'), pastSale, now, 'a')!.balanceDueBy).toBe('2026-12-31T00:00:00.000Z');
+    // extension earlier than the new computed deadline: computed wins
+    expect(reapplySaleTerms(ext('2026-11-17T00:00:00.000Z'), { saleStartsAt: '2026-11-15T00:00:00.000Z', balanceWindowDays: 10 }, now, 'a')!.balanceDueBy).toBe(
+      '2026-11-25T00:00:00.000Z',
+    );
+    // moved back to deposit_paid: the extended deadline still survives (the later one)
+    const back = reapplySaleTerms(ext('2027-01-31T00:00:00.000Z'), terms, now, 'a')!;
+    expect(back.status).toBe('deposit_paid');
+    expect(back.balanceDueBy).toBe('2027-01-31T00:00:00.000Z');
+  });
+
+  it('deposit_pending bookings take the new terms without a deadline', () => {
+    const b = reapplySaleTerms(booking({ status: 'deposit_pending' }), terms, NOW, 'a')!;
+    expect(b).toMatchObject({ status: 'deposit_pending', terms: { saleStartsAt: NEW } });
+    expect(b.balanceDueBy).toBeUndefined();
+  });
+
+  it('saleTermsFor / productsWithMovedSaleTerms diff product and drop configs', () => {
+    const p = product();
+    expect(saleTermsFor(p, [], d)).toEqual({ saleStartsAt: SALE, balanceWindowDays: 7 });
+    expect(saleTermsFor(product({ presale: undefined }), [], d)).toBeNull();
+    expect(saleTermsKey({ saleStartsAt: '2026-11-15T04:30:00Z', balanceWindowDays: 7 })).toBe(saleTermsKey({ saleStartsAt: SALE, balanceWindowDays: 7 }));
+    const moved = product({ presale: { ...p.presale!, deposit: { ...p.presale!.deposit!, saleStartsAt: NEW } } });
+    expect(productsWithMovedSaleTerms({ products: [p], drops: [] }, { products: [p], drops: [] }, d)).toEqual([]);
+    expect(productsWithMovedSaleTerms({ products: [p], drops: [] }, { products: [moved], drops: [] }, d)).toEqual([
+      { productId: 'p1', terms: { saleStartsAt: NEW, balanceWindowDays: 7 } },
+    ]);
+    // drop-level presale: a drop change moves every product in the drop
+    const inDrop = product({ presale: undefined, dropId: 'd1' });
+    const drop = (sale: string) =>
+      ({ id: 'd1', slug: 'd', name: 'D', releaseAt: T0, presale: { ...p.presale!, deposit: { ...p.presale!.deposit!, saleStartsAt: sale } } }) as never;
+    expect(productsWithMovedSaleTerms({ products: [inDrop], drops: [drop(SALE)] }, { products: [inDrop], drops: [drop(NEW)] }, d)).toEqual([
+      { productId: 'p1', terms: { saleStartsAt: NEW, balanceWindowDays: 7 } },
+    ]);
   });
 });

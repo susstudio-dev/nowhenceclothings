@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SIZES, type Size } from '@/lib/schemas/common';
 import type { Category, Collection, Colour, Drop, Product, SizeChart } from '@/lib/schemas/catalogue';
@@ -65,6 +65,29 @@ export function ProductEditor({
     [base, p.colours, p.sizes, p.variants],
   );
 
+  // F23: open bookings follow a moved sale date. Preview how many will move.
+  const termsKey = (d: Draft) =>
+    `${d.dropId ?? ''}|${d.presale?.enabled ? 1 : 0}|${d.presale?.paymentMode ?? ''}|${d.presale?.deposit?.saleStartsAt ?? ''}|${d.presale?.deposit?.balanceWindowDays ?? ''}`;
+  const termsChanged = mode === 'update' && termsKey(p) !== termsKey(initial);
+  const [moving, setMoving] = useState<number>(0);
+  useEffect(() => {
+    if (!termsChanged) {
+      setMoving(0);
+      return;
+    }
+    let live = true;
+    const t = setTimeout(() => {
+      adminFetch<{ count: number }>(`/api/admin/products/${encodeURIComponent(p.id)}`, { method: 'POST', body: { ...p, variants } })
+        .then((r) => live && setMoving(r.count))
+        .catch(() => live && setMoving(0));
+    }, 400);
+    return () => {
+      live = false;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [termsChanged, termsKey(p)]);
+
   function setColour(i: number, patch: Partial<Colour>) {
     set('colours', p.colours.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   }
@@ -81,8 +104,15 @@ export function ProductEditor({
       const id = p.id || `prod-${slugify(p.slug || p.title)}`;
       const body = { ...p, id, slug: p.slug || slugify(p.title), variants };
       const path = mode === 'create' ? '/api/admin/products' : `/api/admin/products/${encodeURIComponent(id)}`;
-      await adminFetch(path, { method: mode === 'create' ? 'POST' : 'PUT', body });
-      setMsg({ ok: true, text: 'Saved' });
+      const res = await adminFetch<{ bookings?: { moved: string[]; emailed: string[] } }>(path, {
+        method: mode === 'create' ? 'POST' : 'PUT',
+        body,
+      });
+      const moved = res?.bookings?.moved.length ?? 0;
+      setMsg({
+        ok: true,
+        text: moved ? `Saved. ${moved} open booking${moved === 1 ? '' : 's'} moved to the new date (${res.bookings!.emailed.length} emailed).` : 'Saved',
+      });
       if (mode === 'create') router.push(`/admin/products/${encodeURIComponent(id)}`);
       else router.refresh();
     } catch (e) {
@@ -318,6 +348,11 @@ export function ProductEditor({
       </section>
 
       <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-line bg-paper py-3">
+        {moving > 0 && (
+          <p role="status" className="w-full text-sm text-amber-800">
+            {moving} open booking{moving === 1 ? '' : 's'} will move to the new sale date and be emailed when you save.
+          </p>
+        )}
         <Button type="submit" loading={saving}>
           {mode === 'create' ? 'Create product' : 'Save changes'}
         </Button>

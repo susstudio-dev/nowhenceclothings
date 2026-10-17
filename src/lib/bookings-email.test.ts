@@ -49,4 +49,12 @@ describe('booking emails', () => {
     }
     expect(renderBookingEmail(b, 'expired', null, settings).html).toContain('not refundable');
   });
+  it('sale date moved email (F23) states the new date and carries the link', () => {
+    const tok = 'T'.repeat(43);
+    const moved = { ...b, status: 'deposit_paid' as const, balanceDueBy: undefined, terms: { ...b.terms, saleStartsAt: '2026-12-01T04:30:00.000Z', balanceWindowDays: 7 } };
+    const m = renderBookingEmail(moved, 'sale_date_moved', tok, settings);
+    expect(m.subject).toMatch(/^Your sale date has moved to 1 December 2026/);
+    expect(m.html).toContain(payLink(tok));
+    expect(m.html).toContain('8 December 2026');
+  });
 });

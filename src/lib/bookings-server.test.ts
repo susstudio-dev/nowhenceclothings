@@ -21,6 +21,7 @@ import {
   extendBooking,
   issueBookingToken,
   purgeBookingKeys,
+  reapplyAfterCatalogueChange,
   readBooking,
   startBalancePayment,
   sweepBookings,
@@ -31,6 +32,7 @@ import {
 // a scratch ledger + inventory key, and cleanup of every key created.
 const DATA = process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data');
 const LEDGER = '__test__/bookings-ledger.json';
+const LEDGER2 = '__test__/bookings-ledger-f23.json';
 const STOCK = '__test__/bookings-inventory.json';
 const SALE = '2026-11-15T04:30:00.000Z';
 const BOOK_AT = new Date('2026-10-20T10:00:00.000Z');
@@ -147,10 +149,10 @@ afterAll(async () => {
   }
   // webhook test events
   const { PaymentEventsDoc, paymentEventsKey } = await import('./schemas/logs');
-  await writeJsonCas(paymentEventsKey(new Date()), PaymentEventsDoc, (cur) => ({
+  await writeJsonCas(paymentEventsKey(BOOK_AT), PaymentEventsDoc, (cur) => ({
     events: (cur?.events ?? []).filter((e) => !e.eventId.startsWith('evt_test')),
   })).catch(() => undefined);
-  for (const k of [LEDGER, STOCK]) {
+  for (const k of [LEDGER, LEDGER2, STOCK]) {
     await deleteKey(k);
     await fs.rm(metaOf(k), { force: true });
   }
@@ -294,9 +296,12 @@ describe('bookings (integration)', () => {
   });
 
   it('webhook route distinguishes booking payments by notes and is idempotent', async () => {
+    // F24: pin the clock (the route reads the real clock) so this never runs past the sale date.
+    vi.useFakeTimers({ toFake: ['Date'], now: BOOK_AT });
+    try {
     process.env.RAZORPAY_WEBHOOK_SECRET = 'whsec';
     const { POST } = await import('../app/api/razorpay/webhook/route');
-    const res = await book('hook@example.com', 1, new Date());
+    const res = await book('hook@example.com', 1, BOOK_AT);
     const payload = (id: string) =>
       JSON.stringify({
         event: 'payment.captured',
@@ -318,6 +323,69 @@ describe('bookings (integration)', () => {
     expect((await readBooking(res.bookingId))!.status).toBe('deposit_paid');
     const bad = await POST(new Request('http://x', { method: 'POST', headers: { 'x-razorpay-signature': 'nope' }, body: payload('c') }));
     expect(bad.status).toBe(400);
-    await cancelBooking(res.bookingId, { refund: false, by: 'test' }, deps(new Date()));
+    await cancelBooking(res.bookingId, { refund: false, by: 'test' }, deps(BOOK_AT));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('F23: open bookings follow a moved sale date (CAS, idempotent, one email per change)', async () => {
+    const d2 = (now: Date, over: Partial<BookingDeps> = {}) => deps(now, { ledgerKey: () => LEDGER2, ...over });
+    const mk = async (email: string) => {
+      const r = await createBooking(input(email), d2(BOOK_AT));
+      created.add(r.bookingId);
+      return r;
+    };
+    const paid = await mk('f23-paid@example.com');
+    await confirmBookingPayment({ razorpayOrderId: paid.razorpay.orderId, razorpayPaymentId: 'pay_f23a', by: 'customer' }, d2(BOOK_AT));
+    const pending = await mk('f23-pending@example.com');
+    const due = await mk('f23-due@example.com');
+    await confirmBookingPayment({ razorpayOrderId: due.razorpay.orderId, razorpayPaymentId: 'pay_f23b', by: 'customer' }, d2(BOOK_AT));
+    await advanceBooking(due.bookingId, d2(new Date(SALE)));
+    expect((await readBooking(due.bookingId))!.status).toBe('balance_due');
+
+    const base = catalogue.products.find((p) => p.id === 'prod-test-booking')!;
+    const NEW = '2026-12-01T04:30:00.000Z';
+    const movedCat = {
+      ...catalogue,
+      products: [...catalogue.products.filter((p) => p.id !== base.id), testProduct(base, { saleStartsAt: NEW, balanceWindowDays: 5 })],
+    };
+    const now = new Date('2026-11-16T00:00:00.000Z'); // after the old sale date, before the new one
+    sent.length = 0;
+    const r1 = await reapplyAfterCatalogueChange(catalogue, movedCat, 'admin@x', d2(now, { catalogue: movedCat }));
+    const [bp, bpen, bdue] = await Promise.all([readBooking(paid.bookingId), readBooking(pending.bookingId), readBooking(due.bookingId)]);
+    expect(r1.moved).toEqual(expect.arrayContaining([bp!.number, bpen!.number, bdue!.number]));
+    expect(bp).toMatchObject({ status: 'deposit_paid', terms: { saleStartsAt: NEW, balanceWindowDays: 5 } });
+    expect(bpen!.terms.saleStartsAt).toBe(NEW); // then cancelled by advanceBooking: its 30-min deposit window has long passed
+    // balance_due with a future sale date goes back to deposit_paid
+    expect(bdue).toMatchObject({ status: 'deposit_paid', terms: { saleStartsAt: NEW } });
+    expect(bdue!.balanceDueBy).toBeUndefined();
+    // the paid customers are emailed once with a fresh link; the unpaid one is not
+    expect(r1.emailed).toEqual(expect.arrayContaining([bp!.number, bdue!.number]));
+    expect(r1.emailed).not.toContain(bpen!.number);
+    expect(sent.filter((x) => x.startsWith('Your sale date has moved to 1 December 2026'))).toHaveLength(2);
+    expect(bp!.tokenHashes.length).toBe(3);
+
+    // idempotent: re-running (or a second save with the same date) changes nothing and emails nobody
+    const r2 = await reapplyAfterCatalogueChange(catalogue, movedCat, 'admin@x', d2(now, { catalogue: movedCat }));
+    expect(r2.moved).toEqual([]);
+    expect(await reapplyAfterCatalogueChange(movedCat, movedCat, 'admin@x', d2(now))).toEqual({ checked: 0, moved: [], emailed: [] });
+    expect(sent.filter((x) => x.startsWith('Your sale date has moved'))).toHaveLength(2);
+
+    // the new sale start brings back the balance email with the new deadline
+    await advanceBooking(due.bookingId, d2(new Date(NEW), { catalogue: movedCat }));
+    const again = (await readBooking(due.bookingId))!;
+    expect(again).toMatchObject({ status: 'balance_due', balanceDueBy: '2026-12-06T04:30:00.000Z' });
+    expect(sent.filter((x) => x.startsWith('Pay the balance'))).toHaveLength(1);
+
+    // without a Resend key: dates still move, no email claimed (a later change can still email)
+    const later = { ...movedCat, products: [...catalogue.products.filter((p) => p.id !== base.id), testProduct(base, { saleStartsAt: '2026-12-10T04:30:00.000Z' })] };
+    const r3 = await reapplyAfterCatalogueChange(movedCat, later, 'admin@x', d2(now, { catalogue: later, send: undefined }));
+    expect(r3.moved).toContain(bp!.number);
+    expect(r3.emailed).toEqual([]);
+    const bp3 = (await readBooking(paid.bookingId))!;
+    expect(bp3.terms.saleStartsAt).toBe('2026-12-10T04:30:00.000Z');
+    expect(bp3.saleDateEmailFor).toBe(bp!.saleDateEmailFor); // still the previous change's key
+    for (const id of [paid.bookingId, pending.bookingId, due.bookingId]) await cancelBooking(id, { refund: false, by: 'test' }, d2(now));
   });
 });
