@@ -1043,13 +1043,8 @@
       "seo": {},
       "availability": "coming_soon",
       "comingSoon": {
-        "blurStrength": 45,
-        "showTitle": false,
-        "showPrice": false,
-        "teaser": "A deep navy piqué with a tonal rain pattern pressed into the cloth. Felt before it is seen.",
-        "badge": "QA BADGE",
         "revealTo": "available",
-        "hiddenTitle": "Piece No. 7",
+        "teaser": "A deep navy piqué with a tonal rain pattern pressed into the cloth. Felt before it is seen.",
         "blurred": [
           {
             "sourceId": "seed-69961b8ab6f5adc7",
@@ -1071,7 +1066,7 @@
         ]
       },
       "createdAt": "2026-10-17T00:00:00.000Z",
-      "updatedAt": "2026-10-17T08:35:34.918Z"
+      "updatedAt": "2026-10-17T00:00:00.000Z"
     },
     {
       "id": "prod-polo-rust-wing-sleeve",
@@ -1155,8 +1150,8 @@
       "seo": {},
       "availability": "coming_soon",
       "comingSoon": {
-        "teaser": "Burnt rust, with a quiet detail on the sleeve you will notice on the second look.",
         "revealTo": "available",
+        "teaser": "Burnt rust, with a quiet detail on the sleeve you will notice on the second look.",
         "blurred": [
           {
             "sourceId": "seed-8c78da9a86843d1c",
@@ -1263,8 +1258,8 @@
       "seo": {},
       "availability": "coming_soon",
       "comingSoon": {
-        "teaser": "Cream knit, front kept clean. The story is on the back.",
         "revealTo": "available",
+        "teaser": "Cream knit, front kept clean. The story is on the back.",
         "blurred": [
           {
             "sourceId": "seed-f33c94ce056ce18b",
@@ -1370,8 +1365,8 @@
       "seo": {},
       "availability": "coming_soon",
       "comingSoon": {
-        "teaser": "Olive, washed soft, finished at the hem with something small and deliberate.",
         "revealTo": "available",
+        "teaser": "Olive, washed soft, finished at the hem with something small and deliberate.",
         "blurred": [
           {
             "sourceId": "seed-a23828af18f1712c",

@@ -114,3 +114,62 @@ The first run had no secrets. The second run used throwaway env values (fake Raz
 1. `wrangler secret put CRON_SECRET` and deploy, then confirm the 15-minute cron hits `/api/admin/orders/expire` (untested here).
 2. Fill the remaining readiness items in Admin → Settings (favicon, phone, addresses, GSTIN, policy dates) so no `[[TBD]]` remains.
 3. Earlier items still open: real Razorpay test checkout in a browser, Cloudflare cache/WAF rate-limit rules (F7), Lighthouse/axe pass (F11).
+
+## WS-G + WS-H (2026-10-17)
+
+Integrated WS-G (coming soon A10, presale A11) and WS-H (brand A12, perf). Nothing committed.
+
+### Commands (real output)
+| Command | Result |
+|---|---|
+| `npm run typecheck` | No errors (also re-run after the QA fixes below). |
+| `npx vitest run` (from Git Bash `/d/...`) | `Test Files 34 failed (34)`, "Vitest failed to find the runner". This happens because the drive letter is lowercase, so vitest loads twice. It is a problem with how the shell was launched, not with the code. |
+| `npx vitest run` (from `D:\...` via cmd) | `Test Files 34 passed (34)` · `Tests 267 passed (267)`. Three runs in a row were green. One earlier run had `2 failed / 265 passed`, which is the shared-data flake (F18). |
+| `npm run lint` | WS-G added 2 unused `eslint-disable` directives, which gave 2 warnings. Fixed. Now `✔ No ESLint warnings or errors`. |
+| `npx next build` | Exit 0. Shared first-load JS 103 kB; middleware 39.6 kB; `/coming-soon`, `/api/presale/access`, `/api/admin/launches/*` present. |
+| `npx opennextjs-cloudflare build` | Exit 0, "OpenNext build complete." Re-run after the fixes. |
+
+### Walk (`next dev -p 3100`, throwaway env, admin cookie from `POST /api/admin/auth/login` → 200; then `next start -p 3101`)
+The leak scan used the 4 sharp image ids of the coming-soon polos (`seed-69961b8a…`, `seed-8c78da9a…`, `seed-f33c94ce…`, `seed-a23828af…`) and the hidden prices (349900/369900/₹3,499/₹3,699). Each page was fetched twice, as HTML and with `RSC: 1`.
+
+| Check | Result |
+|---|---|
+| Production server (`next start`): `/`, `/coming-soon`, `/shop`, `/shop/tops`, `/collections/core`, `/search?q=polo`, two coming-soon PDPs, `/sitemap.xml`, `/journal`, `/lookbook`, `/robots.txt` | Every page `sharp:0 hiddenprice:0`. |
+| Same scan under `next dev` | All 0 except `/shop/tops`. There, React's dev-only async debug info put the raw text of `catalogue.json` into the flight payload, because `generateMetadata` calls `getCatalogue()`. This doesn't happen in production (row above), but **don't demo secret products from `next dev` on a shared URL**. |
+| Blurred id `seed-fc4d…` | Shown on `/coming-soon`, `/shop` and the PDP. |
+| Coming-soon PDP | `<meta name="robots" content="noindex, follow">`, and no Product JSON-LD. |
+| Sitemap | Only `polo-black-ring-embroidered` (the presale polo). None of the 4 coming-soon slugs. |
+| Admin `PUT /api/admin/products/prod-polo-navy-rain-emboss` (showTitle false, hiddenTitle "Piece No. 7", badge "QA BADGE") | 200. Without a rebuild, "Rain Emboss" appears 0 times on `/`, `/coming-soon`, `/shop`, `/search`, the PDP and the sitemap. "Piece No. 7" and "QA BADGE" are shown on `/` (5), `/coming-soon` (5), `/shop` (5) and the PDP (3). |
+| Admin `PUT /api/admin/settings` (launches.comingSoon.showPrice true, showInShop false) | 200. The cream polo price `369900` went from 0 to 3 on `/coming-soon`, and from 0 to 2 on the PDP. The polo dropped off `/shop` (4 mentions to 0). |
+| Quote, coming-soon SKU `NWH-PRN-NAV-M` | `issues:[{"issue":"not_released"}]`, total 0. |
+| Quote, presale ×1 | `preorder:true`, `unitPrice:329900`, `compareAtPrice:379900`, `preorder.shipBy:"2026-12-15"`. |
+| Quote, mixed bag (presale + in-stock tee) | `issues:[{"sku":"NWH-TEE-BON-S","issue":"mixed_presale"}]`, `mixedPresale:true`. |
+| Create, presale ×3 | `"Pre-orders are limited to 2 per customer." code presale_limit` |
+| Create, mixed bag | `"Pre-order pieces ship later, so they need their own checkout…" code mixed_cart` |
+| Create, presale ×2 / ×1 | Passed the presale checks and failed at Razorpay with 502 "Payment provider is unavailable" (fake keys). Afterwards the ledger `data/presale/prod-polo-black-ring-embroidered.json` had `"reservations": []`, so the units were released. |
+| Admin sets cap 1, access `code`, accessCode `QA-SECRET-77` | PUT 200. Create with no code or a wrong code: `presale_access`. Right code, qty 2: `"Only 1 pre-order unit is left." code presale_cap`. Right code, qty 1: reached Razorpay (502). |
+| `POST /api/presale/access` | `nope` → 403 "That code is not valid."; correct code → 200 `{"ok":true}`. |
+| `QA-SECRET-77` in the HTML/RSC of `/`, `/shop`, `/coming-soon`, the presale PDP, `/drops`, `/sitemap.xml` | 0 everywhere. |
+| Home brand | Header has `<svg viewBox="0 0 192 23" role="img" aria-label="Nowhence">`; icons are `/brand-default/icon-32.png`, `-192.png` and apple `-180.png`; `/icon.png` returns 302 to `/brand-default/icon-512.png`, which is 200; `--font-display:var(--font-jost)`. |
+| Home meta description | **Was missing.** Fixed (F16). Now `<meta name="description" content="Nowhence makes considered unisex clothing. …">`. |
+
+Repeat-buyer cap (a second paid order from the same email) and cap exhaustion across separate orders could not be tested by curl without real Razorpay. Both are covered by `launches-server.test.ts`, including concurrent CAS writes. `data/` was restored from a backup afterwards.
+
+### Findings
+| # | Sev | Where | Finding | Fixed? |
+|---|---|---|---|---|
+| F16 | Medium | `src/app/(shop)/page.tsx` | Merge clash: WS-G's home page rewrite dropped WS-H's meta-description fallback and its placeholder-hero fallback. As a result the home page had **no** meta description (the page's `description: undefined` replaced the layout default). | **Yes.** Restored the `DEFAULT_DESCRIPTION` fallback and the `isPlaceholderMedia` → `DEFAULT_HERO_MEDIA` swap. Verified by curl. |
+| F17 | Low | `shop/page.tsx`, `shop/[category]/page.tsx`, `collections/[slug]/page.tsx`, `drops/[slug]/page.tsx` | These pages passed raw `catalogue.drops` (which can include a drop's presale `accessCode`) to the listing components. The components are server components, so nothing reached the client, but it was one `'use client'` away from leaking. | **Yes.** They now pass `publicDrops(catalogue.drops)`. |
+| F18 | Medium | tests/`src/lib/storage.ts` | Integration tests write the real `data/` folder (including `orders-index/2026-10.json` and `.meta`). Running them in parallel or alongside dev corrupts the file; one in four full runs here failed with 2 tests. | No. Suggested fix: a `DATA_DIR` env override pointed at a temp folder in `vitest.config.ts`. |
+| F19 | Low | `/api/checkout/quote` | The quote doesn't flag qty above `perCustomerLimit` (×3 quoted clean). Only create rejects it, so the bag shows no warning until payment. | No. |
+| F20 | Info | `public/media/seed-*` | Sharp originals of coming-soon products can be fetched by anyone who has the id (`/media/seed-69961b8ab6f5adc7/800.webp` → 200). The ids aren't leaked anywhere (scan above) and have 64 bits of randomness. | Accepted; same as WS-G open issue 3. |
+| F21 | Info | dev only | The `next dev` flight payload carries raw file contents (see the walk table). | N/A in production. |
+| F22 | Info | lint | 2 unused disable directives in `launches.ts` / `launches-server.ts`. | **Yes.** |
+
+The engineers' open issues still stand: the Settings blur default isn't used by the generate button (WS-G 4), no rate limit on `/api/presale/access` (5, add it to the F7 WAF rules), no ship-by in emails (6), only the first ship date shown (7). The home page is cached `s-maxage=300` (WS-H 1), so launch-setting edits and date-based reveals can take up to 5 minutes to show on `/`. `npm run seed` drops the polos (WS-G 1).
+
+### Remaining owner actions
+1. Check in a browser: canvas blur generation in Admin → product → Availability, the checkout access-code field, the `/admin/launches` notify CSV and email, the footer logo size and the icon PNGs.
+2. After any `npm run seed`, run `node scripts/seed-launch-polos.mjs`.
+3. Keep slugs of hidden-title products neutral (the slug is public).
+4. Do a real Razorpay test pre-order to confirm a repeat order from the same email is refused and the cap counts down.

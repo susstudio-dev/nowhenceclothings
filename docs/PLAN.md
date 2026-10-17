@@ -85,7 +85,7 @@ Phase 5  Integration & QA  ◄─────────────┘  (qa-re
 - [x] Logo SVGs as default wordmark/favicon/app icon; Jost added; monochrome defaults
 - [x] Home hero from photography; home meta description fallback
 - [x] Font loading (fewer weights, adjustFontFallback), modern browserslist, home caching
-- [ ] Typecheck/tests/build green
+- [x] Typecheck/tests/build green
 
 ## WS-I — Pre-booking with deposit (A13) · agent `commerce-engineer`
 - [ ] Schema: presale paymentMode full|deposit, deposit config, Booking doc `bookings/{id}.json` + index (additive)
