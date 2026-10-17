@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "nowhence",
+  "name": "nowhenceclothings",
   // custom-worker.mjs wraps .open-next/worker.js to add scheduled() (QA F6).
   "main": "custom-worker.mjs",
   "build": { "command": "node scripts/build-worker.mjs" },
@@ -10,7 +10,7 @@
   "workers_dev": false,
   "preview_urls": false,
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
-  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "nowhence" }],
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "nowhenceclothings" }],
   // One bucket: OpenNext cache under its own prefix, app data at the root.
   "r2_buckets": [
     { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "nowhence-content" },
