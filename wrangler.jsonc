@@ -1,7 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nowhence",
-  "main": ".open-next/worker.js",
+  // custom-worker.mjs wraps .open-next/worker.js to add scheduled() (QA F6).
+  "main": "custom-worker.mjs",
   "build": { "command": "node scripts/build-worker.mjs" },
   "compatibility_date": "2026-07-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -17,7 +18,9 @@
   ],
   // Secrets (wrangler secret put): JWT_SECRET, ADMIN_OWNER_EMAIL,
   // ADMIN_OWNER_PASSWORD_HASH (or ADMIN_OWNER_INITIAL_PASSWORD),
-  // RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, RESEND_API_KEY
+  // RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, RESEND_API_KEY, CRON_SECRET
+  // F6: cancel unpaid orders past the payment window (needs CRON_SECRET).
+  "triggers": { "crons": ["*/15 * * * *"] },
   "vars": {},
   "keep_vars": true,
   "observability": { "enabled": true }

@@ -24,7 +24,32 @@
     "maxQtyPerLine": 10
   },
   "email": {
+    "senderName": "Nowhence",
     "from": "Nowhence <orders@nowhenceclothings.com>",
     "replyTo": "hello@nowhenceclothings.com"
+  },
+  "brand": {
+    "wordmark": "NOWHENCE",
+    "displayFont": "cormorant-garamond",
+    "bodyFont": "inter-tight",
+    "colours": {
+      "ink": "#161513",
+      "paper": "#f8f6f1",
+      "accent": "#605440"
+    }
+  },
+  "returns": {
+    "exchangesAllowed": true,
+    "returnsAllowed": true,
+    "windowDays": 7,
+    "policyMarkdown": "## Conditions\n\n- Unworn, unwashed, with original tags attached.\n- Pieces bought on final sale cannot be returned.\n- Innerwear and socks cannot be returned, for hygiene.\n\n## Refunds\n\nOnce we receive and check the piece, we refund to the original payment method within 5 to 7 working days. Shipping fees are not refunded."
+  },
+  "legal": {
+    "legalName": "",
+    "gstin": "",
+    "registeredAddress": "",
+    "jurisdictionCity": "",
+    "privacyUpdatedAt": "",
+    "termsUpdatedAt": ""
   }
 }

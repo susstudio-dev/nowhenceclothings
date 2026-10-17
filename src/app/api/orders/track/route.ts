@@ -1,4 +1,5 @@
-import { findOrderByNumber, toPublicOrder } from '@/lib/commerce/orders';
+import { findOrderByNumber, readOrder, toPublicOrder } from '@/lib/commerce/orders';
+import { expireIfStale } from '@/lib/commerce/lifecycle';
 import { TrackRequest } from '@/lib/commerce/types';
 import { jsonError, jsonOk, parseBody } from '@/lib/commerce/http';
 
@@ -11,8 +12,14 @@ export async function POST(req: Request) {
   const body = await parseBody(req, TrackRequest);
   if (!body.ok) return jsonError(404, NOT_FOUND);
   try {
-    const order = await findOrderByNumber(body.data.number, body.data.email);
-    if (!order) return jsonError(404, NOT_FOUND);
+    const found = await findOrderByNumber(body.data.number, body.data.email);
+    if (!found) return jsonError(404, NOT_FOUND);
+    // F6: lazily cancel an unpaid order past its payment window.
+    let order = found;
+    if (found.status === 'pending_payment') {
+      await expireIfStale(found.id);
+      order = (await readOrder(found.id)) ?? found;
+    }
     return jsonOk({ order: toPublicOrder(order) });
   } catch (err) {
     console.error('track failed', err instanceof Error ? err.message : '');

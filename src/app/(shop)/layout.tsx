@@ -8,6 +8,12 @@ import { jsonLdScript, organizationLd, webSiteLd } from '@/lib/jsonld';
 // Header renders the skip link; CartButton mounts the single CartDrawer.
 export default async function ShopLayout({ children }: { children: ReactNode }) {
   const [content, settings] = await Promise.all([getSiteContent(), getSettings()]);
+  const brand = {
+    name: settings.store.name,
+    wordmark: settings.brand.wordmark,
+    logoLight: settings.brand.logoLight,
+    logoDark: settings.brand.logoDark,
+  };
   return (
     <>
       <script
@@ -15,9 +21,12 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
         dangerouslySetInnerHTML={{ __html: jsonLdScript([organizationLd(settings), webSiteLd()]) }}
       />
       <AnnouncementBar announcement={content.announcement} />
-      <Header nav={content.nav.primary} cartSlot={<CartButton />} />
+      <Header nav={content.nav.primary} cartSlot={<CartButton />} brand={brand} />
       <main id="main">{children}</main>
-      <Footer columns={content.nav.footer} newsletter={<NewsletterForm source="footer" />} email={settings.store.email} />
+      <Footer columns={content.nav.footer} newsletter={<NewsletterForm source="footer" />} email={settings.store.email}
+        brand={brand}
+        legalName={settings.legal.legalName || undefined}
+      />
     </>
   );
 }

@@ -33,6 +33,11 @@ export const MediaRef = z.object({
   widths: z.array(z.number().int().positive()).default([]),
   /** Optional direct URL (placeholders / external). Overrides media/{id} lookup. */
   src: z.string().optional(),
+  /**
+   * Formats stored for every width (QA F5). Absent = ['webp'] (older uploads
+   * always had WebP). Read through mediaFormats() in components/ui/Image.
+   */
+  formats: z.array(z.enum(['avif', 'webp', 'jpg', 'png'])).optional(),
 });
 export type MediaRef = z.infer<typeof MediaRef>;
 

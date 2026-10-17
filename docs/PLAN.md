@@ -64,13 +64,13 @@ Phase 5  Integration & QA  ◄─────────────┘  (qa-re
 - [x] Write `docs/QA-REPORT.md` with findings + fixes
 
 ## WS-F — Owner customisation (A9) · agent `admin-engineer`
-- [ ] Settings schema: brand (logo, favicon, wordmark, fonts, colours), returns policy, legal (address, jurisdiction, dates), email sender name
-- [ ] Admin Settings tabs: Brand · Shipping · Returns · Legal · Email, with live preview + contrast check
-- [ ] Media library page (upload, alt text, reuse)
-- [ ] Storefront chrome, fonts, colours, favicon read from settings (CSS variables, no rebuild)
-- [ ] Static/legal pages read from settings + editable markdown; remove hard-coded copy in `src/lib/static-pages.ts`
-- [ ] Launch-readiness checklist on admin dashboard
-- [ ] Tests + typecheck green
+- [x] Settings schema: brand (logo, favicon, wordmark, fonts, colours), returns policy, legal (address, jurisdiction, dates), email sender name
+- [x] Admin Settings tabs: Brand · Shipping · Returns · Legal · Email, with live preview + contrast check
+- [x] Media library page (upload, alt text, reuse)
+- [x] Storefront chrome, fonts, colours, favicon read from settings (CSS variables, no rebuild)
+- [x] Static/legal pages read from settings + editable markdown; remove hard-coded copy in `src/lib/static-pages.ts`
+- [x] Launch-readiness checklist on admin dashboard
+- [x] Tests + typecheck green
 
 ## Phase 6 — Launch (owner + engineer)
 - [ ] Create R2 bucket, set secrets (`JWT_SECRET`, `ADMIN_OWNER_*`, `RAZORPAY_*`, `RESEND_API_KEY`)

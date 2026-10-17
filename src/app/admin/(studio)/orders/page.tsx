@@ -3,7 +3,8 @@ import { requireCapability } from '@/lib/guard';
 import { formatPaise } from '@/lib/money';
 import { ORDER_STATUSES, OrderStatus } from '@/lib/schemas/order';
 import { filterOrders, ORDER_STATUS_LABELS } from '@/lib/admin/orders';
-import { listOrderSummaries } from '@/lib/admin/store';
+import { getOrder, listOrderSummaries } from '@/lib/admin/store';
+import { expireStaleOrders, needsStockCommit, STOCK_HOLDING_STATUSES } from '@/lib/commerce/lifecycle';
 
 export const metadata = { title: 'Orders' };
 
@@ -12,7 +13,19 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const st = OrderStatus.safeParse(sp.status);
   const status = st.success ? st.data : 'all';
+  await expireStaleOrders(); // F6 lazy sweep
   const list = filterOrders(await listOrderSummaries(), { status, q: sp.q });
+  // F8: paid-or-later orders whose stock decrement never completed. Summaries
+  // lack stockCommittedAt, so load recent stock-holding orders in full.
+  const recent = Date.now() - 45 * 24 * 3600_000;
+  const candidates = list
+    .filter((o) => STOCK_HOLDING_STATUSES.includes(o.status) && Date.parse(o.createdAt) > recent)
+    .slice(0, 200);
+  const unstocked = new Set(
+    (await Promise.all(candidates.map((o) => getOrder(o.id))))
+      .filter((o): o is NonNullable<typeof o> => o != null && needsStockCommit(o))
+      .map((o) => o.id),
+  );
   const qs = new URLSearchParams({ ...(st.success ? { status: st.data } : {}), ...(sp.q ? { q: sp.q } : {}) }).toString();
 
   return (
@@ -43,6 +56,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           Filter
         </button>
       </form>
+      {unstocked.size > 0 && (
+        <p role="alert" className="border border-sale p-3 text-sm text-sale">
+          {unstocked.size} paid order{unstocked.size === 1 ? '' : 's'} without stock deducted. Open each flagged order and
+          use Commit stock.
+        </p>
+      )}
       {list.length === 0 ? (
         <p className="text-sm text-muted">No orders match.</p>
       ) : (
@@ -72,7 +91,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                 </td>
                 <td>{o.itemCount}</td>
                 <td>{formatPaise(o.total)}</td>
-                <td>{ORDER_STATUS_LABELS[o.status]}</td>
+                <td>
+                  {ORDER_STATUS_LABELS[o.status]}
+                  {unstocked.has(o.id) && <span className="block text-xs text-sale">Stock not deducted</span>}
+                </td>
               </tr>
             ))}
           </tbody>

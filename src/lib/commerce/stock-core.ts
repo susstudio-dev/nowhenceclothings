@@ -24,3 +24,14 @@ export function applyStockDecrement(inv: InventoryDoc, lines: { sku: string; qty
   }
   return next;
 }
+
+/** Returns a new inventory with every line's qty added back (restock). Pure. */
+export function applyStockIncrement(inv: InventoryDoc, lines: { sku: string; qty: number }[]): InventoryDoc {
+  const next: InventoryDoc = { ...inv };
+  for (const l of lines) {
+    const level = next[l.sku];
+    // Unknown SKU (deleted since): recreate a minimal level rather than drop stock.
+    next[l.sku] = level ? { ...level, stock: level.stock + l.qty } : { stock: l.qty, reserved: 0, lowStockAt: 3 };
+  }
+  return next;
+}

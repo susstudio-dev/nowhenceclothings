@@ -10,6 +10,7 @@ const ITEMS: { href: string; label: string; cap?: Capability }[] = [
   { href: '/admin/orders', label: 'Orders', cap: 'orders.read' },
   { href: '/admin/coupons', label: 'Coupons & sales', cap: 'coupons.write' },
   { href: '/admin/content', label: 'Content' },
+  { href: '/admin/media', label: 'Media', cap: 'media.write' },
   { href: '/admin/settings', label: 'Settings', cap: 'orders.read' },
   { href: '/admin/team', label: 'Team', cap: 'users.manage' },
   { href: '/admin/audit', label: 'Audit log', cap: 'audit.read' },

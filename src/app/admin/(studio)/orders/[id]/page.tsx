@@ -6,12 +6,15 @@ import { formatPaise } from '@/lib/money';
 import { nextStatuses, ORDER_STATUS_LABELS } from '@/lib/admin/orders';
 import { getOrder } from '@/lib/admin/store';
 import { OrderActions } from '@/components/admin/OrderActions';
+import { CommitStockButton } from '@/components/admin/CommitStockButton';
+import { expireIfStale, needsStockCommit } from '@/lib/commerce/lifecycle';
 
 export const metadata = { title: 'Order' };
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const admin = await requireCapability('orders.read');
   const { id } = await params;
+  if (/^[A-Za-z0-9_-]{1,64}$/.test(id)) await expireIfStale(id);
   const o = await getOrder(id);
   if (!o) notFound();
   const a = o.shippingAddress;
@@ -104,6 +107,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           </div>
         </section>
         {roleHas(admin.role, 'orders.write') && (
+          <div className="space-y-6">
+          {needsStockCommit(o) && <CommitStockButton orderId={o.id} />}
           <OrderActions
             orderId={o.id}
             status={o.status}
@@ -113,6 +118,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             total={o.total}
             canRefund={roleHas(admin.role, 'orders.refund')}
           />
+          </div>
         )}
       </div>
     </div>

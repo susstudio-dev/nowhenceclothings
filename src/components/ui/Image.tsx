@@ -1,5 +1,6 @@
 import type { MediaRef } from '@/lib/schemas/common';
 import { cn } from './cn';
+import { mediaFormats, mediaSrcSet } from './media-src';
 
 export interface ImageProps {
   media: MediaRef;
@@ -12,16 +13,14 @@ export interface ImageProps {
   alt?: string;
 }
 
-/** srcset for one format from MediaRef.widths (served at /media/{id}/{w}.{fmt}). */
-export function mediaSrcSet(media: MediaRef, format: 'avif' | 'webp'): string | undefined {
-  if (media.src || media.widths.length === 0) return undefined;
-  return media.widths.map((w) => `/media/${media.id}/${w}.${format} ${w}w`).join(', ');
-}
+export { mediaFormats, mediaSrcSet } from './media-src';
 
 // STUB (Phase 0): <picture> with AVIF/WebP from R2 variants, final props.
 export function Image({ media, sizes = '100vw', priority = false, className, alt }: ImageProps) {
   const largest = media.widths.length ? media.widths[media.widths.length - 1] : 0;
-  const fallback = media.src ?? `/media/${media.id}/${largest}.webp`;
+  const stored = mediaFormats(media);
+  const fallbackFmt = (['webp', 'jpg', 'png', 'avif'] as const).find((f) => stored.includes(f)) ?? 'webp';
+  const fallback = media.src ?? `/media/${media.id}/${largest}.${fallbackFmt}`;
   const avif = mediaSrcSet(media, 'avif');
   const webp = mediaSrcSet(media, 'webp');
   return (

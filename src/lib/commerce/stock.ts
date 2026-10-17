@@ -4,7 +4,7 @@
 import 'server-only';
 import { writeJsonCas } from '@/lib/storage';
 import { INVENTORY_KEY, InventoryDoc } from '@/lib/schemas/inventory';
-import { applyStockDecrement } from './stock-core';
+import { applyStockDecrement, applyStockIncrement } from './stock-core';
 
 export { applyStockDecrement, OversellError } from './stock-core';
 
@@ -17,4 +17,14 @@ export async function commitStock(
   key: string = INVENTORY_KEY,
 ): Promise<InventoryDoc> {
   return writeJsonCas(key, InventoryDoc, (inv) => applyStockDecrement(inv ?? {}, lines));
+}
+
+export { applyStockIncrement } from './stock-core';
+
+/** Atomically adds every line's qty back to inventory (cancel/refund restock). */
+export async function restockLines(
+  lines: { sku: string; qty: number }[],
+  key: string = INVENTORY_KEY,
+): Promise<InventoryDoc> {
+  return writeJsonCas(key, InventoryDoc, (inv) => applyStockIncrement(inv ?? {}, lines));
 }

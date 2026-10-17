@@ -58,12 +58,12 @@ The first run had no secrets. The second run used throwaway env values (fake Raz
 | F2 | Medium | `src/middleware.ts` | Admin write APIs (other than auth) had no cross-site request protection beyond the `lax` cookie setting. | **Yes.** The middleware now also covers `/api/admin/:path*` and returns 403 for non-GET requests with a foreign `Origin`. Verified with curl. |
 | F3 | Medium | `src/app/(shop)/layout.tsx` | The cart drawer was mounted twice: `CartButton` already renders `CartDrawer`, and the layout rendered it again (two dialogs, two focus traps). There were also two skip links, one in the layout and one in the `Header`. | **Yes.** The extra `CartDrawer` and skip link are removed. |
 | F4 | Low (SEO) | `src/app/(shop)/layout.tsx` | Organization and WebSite structured data (JSON-LD) was not rendered on any page. | **Yes.** It is now rendered through `jsonLdScript` in the shop layout, so admin pages don't get it. |
-| F5 | Medium | `components/ui/Image.tsx` `mediaSrcSet` | Image `srcset` lists `.avif` for every width, but admin uploads are usually WebP only, so those image links break. | No. This needs an optional `MediaRef.formats` field in the schema and must be decided by the schema owner. |
-| F6 | Medium | commerce | Unpaid orders never expire (no job runs after `paymentWindowMinutes`). Cancelling or refunding in admin doesn't restock. Marking an order shipped doesn't send the shipped email. | No. These are follow-up work for WS-C and WS-D. |
+| F5 | Medium | `components/ui/Image.tsx` `mediaSrcSet` | Image `srcset` lists `.avif` for every width, but admin uploads are usually WebP only, so those image links break. | **Fixed (WS-C).** Optional `MediaRef.formats` (absent = `['webp']`); `mediaSrcSet` (now in `components/ui/media-src.ts`, re-exported) skips formats not stored and the `<img>` fallback picks a stored format; `/api/admin/media` records the formats present at every width. Tests: `components/ui/Image.test.ts`. |
+| F6 | Medium | commerce | Unpaid orders never expire (no job runs after `paymentWindowMinutes`). Cancelling or refunding in admin doesn't restock. Marking an order shipped doesn't send the shipped email. | **Fixed (WS-C)** in `lib/commerce/lifecycle.ts`. Expiry is lazy (admin list/detail, order tracking) plus a cron: `custom-worker.mjs` wraps the OpenNext worker with `scheduled()` (wrangler `triggers.crons` every 15 min) that POSTs `/api/admin/orders/expire` with `x-cron-secret`; needs the `CRON_SECRET` secret (owner action), otherwise only lazy expiry runs. Admin cancel/refund from paid/packed restocks once (CAS clears `stockCommittedAt`); status → shipped/refunded sends the email once. Tests: `lib/commerce/lifecycle.test.ts`. |
 | F7 | Medium | API | No rate limiting on checkout, order tracking, notify or newsletter. | No. Use a Cloudflare WAF rate-limit rule (owner action). |
-| F8 | Low | `lib/commerce/orders.ts` | If the server fails after marking an order paid but before reducing stock, the order is left `paid` without `stockCommittedAt`. Nothing flags it in admin. | No |
-| F9 | Low | tooling | ESLint is not configured, so `next lint` opens an interactive prompt. | No |
-| F10 | Low | `public/` | `/icon.png` is referenced by the manifest and the Organization data but doesn't exist. | No (WS-F brand assets) |
+| F8 | Low | `lib/commerce/orders.ts` | If the server fails after marking an order paid but before reducing stock, the order is left `paid` without `stockCommittedAt`. Nothing flags it in admin. | **Fixed (WS-C).** Admin orders list shows a banner and a per-row "Stock not deducted" flag; the order page has a **Commit stock** button (`POST /api/admin/orders/[id]/commit-stock`, CAS claim, rolls back on oversell). Tests: `lib/commerce/lifecycle.test.ts`. |
+| F9 | Low | tooling | ESLint is not configured, so `next lint` opens an interactive prompt. | **Config added (WS-C):** `eslint.config.mjs` (`next/core-web-vitals` + `next/typescript`) and devDeps `eslint`, `eslint-config-next`, `@eslint/eslintrc` in `package.json`. Not installed here (no `npm install` allowed), so the lint error count is still unknown: run `npm install && npm run lint`. |
+| F10 | Low | `public/` | `/icon.png` is referenced by the manifest and the Organization data but doesn't exist. | **Yes (WS-F)**, see §6. |
 | F11 | Info | a11y / perf | Not audited in a real browser (the Playwright connection failed). From the code: 44px touch targets, radio-based swatches and sizes, `aria-live` messages, reduced-motion support, and pages work without JavaScript. Shared JS is 103 kB first load; the product page is 129 kB. | Needs a Lighthouse pass |
 
 ## 5. Remaining owner actions
@@ -71,4 +71,46 @@ The first run had no secrets. The second run used throwaway env values (fake Raz
 2. Add a Cloudflare Cache Rule so the HTML edge-cache headers take effect, plus WAF rate limits for `/api/checkout*`, `/api/orders/track`, `/api/notify` and `/api/newsletter`.
 3. The build machine needs network access for `next/font/google`. Otherwise, switch to `next/font/local`.
 4. Answer the legal facts shown as `[[TBD]]` (entity name, GSTIN, address, jurisdiction, dates).
-5. Run Lighthouse and axe on `/`, `/shop` and a product page. Choose an ESLint config.
+5. Run Lighthouse and axe on `/`, `/shop` and a product page. Run `npm install && npm run lint` (ESLint config added). Set `wrangler secret put CRON_SECRET` to enable the unpaid-order expiry cron.
+
+## 6. WS-F + follow-ups (integration pass, 2026-10-17)
+
+### Commands (real output)
+| Command | Result |
+|---|---|
+| `npm install` | OK; `package-lock.json` resynced with the new ESLint devDeps (F9). |
+| `npm run typecheck` | No errors (WS-C's `Header.tsx` `brand` error was already fixed by WS-F). |
+| `npx vitest run` | `Test Files 31 passed (31)` · `Tests 236 passed (236)` (235 + 1 new sender-name test). |
+| `npm run lint` | Exit 0. **0 errors, 23 warnings** (unused `_x` destructure vars, 2 stale `eslint-disable` comments, 6 `jsx-a11y/alt-text` false positives on the custom `<Image media=…>` component, which takes alt from `media.alt`). |
+| `npx next build` | Exit 0. Shared first-load JS 103 kB; middleware 39.7 kB; `/icon.png` and `/manifest.webmanifest` dynamic routes present. |
+| `npx opennextjs-cloudflare build` | Exit 0, "Worker saved in `.open-next\worker.js`", "OpenNext build complete." (`custom-worker.mjs` wraps it; not deployed, so the cron is still untested.) |
+
+### Walk (`next dev -p 3100`, throwaway `JWT_SECRET` / owner creds, admin cookie from `POST /api/admin/auth/login` → 200)
+| Step | Result |
+|---|---|
+| Dashboard readiness, initial settings | "Launch readiness · 8/17"; lists Favicon, Contact phone, Contact/studio address, Legal company name, GSTIN, Registered address, Jurisdiction city, Privacy policy date, Terms date, each linking to its settings tab. |
+| Baseline `/` | `<style id="brand-vars">` sets only the default fonts (cormorant-garamond / inter-tight); `theme-color` `#f8f6f1`. |
+| `PUT /api/admin/settings` (ink `#101820`, paper `#fdfcf8`, accent `#8a2b1d`, display font Playfair, legal name, jurisdiction Pune, returns 14 days, exchanges off, policy marker) | 200 |
+| `/` right after, no rebuild | `--font-display:var(--font-playfair-display)`, `--c-ink:16 24 32;--c-paper:253 252 248;--c-accent:138 43 29` plus derived tones; `theme-color` `#fdfcf8`; Organization JSON-LD legal name updated. |
+| `/returns` | "You have 14 days from delivery…", policy marker rendered from markdown; no exchange copy in the body once exchanges are off. |
+| `/terms` | Legal name ×18, Pune ×8; `[[TBD]]` remains only for fields still empty (GSTIN, address, date), as intended. |
+| Readiness after save | 10/17 (legal name and jurisdiction now filled). |
+| PUT with ink `#dddddd` | 400 `Text on page (ink / paper) contrast is 1.32:1; needs 4.5:1`. |
+| `/icon.png` | 200 `image/png` (F10 closed). |
+
+`data/settings.json` was restored and the QA `data/audit/` scratch removed afterwards.
+
+### Findings
+| # | Sev | Where | Finding | Fixed? |
+|---|---|---|---|---|
+| F12 | Low | `src/lib/commerce/email.ts:118` | Saved email sender name was not used in the From header. | **Yes.** Now `from: emailFromHeader(settings.email)`; test added in `email.test.ts`. |
+| F13 | Low | `src/app/api/admin/settings/route.ts:22` | Settings PUT replaces the whole doc inside `writeJsonCas` without checking a client version, so two admins saving at once is last-write-wins (CAS only guards the storage race, not the stale form). | No. Acceptable for one owner; add an `updatedAt` precondition if more owners edit settings. |
+| F14 | Info | `/returns` | Page title and nav label still say "Returns & exchange" when exchanges are switched off. | No (copy tweak). |
+| F15 | Info | lint | 23 warnings, 0 errors (see above). | No; clean-up optional. |
+| F9 | — | tooling | Now complete: deps installed, lockfile synced, lint runs non-interactively. | **Yes.** |
+| F10 | — | `/icon.png` | Served by `src/app/icon.png/route.tsx`. | **Yes (WS-F).** |
+
+### Remaining owner actions (updated)
+1. `wrangler secret put CRON_SECRET` and deploy, then confirm the 15-minute cron hits `/api/admin/orders/expire` (untested here).
+2. Fill the remaining readiness items in Admin → Settings (favicon, phone, addresses, GSTIN, policy dates) so no `[[TBD]]` remains.
+3. Earlier items still open: real Razorpay test checkout in a browser, Cloudflare cache/WAF rate-limit rules (F7), Lighthouse/axe pass (F11).

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { SiteContentDoc } from '@/lib/schemas/site-content';
 import { cn } from '@/components/ui/cn';
-import { Wordmark } from '@/components/ui/Wordmark';
+import { BrandMark, type ChromeBrand } from './BrandMark';
 
 export interface FooterProps {
   /** site-content `nav.footer` column groups. */
@@ -12,10 +12,14 @@ export interface FooterProps {
   /** Contact email from settings `store.email`. */
   email?: string;
   className?: string;
+  /** Owner brand from settings (A9). */
+  brand?: ChromeBrand;
+  /** Small-print owner name; defaults to brand name. */
+  legalName?: string;
 }
 
 /** Editorial footer: oversized wordmark, link columns, newsletter slot, small print. Server component. */
-export function Footer({ columns, newsletter, email, className }: FooterProps) {
+export function Footer({ columns, newsletter, email, className, brand, legalName }: FooterProps) {
   const year = new Date().getFullYear();
   return (
     <footer className={cn('mt-section border-t border-line bg-paper', className)}>
@@ -42,10 +46,14 @@ export function Footer({ columns, newsletter, email, className }: FooterProps) {
         </nav>
       </div>
       <div className="container-page overflow-hidden" aria-hidden="true">
-        <Wordmark className="block select-none whitespace-nowrap text-[18vw] leading-[0.8] tracking-[0.04em] text-ink md:text-[16vw]" />
+        <BrandMark
+          brand={brand}
+          className="block select-none whitespace-nowrap text-[18vw] leading-[0.8] tracking-[0.04em] text-ink md:text-[16vw]"
+          imgClassName="block h-auto w-full max-h-[40vh] object-contain object-left"
+        />
       </div>
       <div className="container-page flex flex-col gap-2 border-t border-line py-6 text-caption text-muted md:flex-row md:justify-between">
-        <p>&copy; {year} Nowhence. All rights reserved.</p>
+        <p>&copy; {year} {legalName || brand?.name || 'Nowhence'}. All rights reserved.</p>
         {email && (
           <p>
             <a href={`mailto:${email}`} className="link-underline hover:text-ink">

@@ -1,7 +1,7 @@
 import { cn } from './cn';
 
-/** Placeholder logo (D12): a typeset wordmark until the real mark arrives. */
-export function Wordmark({ className }: { className?: string }) {
+/** Typeset wordmark; text comes from settings.brand.wordmark (A9), default NOWHENCE. */
+export function Wordmark({ className, text }: { className?: string; text?: string }) {
   return (
     <span
       className={cn(
@@ -9,7 +9,7 @@ export function Wordmark({ className }: { className?: string }) {
         className,
       )}
     >
-      NOWHENCE
+      {text?.trim() || 'NOWHENCE'}
     </span>
   );
 }

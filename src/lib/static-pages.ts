@@ -1,6 +1,7 @@
 import type { Page } from './schemas/site-content';
 import type { SettingsDoc } from './schemas/settings';
 import { formatPaise } from './money';
+import { formatLegalDate } from './brand';
 
 // Default copy for the S9 static pages (WS-E). Admin-edited pages in
 // site-content.json win; these render when a page is missing or still holds
@@ -25,7 +26,7 @@ export const DEFAULT_STATIC_PAGES: Record<StaticSlug, Page> = {
         'about-body',
         `# Made from nowhere in particular
 
-Nowhence began with a simple question. Why do clothes need a gender, a season or a trend to justify them?
+{{brandName}} began with a simple question. Why do clothes need a gender, a season or a trend to justify them?
 
 We make a small range of unisex pieces. Heavyweight cotton. Honest twill. Colours that sit quietly together. Each piece is cut on one block and graded across sizes XS to XXL, so the fit is decided by the body, not a label.
 
@@ -37,7 +38,7 @@ We make a small range of unisex pieces. Heavyweight cotton. Honest twill. Colour
 
 ## Where we are
 
-Nowhence is designed in India and made with partners we visit. Our studio is at {{address}}.`,
+{{brandName}} is designed in India and made with partners we visit. Our studio is at {{address}}.`,
       ),
     ],
   },
@@ -72,7 +73,7 @@ For an order, include your order number. It starts with NWH and is in your confi
           { q: 'How does unisex sizing work?', a: 'Every piece is cut on one block. Choose by chest measurement. If you are between sizes, size down for a closer fit, up for a relaxed one. See the [size guide](/size-guide).' },
           { q: 'How long does delivery take?', a: '{{eta}}. Delivery across India usually takes a further 2 to 6 working days, depending on your PIN code.' },
           { q: 'What does shipping cost?', a: 'A flat {{flatFee}}. Orders of {{freeShippingThreshold}} or more ship free.' },
-          { q: 'Can I return or exchange?', a: 'Yes, within {{returnWindowDays}} days of delivery, unworn and with tags. Read the [returns policy](/returns).' },
+          { q: 'Can I return or exchange?', a: '{{returnsSummary}} Pieces must be unworn and with tags. Read the [returns policy](/returns).' },
           { q: 'Do prices include tax?', a: 'Yes. All prices include GST.' },
           { q: 'How do I pay?', a: 'Cards, UPI, net banking and wallets, through Razorpay. We do not store your card details.' },
           { q: 'Will a sold-out size come back?', a: 'Sometimes. Choose the size and select "Notify me". We will write once, when it returns.' },
@@ -90,7 +91,7 @@ For an order, include your order number. It starts with NWH and is in your confi
         'size-guide-intro',
         `# Size guide
 
-All Nowhence pieces are unisex. Measurements below are of the garment laid flat, not the body.
+All {{brandName}} pieces are unisex. Measurements below are of the garment laid flat, not the body.
 
 ## How to measure
 
@@ -145,21 +146,13 @@ If something is not right, send it back.
 
 ## The window
 
-You have {{returnWindowDays}} days from delivery to ask for a return or exchange.
+{{returnsSummary}}
 
-## Conditions
-
-- Unworn, unwashed, with original tags attached.
-- Pieces bought on final sale cannot be returned.
-- Innerwear and socks cannot be returned, for hygiene.
+{{returnsPolicy}}
 
 ## How to start
 
-Write to [{{email}}](mailto:{{email}}) with your order number and what you would like: a different size, or a refund. We will arrange a pickup where available.
-
-## Refunds
-
-Once we receive and check the piece, we refund to the original payment method within 5 to 7 working days. Shipping fees are not refunded. [[TBD: confirm return policy specifics with owner]]`,
+Write to [{{email}}](mailto:{{email}}) with your order number and what you would like: {{returnsAsk}}. We will arrange a pickup where available.`,
       ),
     ],
   },
@@ -172,7 +165,7 @@ Once we receive and check the piece, we refund to the original payment method wi
         'privacy-body',
         `# Privacy policy
 
-This policy explains what we collect when you use nowhenceclothings.com, and why. The site is operated by {{legalName}}, {{address}}.
+This policy explains what we collect when you use nowhenceclothings.com, and why. The site is operated by {{legalName}}, {{registeredAddress}}.
 
 ## What we collect
 
@@ -199,7 +192,7 @@ Order records are kept as long as tax law requires. Newsletter data is deleted w
 
 You can ask to see, correct or delete your data. Write to [{{email}}](mailto:{{email}}).
 
-Last updated: [[TBD]].`,
+Last updated: {{privacyUpdatedAt}}.`,
       ),
     ],
   },
@@ -212,7 +205,7 @@ Last updated: [[TBD]].`,
         'terms-body',
         `# Terms of sale
 
-These terms apply to purchases on nowhenceclothings.com, operated by {{legalName}} (GSTIN {{gstin}}), {{address}}.
+These terms apply to purchases on nowhenceclothings.com, operated by {{legalName}} (GSTIN {{gstin}}), {{registeredAddress}}.
 
 ## Prices
 
@@ -236,9 +229,9 @@ Our liability is limited to the value of the order. Nothing here limits rights y
 
 ## Governing law
 
-These terms are governed by the laws of India. Courts at [[TBD]] have jurisdiction.
+These terms are governed by the laws of India. Courts at {{jurisdictionCity}} have jurisdiction.
 
-Last updated: [[TBD]].`,
+Last updated: {{termsUpdatedAt}}.`,
       ),
     ],
   },
@@ -259,17 +252,44 @@ export function resolveStaticPage(slug: StaticSlug, stored: Page | undefined): P
   return isPlaceholderPage(stored) ? DEFAULT_STATIC_PAGES[slug] : stored!;
 }
 
-/** Template variables for `fillTemplate`, from store settings. */
+/** Template variables for `fillTemplate`, from store settings (A9: legal, returns, brand). */
 export function settingsVars(settings: SettingsDoc): Record<string, string> {
+  const r = settings.returns;
+  const days = String(r.windowDays);
+  const what =
+    r.returnsAllowed && r.exchangesAllowed
+      ? 'a return or exchange'
+      : r.returnsAllowed
+        ? 'a return'
+        : r.exchangesAllowed
+          ? 'an exchange'
+          : '';
   return {
+    brandName: settings.store.name,
     email: settings.store.email,
     phone: settings.store.phone,
     address: settings.store.address,
-    legalName: settings.store.legalName,
-    gstin: settings.tax.gstin,
+    legalName: settings.legal.legalName,
+    gstin: settings.legal.gstin,
+    registeredAddress: settings.legal.registeredAddress || settings.store.address,
+    jurisdictionCity: settings.legal.jurisdictionCity,
+    privacyUpdatedAt: formatLegalDate(settings.legal.privacyUpdatedAt),
+    termsUpdatedAt: formatLegalDate(settings.legal.termsUpdatedAt),
     eta: settings.shipping.eta,
     flatFee: formatPaise(settings.shipping.flatFee),
     freeShippingThreshold: formatPaise(settings.shipping.freeShippingThreshold),
-    returnWindowDays: String(settings.orders.returnWindowDays),
+    returnWindowDays: days,
+    returnsSummary: what
+      ? `You have ${days} days from delivery to ask for ${what}.`
+      : 'We do not accept returns or exchanges, except for faulty or wrongly sent pieces. Write to us within 48 hours of delivery.',
+    returnsAsk:
+      r.returnsAllowed && r.exchangesAllowed
+        ? 'a different size, or a refund'
+        : r.returnsAllowed
+          ? 'a refund'
+          : r.exchangesAllowed
+            ? 'a different size'
+            : 'a replacement for a faulty piece',
+    returnsPolicy: r.policyMarkdown,
   };
 }

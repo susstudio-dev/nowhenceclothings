@@ -21,7 +21,7 @@ const order: Order = {
   createdAt: '2026-10-17T00:00:00.000Z',
   updatedAt: '2026-10-17T00:00:00.000Z',
 };
-const settings = { email: { from: 'Nowhence <orders@x.com>', replyTo: '' } };
+const settings = { email: { from: 'Nowhence <orders@x.com>', replyTo: '', senderName: '' } };
 const asFetch = (f: unknown) => f as typeof fetch;
 
 afterEach(() => {
@@ -37,6 +37,11 @@ describe('order emails', () => {
     expect(m.html).toContain('Asha');
     expect(m.html).not.toContain('<b>K');
     expect(m.replyTo).toBeUndefined();
+  });
+  it('uses the sender name in From', () => {
+    const m = renderOrderEmail(order, 'confirmation', { email: { ...settings.email, senderName: 'Nowhence Studio' } } as typeof settings);
+    expect(m.from).toBe('Nowhence Studio <orders@x.com>');
+    expect(renderOrderEmail(order, 'confirmation', settings).from).toBe('Nowhence <orders@x.com>');
   });
   it('renders shipped and refunded', () => {
     const shipped = renderOrderEmail({ ...order, tracking: { carrier: 'Delhivery', number: '123' } }, 'shipped', settings);

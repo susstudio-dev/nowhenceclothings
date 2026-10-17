@@ -6,12 +6,17 @@ import { formatPaise } from '@/lib/money';
 import { stockRows } from '@/lib/admin/catalogue-mutations';
 import { ORDER_STATUS_LABELS } from '@/lib/admin/orders';
 import { listOrderSummaries } from '@/lib/admin/store';
+import { getSettings } from '@/lib/content';
+import { launchReadiness } from '@/lib/brand';
 
 export const metadata = { title: 'Overview' };
 
 export default async function AdminHome() {
   const admin = await requireAdmin();
-  const [cat, inv] = await Promise.all([getCatalogue(), getInventory()]);
+  const [cat, inv, settings] = await Promise.all([getCatalogue(), getInventory(), getSettings()]);
+  const readiness = launchReadiness(settings);
+  const missing = readiness.filter((r) => !r.ok);
+  const showReadiness = roleHas(admin.role, 'orders.read');
   const low = stockRows(cat, inv, { lowOnly: true });
   const showOrders = roleHas(admin.role, 'orders.read');
   const orders = showOrders ? await listOrderSummaries(2) : [];
@@ -20,6 +25,29 @@ export default async function AdminHome() {
   return (
     <div className="space-y-10">
       <h1 className="font-display text-3xl">Overview</h1>
+      {showReadiness && (
+        <section aria-labelledby="readiness-h" className="border border-line p-4">
+          <h2 id="readiness-h" className="mb-1 text-lg">
+            Launch readiness · {readiness.length - missing.length}/{readiness.length}
+          </h2>
+          {missing.length === 0 ? (
+            <p className="text-sm">Every required owner setting is filled in.</p>
+          ) : (
+            <>
+              <p className="mb-3 text-sm text-muted">Still empty. Until filled, the storefront shows [[TBD]] or a default.</p>
+              <ul className="grid gap-1 text-sm sm:grid-cols-2">
+                {missing.map((m) => (
+                  <li key={m.id}>
+                    <Link href={`/admin/settings?tab=${m.tab}`} className="underline">
+                      {m.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </section>
+      )}
       <dl className="grid gap-4 sm:grid-cols-3">
         <div className="border border-line p-4">
           <dt className="text-sm text-muted">Active products</dt>

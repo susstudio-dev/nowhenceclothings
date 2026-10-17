@@ -5,7 +5,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import type { NavItem } from '@/lib/schemas/site-content';
 import { cn } from '@/components/ui/cn';
 import { IconBag, IconMenu, IconSearch } from '@/components/ui/icons';
-import { Wordmark } from '@/components/ui/Wordmark';
+import { BrandMark, type ChromeBrand } from './BrandMark';
 import { MobileNav } from './MobileNav';
 
 export interface HeaderProps {
@@ -21,13 +21,15 @@ export interface HeaderProps {
   /** Search page path. */
   searchHref?: string;
   className?: string;
+  /** Owner brand from settings (A9); defaults to the NOWHENCE wordmark. */
+  brand?: ChromeBrand;
 }
 
 const iconBtn =
   'inline-flex h-10 min-w-10 items-center justify-center gap-1.5 text-ink transition-opacity duration-fast hover:opacity-60';
 
 /** Sticky store header: wordmark centred, nav left (desktop), search + bag right. Hairline appears on scroll. */
-export function Header({ nav, cartCount = 0, cartSlot, searchHref = '/search', className }: HeaderProps) {
+export function Header({ nav, cartCount = 0, cartSlot, searchHref = '/search', className, brand }: HeaderProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -84,8 +86,8 @@ export function Header({ nav, cartCount = 0, cartSlot, searchHref = '/search', c
             </nav>
           </div>
 
-          <Link href="/" aria-label="Nowhence, home" className="justify-self-center">
-            <Wordmark />
+          <Link href="/" aria-label={`${brand?.name || 'Nowhence'}, home`} className="justify-self-center">
+            <BrandMark brand={brand} />
           </Link>
 
           <div className="flex items-center justify-end gap-1 md:gap-3">

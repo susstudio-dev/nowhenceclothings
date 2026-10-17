@@ -4,6 +4,7 @@
 import { formatPaise } from '@/lib/money';
 import type { Order } from '@/lib/schemas/order';
 import type { SettingsDoc } from '@/lib/schemas/settings';
+import { emailFromHeader } from '@/lib/brand';
 
 export type OrderEmailKind = 'confirmation' | 'shipped' | 'refunded';
 
@@ -114,5 +115,5 @@ export function renderOrderEmail(order: Order, kind: OrderEmailKind, settings: P
       break;
     }
   }
-  return { from: settings.email.from, to: order.email, subject, html, replyTo: settings.email.replyTo || undefined };
+  return { from: emailFromHeader(settings.email), to: order.email, subject, html, replyTo: settings.email.replyTo || undefined };
 }

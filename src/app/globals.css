@@ -14,6 +14,10 @@
   --c-sale: 146 42 30;         /* oxblood, sale + error */
   --c-success: 52 88 60;
 
+  /* Font aliases; the root layout overrides them from settings.brand (A9). */
+  --font-display: var(--font-cormorant-garamond);
+  --font-sans: var(--font-inter-tight);
+
   --gutter: 1.25rem;
   --section: 4.5rem;
   --header-h: 3.75rem;

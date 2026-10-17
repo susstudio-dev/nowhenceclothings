@@ -26,4 +26,27 @@ describe('static pages', () => {
     expect(v.freeShippingThreshold).toBe('₹2,999');
     expect(v.returnWindowDays).toBe('7');
   });
+
+  it('fills legal and returns tokens from settings (no [[TBD]] once filled)', async () => {
+    const { fillTemplate } = await import('./markdown');
+    const s = SettingsDoc.parse({
+      ...JSON.parse(readFileSync('data/settings.json', 'utf8')),
+      store: { name: 'Nowhence', email: 'hello@nowhenceclothings.com', phone: '1', address: 'Studio' },
+      legal: { legalName: 'Nowhence LLP', gstin: '29ABCDE1234F1Z5', registeredAddress: 'Reg', jurisdictionCity: 'Bengaluru', privacyUpdatedAt: '2026-10-01', termsUpdatedAt: '2026-10-02' },
+      returns: { windowDays: 10, returnsAllowed: false, exchangesAllowed: true, policyMarkdown: 'Custom policy.' },
+    });
+    const v = settingsVars(s);
+    for (const slug of STATIC_SLUGS) {
+      for (const b of DEFAULT_STATIC_PAGES[slug].blocks) {
+        const text = b.type === 'richText' ? b.markdown : b.type === 'faq' ? b.items.map((i) => i.a).join('\n') : '';
+        expect(fillTemplate(text, v)).not.toContain('[[TBD');
+      }
+    }
+    const terms = fillTemplate((DEFAULT_STATIC_PAGES.terms.blocks[0] as { markdown: string }).markdown, v);
+    expect(terms).toContain('Courts at Bengaluru');
+    expect(terms).toContain('2 October 2026');
+    const returns = fillTemplate((DEFAULT_STATIC_PAGES.returns.blocks[0] as { markdown: string }).markdown, v);
+    expect(returns).toContain('10 days from delivery to ask for an exchange');
+    expect(returns).toContain('Custom policy.');
+  });
 });
