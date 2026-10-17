@@ -1,0 +1,39 @@
+{
+  "coupons": [
+    {
+      "id": "cpn-welcome10",
+      "code": "WELCOME10",
+      "type": "percent",
+      "value": 10,
+      "maxDiscount": 50000,
+      "description": "10% off your first order",
+      "active": true,
+      "minOrder": 199900,
+      "usedCount": 0,
+      "createdAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "cpn-flat500",
+      "code": "FLAT500",
+      "type": "flat",
+      "value": 50000,
+      "description": "₹500 off above ₹4,999",
+      "active": true,
+      "minOrder": 499900,
+      "usageLimit": 100,
+      "usedCount": 0,
+      "createdAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "cpn-freeship",
+      "code": "FREESHIP",
+      "type": "free_shipping",
+      "description": "Free shipping",
+      "active": true,
+      "minOrder": 0,
+      "expiresAt": "2026-12-31T18:29:59.000Z",
+      "usedCount": 0,
+      "createdAt": "2026-10-17T00:00:00.000Z"
+    }
+  ]
+}

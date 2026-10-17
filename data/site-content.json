@@ -1,0 +1,245 @@
+{
+  "announcement": {
+    "enabled": true,
+    "text": "Free shipping on orders above ₹2,999",
+    "href": "/shipping"
+  },
+  "nav": {
+    "primary": [
+      {
+        "label": "Shop",
+        "href": "/shop",
+        "children": [
+          {
+            "label": "Tops",
+            "href": "/shop/tops"
+          },
+          {
+            "label": "Bottoms",
+            "href": "/shop/bottoms"
+          }
+        ]
+      },
+      {
+        "label": "Drop 001",
+        "href": "/drops/drop-001",
+        "children": []
+      },
+      {
+        "label": "Lookbook",
+        "href": "/lookbook",
+        "children": []
+      },
+      {
+        "label": "Journal",
+        "href": "/journal",
+        "children": []
+      }
+    ],
+    "footer": [
+      {
+        "heading": "Help",
+        "links": [
+          {
+            "label": "Shipping",
+            "href": "/shipping"
+          },
+          {
+            "label": "Returns & exchange",
+            "href": "/returns"
+          },
+          {
+            "label": "Size guide",
+            "href": "/size-guide"
+          },
+          {
+            "label": "FAQ",
+            "href": "/faq"
+          },
+          {
+            "label": "Track order",
+            "href": "/orders/track"
+          }
+        ]
+      },
+      {
+        "heading": "Nowhence",
+        "links": [
+          {
+            "label": "About",
+            "href": "/about"
+          },
+          {
+            "label": "Contact",
+            "href": "/contact"
+          },
+          {
+            "label": "Privacy",
+            "href": "/privacy"
+          },
+          {
+            "label": "Terms",
+            "href": "/terms"
+          }
+        ]
+      }
+    ]
+  },
+  "home": {
+    "blocks": [
+      {
+        "type": "hero",
+        "id": "home-hero",
+        "heading": "Clothes from nowhere in particular.",
+        "subheading": "Unisex essentials, made slowly.",
+        "media": {
+          "id": "home-hero",
+          "alt": "Campaign",
+          "width": 1600,
+          "height": 2000,
+          "widths": [],
+          "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Campaign"
+        },
+        "cta": {
+          "label": "Shop the core",
+          "href": "/shop"
+        }
+      },
+      {
+        "type": "featuredDrop",
+        "id": "home-drop",
+        "dropId": "drop-001"
+      },
+      {
+        "type": "categoryTiles",
+        "id": "home-cats",
+        "heading": "Shop by category",
+        "categoryIds": [
+          "cat-tops",
+          "cat-bottoms"
+        ]
+      },
+      {
+        "type": "story",
+        "id": "home-story",
+        "heading": "Made to outlast the season",
+        "body": "Placeholder story copy.",
+        "media": {
+          "id": "home-story",
+          "alt": "Studio",
+          "width": 1600,
+          "height": 2000,
+          "widths": [],
+          "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Studio"
+        }
+      },
+      {
+        "type": "newsletter",
+        "id": "home-news",
+        "heading": "Hear about drops first",
+        "body": "No noise. A few emails a season."
+      }
+    ],
+    "seo": {}
+  },
+  "pages": {
+    "about": {
+      "slug": "about",
+      "title": "About",
+      "blocks": [
+        {
+          "type": "richText",
+          "id": "about-body",
+          "markdown": "Placeholder about copy."
+        }
+      ],
+      "seo": {}
+    },
+    "contact": {
+      "slug": "contact",
+      "title": "Contact",
+      "blocks": [
+        {
+          "type": "richText",
+          "id": "contact-body",
+          "markdown": "Placeholder contact copy."
+        }
+      ],
+      "seo": {}
+    },
+    "faq": {
+      "slug": "faq",
+      "title": "FAQ",
+      "blocks": [
+        {
+          "type": "richText",
+          "id": "faq-body",
+          "markdown": "Placeholder faq copy."
+        }
+      ],
+      "seo": {}
+    },
+    "size-guide": {
+      "slug": "size-guide",
+      "title": "Size guide",
+      "blocks": [
+        {
+          "type": "richText",
+          "id": "size-guide-body",
+          "markdown": "Placeholder size guide copy."
+        }
+      ],
+      "seo": {}
+    },
+    "shipping": {
+      "slug": "shipping",
+      "title": "Shipping",
+      "blocks": [
+        {
+          "type": "richText",
+          "id": "shipping-body",
+          "markdown": "Placeholder shipping copy."
+        }
+      ],
+      "seo": {}
+    },
+    "returns": {
+      "slug": "returns",
+      "title": "Returns & exchange",
+      "blocks": [
+        {
+          "type": "richText",
+          "id": "returns-body",
+          "markdown": "Placeholder returns & exchange copy."
+        }
+      ],
+      "seo": {}
+    },
+    "privacy": {
+      "slug": "privacy",
+      "title": "Privacy policy",
+      "blocks": [
+        {
+          "type": "richText",
+          "id": "privacy-body",
+          "markdown": "Placeholder privacy policy copy."
+        }
+      ],
+      "seo": {}
+    },
+    "terms": {
+      "slug": "terms",
+      "title": "Terms of service",
+      "blocks": [
+        {
+          "type": "richText",
+          "id": "terms-body",
+          "markdown": "Placeholder terms of service copy."
+        }
+      ],
+      "seo": {}
+    }
+  },
+  "lookbook": [],
+  "journal": []
+}

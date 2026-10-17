@@ -1,0 +1,79 @@
+import 'server-only';
+import { readJson } from './storage';
+import { CATALOGUE_KEY, CatalogueDoc, type Drop, type Product } from './schemas/catalogue';
+import { INVENTORY_KEY, InventoryDoc, available, type StockLevel } from './schemas/inventory';
+
+// Read-side catalogue API. Writes go through writeJsonCas(CATALOGUE_KEY, ...)
+// in the admin workstream. Reads hit storage each call (R2 is strongly
+// consistent; no per-isolate cache so admin edits show immediately).
+
+const EMPTY: CatalogueDoc = {
+  version: 1,
+  products: [],
+  categories: [],
+  collections: [],
+  drops: [],
+  sizeCharts: [],
+};
+
+/** Whole catalogue doc (all statuses). Empty catalogue when absent. */
+export async function getCatalogue(): Promise<CatalogueDoc> {
+  return (await readJson(CATALOGUE_KEY, CatalogueDoc)) ?? EMPTY;
+}
+
+/** Products shoppers may see (status 'active'). */
+export async function getActiveProducts(): Promise<Product[]> {
+  const cat = await getCatalogue();
+  return cat.products.filter((p) => p.status === 'active').sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+/** By slug. Only 'active' unless `includeDrafts` (admin preview). */
+export async function getProductBySlug(
+  slug: string,
+  opts: { includeDrafts?: boolean } = {},
+): Promise<Product | null> {
+  const cat = await getCatalogue();
+  const p = cat.products.find((x) => x.slug === slug);
+  if (!p) return null;
+  if (!opts.includeDrafts && p.status !== 'active') return null;
+  return p;
+}
+
+export async function getProductById(id: string): Promise<Product | null> {
+  const cat = await getCatalogue();
+  return cat.products.find((p) => p.id === id) ?? null;
+}
+
+/** Find product + variant for a SKU. */
+export async function findVariant(sku: string) {
+  const cat = await getCatalogue();
+  for (const product of cat.products) {
+    const variant = product.variants.find((v) => v.sku === sku);
+    if (variant) return { product, variant, colour: product.colours.find((c) => c.id === variant.colourId)! };
+  }
+  return null;
+}
+
+/** Whole inventory doc ({} when absent). */
+export async function getInventory(): Promise<InventoryDoc> {
+  return (await readJson(INVENTORY_KEY, InventoryDoc)) ?? {};
+}
+
+/** Units purchasable for a SKU (0 when unknown). */
+export async function getStock(sku: string): Promise<number> {
+  const inv = await getInventory();
+  return available(inv[sku]);
+}
+
+/** Raw stock record for a SKU. */
+export async function getStockLevel(sku: string): Promise<StockLevel | null> {
+  const inv = await getInventory();
+  return inv[sku] ?? null;
+}
+
+/** S4: a product in an unreleased drop is visible but not purchasable. Pure. */
+export function isReleased(product: Product, drops: Drop[], now: Date = new Date()): boolean {
+  if (!product.dropId) return true;
+  const drop = drops.find((d) => d.id === product.dropId);
+  return !drop || new Date(drop.releaseAt).getTime() <= now.getTime();
+}

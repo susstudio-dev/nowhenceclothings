@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Nowhence tokens (D11). See docs/DESIGN.md. Channels are space-separated RGB. */
+:root {
+  --c-paper: 248 246 241;      /* off-white page */
+  --c-paper-deep: 238 235 227; /* image wells, skeletons */
+  --c-ink: 22 21 19;           /* near-black text */
+  --c-ink-soft: 58 56 52;      /* secondary emphasis */
+  --c-muted: 112 109 102;      /* meta text, 4.9:1 on paper */
+  --c-line: 222 218 209;       /* hairlines */
+  --c-accent: 96 84 64;        /* muted umber, the single accent */
+  --c-sale: 146 42 30;         /* oxblood, sale + error */
+  --c-success: 52 88 60;
+
+  --gutter: 1.25rem;
+  --section: 4.5rem;
+  --header-h: 3.75rem;
+  color-scheme: light;
+}
+@media (min-width: 768px) {
+  :root { --gutter: 2rem; --section: 7rem; --header-h: 4.25rem; }
+}
+@media (min-width: 1280px) {
+  :root { --gutter: 3rem; --section: 9rem; }
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; }
+  body {
+    @apply bg-paper text-body text-ink font-sans antialiased;
+    font-feature-settings: 'kern', 'liga', 'ss01';
+  }
+  h1, h2, h3, h4 { @apply font-display font-normal; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  ::selection { @apply bg-ink text-paper; }
+  :focus-visible { outline: 1px solid rgb(var(--c-ink)); outline-offset: 3px; }
+  [data-scroll-locked] { overflow: hidden; }
+}
+
+@layer components {
+  .container-page { @apply mx-auto w-full max-w-page px-gutter; }
+  .eyebrow { @apply font-sans text-micro uppercase text-muted; }
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .link-underline:hover, .link-underline:focus-visible, .link-underline[aria-current='page'] { background-size: 100% 1px; }
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-overlay focus:bg-ink focus:px-4 focus:py-2 focus:text-small focus:text-paper;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,10 @@
+# Local values for `opennextjs-cloudflare preview` (wrangler dev).
+# Copy to .dev.vars (gitignored). Production uses `wrangler secret put`.
+NEXTJS_ENV=development
+JWT_SECRET=change-me-to-a-32-byte-random-string
+ADMIN_OWNER_EMAIL=owner@nowhenceclothings.com
+ADMIN_OWNER_INITIAL_PASSWORD=change-me
+RAZORPAY_KEY_ID=rzp_test_xxx
+RAZORPAY_KEY_SECRET=change-me
+RAZORPAY_WEBHOOK_SECRET=change-me
+RESEND_API_KEY=re_xxx

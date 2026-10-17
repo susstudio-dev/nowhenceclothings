@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nowhence",
+  "main": ".open-next/worker.js",
+  "build": { "command": "node scripts/build-worker.mjs" },
+  "compatibility_date": "2026-07-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // Only nowhenceclothings.com may be crawlable.
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "nowhence" }],
+  // One bucket: OpenNext cache under its own prefix, app data at the root.
+  "r2_buckets": [
+    { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "nowhence-content" },
+    { "binding": "CONTENT_BUCKET", "bucket_name": "nowhence-content" }
+  ],
+  // Secrets (wrangler secret put): JWT_SECRET, ADMIN_OWNER_EMAIL,
+  // ADMIN_OWNER_PASSWORD_HASH (or ADMIN_OWNER_INITIAL_PASSWORD),
+  // RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, RESEND_API_KEY
+  "vars": {},
+  "keep_vars": true,
+  "observability": { "enabled": true }
+}

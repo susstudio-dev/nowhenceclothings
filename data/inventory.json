@@ -1,0 +1,392 @@
+{
+  "NWH-TEE-BON-XS": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-BON-S": {
+    "stock": 6,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-BON-M": {
+    "stock": 9,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-BON-L": {
+    "stock": 12,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-BON-XL": {
+    "stock": 15,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-BON-XXL": {
+    "stock": 18,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-INK-XS": {
+    "stock": 21,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-INK-S": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-INK-M": {
+    "stock": 7,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-INK-L": {
+    "stock": 10,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-INK-XL": {
+    "stock": 13,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-TEE-INK-XXL": {
+    "stock": 16,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-STO-XS": {
+    "stock": 8,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-STO-S": {
+    "stock": 11,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-STO-M": {
+    "stock": 14,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-STO-L": {
+    "stock": 17,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-STO-XL": {
+    "stock": 20,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-STO-XXL": {
+    "stock": 3,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-OLI-XS": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-OLI-S": {
+    "stock": 9,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-OLI-M": {
+    "stock": 12,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-OLI-L": {
+    "stock": 15,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-OLI-XL": {
+    "stock": 18,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PKT-OLI-XXL": {
+    "stock": 21,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-KHA-XS": {
+    "stock": 13,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-KHA-S": {
+    "stock": 16,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-KHA-M": {
+    "stock": 19,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-KHA-L": {
+    "stock": 22,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-KHA-XL": {
+    "stock": 5,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-KHA-XXL": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-INK-XS": {
+    "stock": 11,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-INK-S": {
+    "stock": 14,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-INK-M": {
+    "stock": 17,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-INK-L": {
+    "stock": 20,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-INK-XL": {
+    "stock": 3,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-OVS-INK-XXL": {
+    "stock": 6,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-LIN-SAN-XS": {
+    "stock": 18,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-LIN-SAN-S": {
+    "stock": 21,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-LIN-SAN-M": {
+    "stock": 4,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-LIN-SAN-L": {
+    "stock": 7,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-LIN-SAN-XL": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-LIN-SAN-XXL": {
+    "stock": 13,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-HEA-XS": {
+    "stock": 3,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-HEA-S": {
+    "stock": 6,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-HEA-M": {
+    "stock": 9,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-HEA-L": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-HEA-XL": {
+    "stock": 15,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-HEA-XXL": {
+    "stock": 18,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-INK-XS": {
+    "stock": 21,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-INK-S": {
+    "stock": 4,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-INK-M": {
+    "stock": 7,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-INK-L": {
+    "stock": 10,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-INK-XL": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-HOD-INK-XXL": {
+    "stock": 16,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-ZIP-FOR-XS": {
+    "stock": 8,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-ZIP-FOR-S": {
+    "stock": 11,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-ZIP-FOR-M": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-ZIP-FOR-L": {
+    "stock": 17,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-ZIP-FOR-XL": {
+    "stock": 20,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-ZIP-FOR-XXL": {
+    "stock": 3,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-CHA-XS": {
+    "stock": 13,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-CHA-S": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-CHA-M": {
+    "stock": 19,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-CHA-L": {
+    "stock": 22,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-CHA-XL": {
+    "stock": 5,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-CHA-XXL": {
+    "stock": 8,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-BON-XS": {
+    "stock": 11,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-BON-S": {
+    "stock": 14,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-BON-M": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-BON-L": {
+    "stock": 20,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-BON-XL": {
+    "stock": 3,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-PLT-BON-XXL": {
+    "stock": 6,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-CRG-OLI-XS": {
+    "stock": 0,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-CRG-OLI-S": {
+    "stock": 21,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-CRG-OLI-M": {
+    "stock": 4,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-CRG-OLI-L": {
+    "stock": 7,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-CRG-OLI-XL": {
+    "stock": 10,
+    "reserved": 0,
+    "lowStockAt": 3
+  },
+  "NWH-CRG-OLI-XXL": {
+    "stock": 13,
+    "reserved": 0,
+    "lowStockAt": 3
+  }
+}

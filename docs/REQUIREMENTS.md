@@ -66,6 +66,7 @@ veg marks, kitchen "worlds", corporate gifting, NRI pages.
 | A6 | Content: home, lookbook/journal, static pages, navigation, announcement bar — with draft → preview → publish and version history (furor pattern). |
 | A7 | Team: invite/remove users, assign roles (owner only). |
 | A8 | Audit log of every admin write. |
+| A9 | **Everything owner-specific is editable in admin — nothing hard-coded:** (a) launch range via Products/Categories/Collections/Drops; (b) **Brand**: logo (SVG/PNG upload, light + dark), favicon, wordmark text, display + body font chosen from a curated `next/font` list, ink/paper/accent colours (contrast-checked); (c) **Photography**: media library (upload, alt text, reuse across products/content); (d) **Shipping**: flat fee, free-shipping threshold, ETA copy; (e) **Returns**: window days, exchange/return allowed, policy text; (f) **Legal**: legal company name, GSTIN, registered address, jurisdiction city, policy "last updated" dates; (g) **Email**: from-address, reply-to, sender name. Static/legal pages render from these settings + admin-editable markdown, so `[[TBD]]` disappears once filled. Settings show a "launch readiness" checklist of empty required fields. |
 
 ## 6. Non-functional requirements
 

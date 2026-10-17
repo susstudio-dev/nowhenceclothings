@@ -1,0 +1,30 @@
+{
+  "currency": "INR",
+  "shipping": {
+    "flatFee": 9900,
+    "freeShippingThreshold": 299900,
+    "eta": "Ships in 2–4 working days"
+  },
+  "tax": {
+    "pricesIncludeTax": true,
+    "gstRatePercent": 12,
+    "gstin": ""
+  },
+  "store": {
+    "name": "Nowhence",
+    "legalName": "",
+    "email": "hello@nowhenceclothings.com",
+    "phone": "",
+    "address": "",
+    "instagram": ""
+  },
+  "orders": {
+    "paymentWindowMinutes": 30,
+    "returnWindowDays": 7,
+    "maxQtyPerLine": 10
+  },
+  "email": {
+    "from": "Nowhence <orders@nowhenceclothings.com>",
+    "replyTo": "hello@nowhenceclothings.com"
+  }
+}

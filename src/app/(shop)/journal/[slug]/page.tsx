@@ -1,0 +1,27 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { ArticleView, articleMetadata, publishedArticles } from '@/components/shop/Editorial';
+import { getCatalogue, getInventory } from '@/lib/catalogue';
+import { getSiteContent } from '@/lib/content';
+
+export const dynamic = 'force-dynamic';
+
+type Props = { params: Promise<{ slug: string }> };
+
+async function find(slug: string) {
+  const content = await getSiteContent();
+  return publishedArticles(content.journal).find((a) => a.slug === slug) ?? null;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const a = await find((await params).slug);
+  return a ? articleMetadata(a, '/journal') : {};
+}
+
+/** Journal entry (S8): rendered from admin content blocks. */
+export default async function JournalEntry({ params }: Props) {
+  const article = await find((await params).slug);
+  if (!article) notFound();
+  const [catalogue, inventory] = await Promise.all([getCatalogue(), getInventory()]);
+  return <ArticleView article={article} ctx={{ catalogue, inventory }} backHref="/journal" backLabel="Journal" />;
+}

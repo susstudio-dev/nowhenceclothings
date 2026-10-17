@@ -19,7 +19,9 @@ Defaults chosen on 2026-10-17 so the build could proceed in parallel.
 | D12 | Brand assets | Placeholders until real logo/photography supplied | None provided yet | Assets arrive |
 | D13 | Package manager | npm (as furor-web), single app, no monorepo | Smaller than Ravisweets' monorepo | — |
 
-## Open questions for the owner
+| D14 | Owner-specific data | All editable in admin (REQUIREMENTS A9); no code change needed to fill the open questions below | Owner request 2026-10-17 | — |
+
+## Open questions for the owner (all answerable from Admin → Settings)
 
 1. Launch catalogue size and categories?
 2. Logo, brand fonts, photography — when?

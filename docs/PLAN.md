@@ -14,54 +14,63 @@ Phase 5  Integration & QA  ◄─────────────┘  (qa-re
 ```
 
 ## Phase 0 — Foundation · agent `foundation-engineer`
-- [ ] Scaffold Next.js 15 + OpenNext + Tailwind + Vitest (versions as furor-web)
-- [ ] `wrangler.jsonc` → worker `nowhence`, bucket `nowhence-content`, `workers_dev:false`
-- [ ] Port `storage.ts`, add `writeJsonCas` helper + tests
-- [ ] zod schemas for every doc in ARCHITECTURE §2–3
-- [ ] Port auth, password, roles, guard, audit, session claims from furor-web
-- [ ] Seed `data/` with 8 placeholder products, 2 categories, 1 drop, settings
-- [ ] Stub shared UI primitives so other agents compile
-- [ ] `npm run typecheck && npm test && npm run build` green
-**Exit:** contracts in ARCHITECTURE §5 exist and are frozen.
+- [x] Scaffold Next.js 15 + OpenNext + Tailwind + Vitest (versions as furor-web)
+- [x] `wrangler.jsonc` → worker `nowhence`, bucket `nowhence-content`, `workers_dev:false`
+- [x] Port `storage.ts`, add `writeJsonCas` helper + tests
+- [x] zod schemas for every doc in ARCHITECTURE §2–3
+- [x] Port auth, password, roles, guard, audit, session claims from furor-web
+- [x] Seed `data/` with 8 placeholder products, 2 categories, 1 drop, settings
+- [x] Stub shared UI primitives so other agents compile
+- [x] `npm run typecheck && npm test && npm run build` green
+**Exit:** contracts in ARCHITECTURE §5 exist and are frozen. Reference: [CONTRACTS.md](CONTRACTS.md).
 
 ## WS-A — Design system · agent `design-system-engineer`
-- [ ] Tokens: colour, type scale, spacing, radii, motion (D11)
-- [ ] Fonts via `next/font`, logo placeholder wordmark
-- [ ] Primitives in `components/ui` with states + a11y
-- [ ] Header (nav, search, cart count), footer, announcement bar
-- [ ] `docs/DESIGN.md` describing the system
+- [x] Tokens: colour, type scale, spacing, radii, motion (D11)
+- [x] Fonts via `next/font`, logo placeholder wordmark
+- [x] Primitives in `components/ui` with states + a11y
+- [x] Header (nav, search, cart count), footer, announcement bar
+- [x] `docs/DESIGN.md` describing the system
 
 ## WS-B — Storefront · agent `storefront-engineer`
-- [ ] Home (S1), Shop/collection with filters (S2), Product page (S3), Drops (S4)
-- [ ] Search (S10), Lookbook/journal renderer (S8)
-- [ ] Image component using R2 variants
+- [x] Home (S1), Shop/collection with filters (S2), Product page (S3), Drops (S4)
+- [x] Search (S10), Lookbook/journal renderer (S8)
+- [x] Image component using R2 variants (`/media/[...path]` route serving R2 variants)
 
 ## WS-C — Commerce · agent `commerce-engineer`
-- [ ] `lib/commerce/pricing.ts` (C1, C3, C4, C5) + tests
-- [ ] Cart store + drawer + page (S5)
-- [ ] `/api/checkout` → create order + Razorpay order (C5, C6)
-- [ ] `/api/razorpay/verify` + `/api/razorpay/webhook` idempotent (C6, C7)
-- [ ] Stock decrement with CAS + oversell handling (C7)
-- [ ] Checkout page + confirmation (S6), order tracking (S7)
-- [ ] Resend emails (C8), notify-me + newsletter endpoints
+- [x] `lib/commerce/pricing.ts` (C1, C3, C4, C5) + tests
+- [x] Cart store + drawer + page (S5)
+- [x] `/api/checkout` → create order + Razorpay order (C5, C6)
+- [x] `/api/razorpay/verify` + `/api/razorpay/webhook` idempotent (C6, C7)
+- [x] Stock decrement with CAS + oversell handling (C7)
+- [x] Checkout page + confirmation (S6), order tracking (S7)
+- [x] Resend emails (C8), notify-me + newsletter endpoints
 
 ## WS-D — Admin studio · agent `admin-engineer`
-- [ ] Login, session, roles (A1), team (A7), audit (A8)
-- [ ] Products + variants + media upload (A2), inventory (A3)
-- [ ] Orders list/detail/status/CSV (A4)
-- [ ] Coupons, sale pricing, settings (A5)
-- [ ] Content editor with drafts/preview/versions (A6)
+- [x] Login, session, roles (A1), team (A7), audit (A8)
+- [x] Products + variants + media upload (A2), inventory (A3)
+- [x] Orders list/detail/status/CSV (A4)
+- [x] Coupons, sale pricing, settings (A5)
+- [x] Content editor with drafts/preview/versions (A6)
 
 ## WS-E — Content, SEO & legal · agent `content-seo-engineer`
-- [ ] Static pages (S9) with placeholder copy in brand voice
-- [ ] Metadata, OG, JSON-LD, sitemap, robots (S11)
-- [ ] CSP + security headers, edge cache headers
+- [x] Static pages (S9) with placeholder copy in brand voice
+- [x] Metadata, OG, JSON-LD, sitemap, robots (S11)
+- [x] CSP + security headers, edge cache headers
 
 ## Phase 5 — Integration & QA · agent `qa-reviewer`
 - [ ] Typecheck, lint, tests, OpenNext build green
 - [ ] End-to-end walk: browse → cart → checkout (Razorpay test mode) → admin marks shipped
 - [ ] Security review (auth, webhook, CAS, CSP), a11y + perf audit
 - [ ] Write `docs/QA-REPORT.md` with findings + fixes
+
+## WS-F — Owner customisation (A9) · agent `admin-engineer`
+- [ ] Settings schema: brand (logo, favicon, wordmark, fonts, colours), returns policy, legal (address, jurisdiction, dates), email sender name
+- [ ] Admin Settings tabs: Brand · Shipping · Returns · Legal · Email, with live preview + contrast check
+- [ ] Media library page (upload, alt text, reuse)
+- [ ] Storefront chrome, fonts, colours, favicon read from settings (CSS variables, no rebuild)
+- [ ] Static/legal pages read from settings + editable markdown; remove hard-coded copy in `src/lib/static-pages.ts`
+- [ ] Launch-readiness checklist on admin dashboard
+- [ ] Tests + typecheck green
 
 ## Phase 6 — Launch (owner + engineer)
 - [ ] Create R2 bucket, set secrets (`JWT_SECRET`, `ADMIN_OWNER_*`, `RAZORPAY_*`, `RESEND_API_KEY`)

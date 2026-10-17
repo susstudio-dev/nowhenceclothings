@@ -1,0 +1,1125 @@
+{
+  "version": 1,
+  "products": [
+    {
+      "id": "prod-tee-heavyweight",
+      "slug": "tee-heavyweight",
+      "title": "Heavyweight Tee",
+      "description": "Heavyweight Tee. Cut for every body, made to be worn for years.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 249900,
+      "colours": [
+        {
+          "id": "bone",
+          "name": "Bone",
+          "hex": "#E8E2D6",
+          "images": [
+            {
+              "id": "tee-heavyweight-bone-1",
+              "alt": "Heavyweight Tee in Bone",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Heavyweight%20Tee%20in%20Bone"
+            },
+            {
+              "id": "tee-heavyweight-bone-2",
+              "alt": "Heavyweight Tee in Bone, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Heavyweight%20Tee%20in%20Bone%2C%20detail"
+            }
+          ]
+        },
+        {
+          "id": "ink",
+          "name": "Ink",
+          "hex": "#141412",
+          "images": [
+            {
+              "id": "tee-heavyweight-ink-1",
+              "alt": "Heavyweight Tee in Ink",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Heavyweight%20Tee%20in%20Ink"
+            },
+            {
+              "id": "tee-heavyweight-ink-2",
+              "alt": "Heavyweight Tee in Ink, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Heavyweight%20Tee%20in%20Ink%2C%20detail"
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-TEE-BON-XS",
+          "colourId": "bone",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-TEE-BON-S",
+          "colourId": "bone",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-TEE-BON-M",
+          "colourId": "bone",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-TEE-BON-L",
+          "colourId": "bone",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-TEE-BON-XL",
+          "colourId": "bone",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-TEE-BON-XXL",
+          "colourId": "bone",
+          "size": "XXL"
+        },
+        {
+          "sku": "NWH-TEE-INK-XS",
+          "colourId": "ink",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-TEE-INK-S",
+          "colourId": "ink",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-TEE-INK-M",
+          "colourId": "ink",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-TEE-INK-L",
+          "colourId": "ink",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-TEE-INK-XL",
+          "colourId": "ink",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-TEE-INK-XXL",
+          "colourId": "ink",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "240 GSM combed cotton jersey",
+      "care": "Cold wash inside out. Line dry. Warm iron.",
+      "fit": "Relaxed, dropped shoulder",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [
+        "prod-trouser-pleated",
+        "prod-overshirt-twill"
+      ],
+      "sortOrder": 0,
+      "seo": {},
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-tee-pocket",
+      "slug": "tee-pocket",
+      "title": "Pocket Tee",
+      "description": "Pocket Tee. Cut for every body, made to be worn for years.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 219900,
+      "compareAtPrice": 259900,
+      "colours": [
+        {
+          "id": "stone",
+          "name": "Stone",
+          "hex": "#B9B2A5",
+          "images": [
+            {
+              "id": "tee-pocket-stone-1",
+              "alt": "Pocket Tee in Stone",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Pocket%20Tee%20in%20Stone"
+            },
+            {
+              "id": "tee-pocket-stone-2",
+              "alt": "Pocket Tee in Stone, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Pocket%20Tee%20in%20Stone%2C%20detail"
+            }
+          ]
+        },
+        {
+          "id": "olive",
+          "name": "Olive",
+          "hex": "#5B5E44",
+          "images": [
+            {
+              "id": "tee-pocket-olive-1",
+              "alt": "Pocket Tee in Olive",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Pocket%20Tee%20in%20Olive"
+            },
+            {
+              "id": "tee-pocket-olive-2",
+              "alt": "Pocket Tee in Olive, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Pocket%20Tee%20in%20Olive%2C%20detail"
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-PKT-STO-XS",
+          "colourId": "stone",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-PKT-STO-S",
+          "colourId": "stone",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-PKT-STO-M",
+          "colourId": "stone",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-PKT-STO-L",
+          "colourId": "stone",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-PKT-STO-XL",
+          "colourId": "stone",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-PKT-STO-XXL",
+          "colourId": "stone",
+          "size": "XXL"
+        },
+        {
+          "sku": "NWH-PKT-OLI-XS",
+          "colourId": "olive",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-PKT-OLI-S",
+          "colourId": "olive",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-PKT-OLI-M",
+          "colourId": "olive",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-PKT-OLI-L",
+          "colourId": "olive",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-PKT-OLI-XL",
+          "colourId": "olive",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-PKT-OLI-XXL",
+          "colourId": "olive",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "200 GSM organic cotton",
+      "care": "Cold wash inside out. Line dry. Warm iron.",
+      "fit": "Regular",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 1,
+      "seo": {},
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-overshirt-twill",
+      "slug": "overshirt-twill",
+      "title": "Twill Overshirt",
+      "description": "Twill Overshirt. Cut for every body, made to be worn for years.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 549900,
+      "colours": [
+        {
+          "id": "khaki",
+          "name": "Khaki",
+          "hex": "#A89A78",
+          "images": [
+            {
+              "id": "overshirt-twill-khaki-1",
+              "alt": "Twill Overshirt in Khaki",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Twill%20Overshirt%20in%20Khaki"
+            },
+            {
+              "id": "overshirt-twill-khaki-2",
+              "alt": "Twill Overshirt in Khaki, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Twill%20Overshirt%20in%20Khaki%2C%20detail"
+            }
+          ]
+        },
+        {
+          "id": "ink",
+          "name": "Ink",
+          "hex": "#141412",
+          "images": [
+            {
+              "id": "overshirt-twill-ink-1",
+              "alt": "Twill Overshirt in Ink",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Twill%20Overshirt%20in%20Ink"
+            },
+            {
+              "id": "overshirt-twill-ink-2",
+              "alt": "Twill Overshirt in Ink, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Twill%20Overshirt%20in%20Ink%2C%20detail"
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-OVS-KHA-XS",
+          "colourId": "khaki",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-OVS-KHA-S",
+          "colourId": "khaki",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-OVS-KHA-M",
+          "colourId": "khaki",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-OVS-KHA-L",
+          "colourId": "khaki",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-OVS-KHA-XL",
+          "colourId": "khaki",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-OVS-KHA-XXL",
+          "colourId": "khaki",
+          "size": "XXL"
+        },
+        {
+          "sku": "NWH-OVS-INK-XS",
+          "colourId": "ink",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-OVS-INK-S",
+          "colourId": "ink",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-OVS-INK-M",
+          "colourId": "ink",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-OVS-INK-L",
+          "colourId": "ink",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-OVS-INK-XL",
+          "colourId": "ink",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-OVS-INK-XXL",
+          "colourId": "ink",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "Brushed cotton twill",
+      "care": "Cold wash inside out. Line dry. Warm iron.",
+      "fit": "Boxy",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 2,
+      "seo": {},
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-overshirt-linen",
+      "slug": "overshirt-linen",
+      "title": "Linen Overshirt",
+      "description": "Linen Overshirt. Cut for every body, made to be worn for years.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "dropId": "drop-001",
+      "status": "active",
+      "price": 589900,
+      "colours": [
+        {
+          "id": "sand",
+          "name": "Sand",
+          "hex": "#D8CDB8",
+          "images": [
+            {
+              "id": "overshirt-linen-sand-1",
+              "alt": "Linen Overshirt in Sand",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Linen%20Overshirt%20in%20Sand"
+            },
+            {
+              "id": "overshirt-linen-sand-2",
+              "alt": "Linen Overshirt in Sand, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Linen%20Overshirt%20in%20Sand%2C%20detail"
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-LIN-SAN-XS",
+          "colourId": "sand",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-LIN-SAN-S",
+          "colourId": "sand",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-LIN-SAN-M",
+          "colourId": "sand",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-LIN-SAN-L",
+          "colourId": "sand",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-LIN-SAN-XL",
+          "colourId": "sand",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-LIN-SAN-XXL",
+          "colourId": "sand",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "100% European linen",
+      "care": "Cold wash inside out. Line dry. Warm iron.",
+      "fit": "Relaxed",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 3,
+      "seo": {},
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-hoodie-loopback",
+      "slug": "hoodie-loopback",
+      "title": "Loopback Hoodie",
+      "description": "Loopback Hoodie. Cut for every body, made to be worn for years.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 449900,
+      "colours": [
+        {
+          "id": "heather",
+          "name": "Heather Grey",
+          "hex": "#9C9C98",
+          "images": [
+            {
+              "id": "hoodie-loopback-heather-1",
+              "alt": "Loopback Hoodie in Heather Grey",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Loopback%20Hoodie%20in%20Heather%20Grey"
+            },
+            {
+              "id": "hoodie-loopback-heather-2",
+              "alt": "Loopback Hoodie in Heather Grey, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Loopback%20Hoodie%20in%20Heather%20Grey%2C%20detail"
+            }
+          ]
+        },
+        {
+          "id": "ink",
+          "name": "Ink",
+          "hex": "#141412",
+          "images": [
+            {
+              "id": "hoodie-loopback-ink-1",
+              "alt": "Loopback Hoodie in Ink",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Loopback%20Hoodie%20in%20Ink"
+            },
+            {
+              "id": "hoodie-loopback-ink-2",
+              "alt": "Loopback Hoodie in Ink, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Loopback%20Hoodie%20in%20Ink%2C%20detail"
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-HOD-HEA-XS",
+          "colourId": "heather",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-HOD-HEA-S",
+          "colourId": "heather",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-HOD-HEA-M",
+          "colourId": "heather",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-HOD-HEA-L",
+          "colourId": "heather",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-HOD-HEA-XL",
+          "colourId": "heather",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-HOD-HEA-XXL",
+          "colourId": "heather",
+          "size": "XXL"
+        },
+        {
+          "sku": "NWH-HOD-INK-XS",
+          "colourId": "ink",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-HOD-INK-S",
+          "colourId": "ink",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-HOD-INK-M",
+          "colourId": "ink",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-HOD-INK-L",
+          "colourId": "ink",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-HOD-INK-XL",
+          "colourId": "ink",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-HOD-INK-XXL",
+          "colourId": "ink",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "400 GSM loopback French terry",
+      "care": "Cold wash inside out. Line dry. Warm iron.",
+      "fit": "Oversized",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 4,
+      "seo": {},
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-hoodie-zip",
+      "slug": "hoodie-zip",
+      "title": "Zip Hoodie",
+      "description": "Zip Hoodie. Cut for every body, made to be worn for years.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "dropId": "drop-001",
+      "status": "active",
+      "price": 489900,
+      "compareAtPrice": 549900,
+      "colours": [
+        {
+          "id": "forest",
+          "name": "Forest",
+          "hex": "#2F3B30",
+          "images": [
+            {
+              "id": "hoodie-zip-forest-1",
+              "alt": "Zip Hoodie in Forest",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Zip%20Hoodie%20in%20Forest"
+            },
+            {
+              "id": "hoodie-zip-forest-2",
+              "alt": "Zip Hoodie in Forest, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Zip%20Hoodie%20in%20Forest%2C%20detail"
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-ZIP-FOR-XS",
+          "colourId": "forest",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-ZIP-FOR-S",
+          "colourId": "forest",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-ZIP-FOR-M",
+          "colourId": "forest",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-ZIP-FOR-L",
+          "colourId": "forest",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-ZIP-FOR-XL",
+          "colourId": "forest",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-ZIP-FOR-XXL",
+          "colourId": "forest",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "380 GSM brushed fleece",
+      "care": "Cold wash inside out. Line dry. Warm iron.",
+      "fit": "Regular",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 5,
+      "seo": {},
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-trouser-pleated",
+      "slug": "trouser-pleated",
+      "title": "Pleated Trouser",
+      "description": "Pleated Trouser. Cut for every body, made to be worn for years.",
+      "categoryId": "cat-bottoms",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 529900,
+      "colours": [
+        {
+          "id": "charcoal",
+          "name": "Charcoal",
+          "hex": "#3A3A38",
+          "images": [
+            {
+              "id": "trouser-pleated-charcoal-1",
+              "alt": "Pleated Trouser in Charcoal",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Pleated%20Trouser%20in%20Charcoal"
+            },
+            {
+              "id": "trouser-pleated-charcoal-2",
+              "alt": "Pleated Trouser in Charcoal, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Pleated%20Trouser%20in%20Charcoal%2C%20detail"
+            }
+          ]
+        },
+        {
+          "id": "bone",
+          "name": "Bone",
+          "hex": "#E8E2D6",
+          "images": [
+            {
+              "id": "trouser-pleated-bone-1",
+              "alt": "Pleated Trouser in Bone",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Pleated%20Trouser%20in%20Bone"
+            },
+            {
+              "id": "trouser-pleated-bone-2",
+              "alt": "Pleated Trouser in Bone, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Pleated%20Trouser%20in%20Bone%2C%20detail"
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-PLT-CHA-XS",
+          "colourId": "charcoal",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-PLT-CHA-S",
+          "colourId": "charcoal",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-PLT-CHA-M",
+          "colourId": "charcoal",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-PLT-CHA-L",
+          "colourId": "charcoal",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-PLT-CHA-XL",
+          "colourId": "charcoal",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-PLT-CHA-XXL",
+          "colourId": "charcoal",
+          "size": "XXL"
+        },
+        {
+          "sku": "NWH-PLT-BON-XS",
+          "colourId": "bone",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-PLT-BON-S",
+          "colourId": "bone",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-PLT-BON-M",
+          "colourId": "bone",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-PLT-BON-L",
+          "colourId": "bone",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-PLT-BON-XL",
+          "colourId": "bone",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-PLT-BON-XXL",
+          "colourId": "bone",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "Wool-blend suiting",
+      "care": "Cold wash inside out. Line dry. Warm iron.",
+      "fit": "Wide, high rise",
+      "sizeChartId": "chart-bottoms",
+      "relatedIds": [],
+      "sortOrder": 6,
+      "seo": {},
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-trouser-cargo",
+      "slug": "trouser-cargo",
+      "title": "Utility Cargo",
+      "description": "Utility Cargo. Cut for every body, made to be worn for years.",
+      "categoryId": "cat-bottoms",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 479900,
+      "colours": [
+        {
+          "id": "olive",
+          "name": "Olive",
+          "hex": "#5B5E44",
+          "images": [
+            {
+              "id": "trouser-cargo-olive-1",
+              "alt": "Utility Cargo in Olive",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Utility%20Cargo%20in%20Olive"
+            },
+            {
+              "id": "trouser-cargo-olive-2",
+              "alt": "Utility Cargo in Olive, detail",
+              "width": 1600,
+              "height": 2000,
+              "widths": [],
+              "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Utility%20Cargo%20in%20Olive%2C%20detail"
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-CRG-OLI-XS",
+          "colourId": "olive",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-CRG-OLI-S",
+          "colourId": "olive",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-CRG-OLI-M",
+          "colourId": "olive",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-CRG-OLI-L",
+          "colourId": "olive",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-CRG-OLI-XL",
+          "colourId": "olive",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-CRG-OLI-XXL",
+          "colourId": "olive",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "Cotton ripstop",
+      "care": "Cold wash inside out. Line dry. Warm iron.",
+      "fit": "Straight",
+      "sizeChartId": "chart-bottoms",
+      "relatedIds": [],
+      "sortOrder": 7,
+      "seo": {},
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-tops",
+      "slug": "tops",
+      "name": "Tops",
+      "description": "Tees, overshirts and hoodies.",
+      "sortOrder": 0,
+      "seo": {}
+    },
+    {
+      "id": "cat-bottoms",
+      "slug": "bottoms",
+      "name": "Bottoms",
+      "description": "Trousers.",
+      "sortOrder": 1,
+      "seo": {}
+    }
+  ],
+  "collections": [
+    {
+      "id": "col-core",
+      "slug": "core",
+      "name": "Core",
+      "description": "The permanent collection.",
+      "sortOrder": 0,
+      "seo": {}
+    }
+  ],
+  "drops": [
+    {
+      "id": "drop-001",
+      "name": "Drop 001 — Off Season",
+      "slug": "drop-001",
+      "releaseAt": "2026-11-15T12:30:00.000Z",
+      "description": "Linen and fleece, in limited numbers.",
+      "seo": {}
+    }
+  ],
+  "sizeCharts": [
+    {
+      "id": "chart-tops",
+      "name": "Unisex tops",
+      "measurements": [
+        "chest",
+        "length",
+        "shoulder"
+      ],
+      "rows": [
+        {
+          "size": "XS",
+          "values": {
+            "chest": 104,
+            "length": 68,
+            "shoulder": 50
+          }
+        },
+        {
+          "size": "S",
+          "values": {
+            "chest": 110,
+            "length": 70,
+            "shoulder": 52
+          }
+        },
+        {
+          "size": "M",
+          "values": {
+            "chest": 116,
+            "length": 72,
+            "shoulder": 54
+          }
+        },
+        {
+          "size": "L",
+          "values": {
+            "chest": 122,
+            "length": 74,
+            "shoulder": 56
+          }
+        },
+        {
+          "size": "XL",
+          "values": {
+            "chest": 128,
+            "length": 76,
+            "shoulder": 58
+          }
+        },
+        {
+          "size": "XXL",
+          "values": {
+            "chest": 134,
+            "length": 78,
+            "shoulder": 60
+          }
+        }
+      ],
+      "modelNote": "Model is 183 cm wearing M"
+    },
+    {
+      "id": "chart-bottoms",
+      "name": "Unisex bottoms",
+      "measurements": [
+        "waist",
+        "hip",
+        "inseam"
+      ],
+      "rows": [
+        {
+          "size": "XS",
+          "values": {
+            "waist": 70,
+            "hip": 96,
+            "inseam": 76
+          }
+        },
+        {
+          "size": "S",
+          "values": {
+            "waist": 75,
+            "hip": 101,
+            "inseam": 77
+          }
+        },
+        {
+          "size": "M",
+          "values": {
+            "waist": 80,
+            "hip": 106,
+            "inseam": 78
+          }
+        },
+        {
+          "size": "L",
+          "values": {
+            "waist": 85,
+            "hip": 111,
+            "inseam": 79
+          }
+        },
+        {
+          "size": "XL",
+          "values": {
+            "waist": 90,
+            "hip": 116,
+            "inseam": 79
+          }
+        },
+        {
+          "size": "XXL",
+          "values": {
+            "waist": 95,
+            "hip": 121,
+            "inseam": 79
+          }
+        }
+      ],
+      "modelNote": "Model is 183 cm wearing M"
+    }
+  ]
+}
