@@ -71,7 +71,12 @@ export function SettingsForm({
     setBusy(true);
     setMsg(null);
     try {
-      const { settings } = await adminFetch<{ settings: SettingsDoc }>('/api/admin/settings', { method: 'PUT', body: s });
+      // F13: `s.updatedAt` is the version this form loaded; the API answers 409
+      // (SETTINGS_STALE_MESSAGE) if someone saved since, shown below as the error.
+      const { settings } = await adminFetch<{ settings: SettingsDoc }>('/api/admin/settings', {
+        method: 'PUT',
+        body: { ...s, updatedAt: s.updatedAt },
+      });
       setS(settings);
       setMsg({ ok: true, text: 'Saved. The storefront uses it on the next page load.' });
     } catch (e) {

@@ -6,14 +6,15 @@ import { faqLd, breadcrumbLd, jsonLdScript } from '@/lib/jsonld';
 import { fillTemplate, parseMarkdown, type Inline, type MdBlock } from '@/lib/markdown';
 import type { Block, Page } from '@/lib/schemas/site-content';
 import { buildMetadata, paths, plainText } from '@/lib/seo';
-import { resolveStaticPage, settingsVars, type StaticSlug } from '@/lib/static-pages';
+import { resolveStaticPage, settingsVars, withReturnsTitle, type StaticSlug } from '@/lib/static-pages';
 
 // Shared renderer for the S9 static pages (WS-E). Renders richText + faq
 // blocks through the safe markdown tree; never injects raw HTML.
 
 export async function loadStaticPage(slug: StaticSlug): Promise<{ page: Page; vars: Record<string, string> }> {
   const [content, settings] = await Promise.all([getSiteContent(), getSettings()]);
-  return { page: resolveStaticPage(slug, content.pages[slug]), vars: settingsVars(settings) };
+  const page = resolveStaticPage(slug, content.pages[slug]);
+  return { page: slug === 'returns' ? withReturnsTitle(page, settings) : page, vars: settingsVars(settings) };
 }
 
 export async function staticPageMetadata(slug: StaticSlug): Promise<Metadata> {

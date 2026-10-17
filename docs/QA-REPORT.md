@@ -81,7 +81,7 @@ The first run had no secrets. The second run used throwaway env values (fake Raz
 | `npm install` | OK; `package-lock.json` resynced with the new ESLint devDeps (F9). |
 | `npm run typecheck` | No errors (WS-C's `Header.tsx` `brand` error was already fixed by WS-F). |
 | `npx vitest run` | `Test Files 31 passed (31)` · `Tests 236 passed (236)` (235 + 1 new sender-name test). |
-| `npm run lint` | Exit 0. **0 errors, 23 warnings** (unused `_x` destructure vars, 2 stale `eslint-disable` comments, 6 `jsx-a11y/alt-text` false positives on the custom `<Image media=…>` component, which takes alt from `media.alt`). |
+| `npm run lint` | Exit 0. **0 errors, 23 warnings** (unused `_x` destructure vars, 2 stale `eslint-disable` comments, 6 `jsx-a11y/alt-text` false positives on the custom `<Image media=…>` component, which takes alt from `media.alt`). | Update 2026-10-17: now 0 warnings, 0 errors (F15).
 | `npx next build` | Exit 0. Shared first-load JS 103 kB; middleware 39.7 kB; `/icon.png` and `/manifest.webmanifest` dynamic routes present. |
 | `npx opennextjs-cloudflare build` | Exit 0, "Worker saved in `.open-next\worker.js`", "OpenNext build complete." (`custom-worker.mjs` wraps it; not deployed, so the cron is still untested.) |
 
@@ -104,9 +104,9 @@ The first run had no secrets. The second run used throwaway env values (fake Raz
 | # | Sev | Where | Finding | Fixed? |
 |---|---|---|---|---|
 | F12 | Low | `src/lib/commerce/email.ts:118` | Saved email sender name was not used in the From header. | **Yes.** Now `from: emailFromHeader(settings.email)`; test added in `email.test.ts`. |
-| F13 | Low | `src/app/api/admin/settings/route.ts:22` | Settings PUT replaces the whole doc inside `writeJsonCas` without checking a client version, so two admins saving at once is last-write-wins (CAS only guards the storage race, not the stale form). | No. Acceptable for one owner; add an `updatedAt` precondition if more owners edit settings. |
-| F14 | Info | `/returns` | Page title and nav label still say "Returns & exchange" when exchanges are switched off. | No (copy tweak). |
-| F15 | Info | lint | 23 warnings, 0 errors (see above). | No; clean-up optional. |
+| F13 | Low | `src/app/api/admin/settings/route.ts` | Settings PUT was last-write-wins for stale forms. | **Fixed (2026-10-17).** `SettingsDoc.updatedAt` (default `''`) is stamped on every save; `SettingsForm` sends the value it loaded and the route returns 409 "Settings changed elsewhere — reload to see the latest" when the stored value differs (`isStaleSettingsWrite`). Tested in `src/app/api/admin/settings/route.test.ts`. |
+| F14 | Info | `/returns` | Page title, SEO title, heading, footer label and PDP copy said "Returns & exchange" even with exchanges off. | **Fixed (2026-10-17).** `returnsLabel()` in `src/lib/static-pages.ts` derives Returns & exchange / Returns / Exchanges / Returns policy from settings; auto labels are swapped on the page, metadata and footer (custom labels kept). Tested in `static-pages.test.ts`. |
+| F15 | Info | lint | 23 warnings, 0 errors. | **Fixed (2026-10-17).** Stale disable comments and an unused const removed; `no-unused-vars` ignores `_`-prefixed rest-omit names; `jsx-a11y/alt-text` scoped to DOM elements in `eslint.config.mjs` (custom `<Image>` takes alt from `media.alt`). `npm run lint`: no warnings or errors. |
 | F9 | — | tooling | Now complete: deps installed, lockfile synced, lint runs non-interactively. | **Yes.** |
 | F10 | — | `/icon.png` | Served by `src/app/icon.png/route.tsx`. | **Yes (WS-F).** |
 

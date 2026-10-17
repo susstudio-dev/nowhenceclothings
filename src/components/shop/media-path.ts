@@ -1,7 +1,6 @@
 // Pure parser for /media/{id}/{width}.{fmt} (used by src/app/media/[...path]/route.ts).
 
-const FORMATS = ['avif', 'webp', 'jpg', 'png'] as const;
-export type ParsedMediaFormat = (typeof FORMATS)[number];
+export type ParsedMediaFormat = 'avif' | 'webp' | 'jpg' | 'png';
 
 export function parseMediaPath(segments: string[]): { id: string; width: number; format: ParsedMediaFormat } | null {
   if (segments.length !== 2) return null;

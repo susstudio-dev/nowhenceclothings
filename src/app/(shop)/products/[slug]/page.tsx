@@ -9,6 +9,7 @@ import { completeTheLook, dropFor, isSoldOut, stockMap, variantPrice } from '@/c
 import { getCatalogue, getInventory, getProductBySlug, isReleased } from '@/lib/catalogue';
 import { getSettings } from '@/lib/content';
 import { formatPaise } from '@/lib/money';
+import { returnsLabel } from '@/lib/static-pages';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,7 +89,9 @@ export default async function ProductPage({ params }: Props) {
             {ship.eta && ` ${ship.eta}.`}
           </p>
           <p>
-            Returns and exchanges within {settings.orders.returnWindowDays} days.{' '}
+            {settings.returns.returnsAllowed || settings.returns.exchangesAllowed
+              ? `${returnsLabel(settings.returns)} within ${settings.returns.windowDays} days.`
+              : 'No returns or exchanges, except faulty pieces.'}{' '}
             <Link href="/returns" className="underline">Read the policy</Link>.
           </p>
         </div>

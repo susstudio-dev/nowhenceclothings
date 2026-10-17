@@ -221,7 +221,7 @@ See [Shipping](/shipping). Delivery times are estimates, not guarantees.
 
 ## Returns
 
-See [Returns & exchange](/returns).
+See the [returns policy](/returns).
 
 ## Liability
 
@@ -292,4 +292,37 @@ export function settingsVars(settings: SettingsDoc): Record<string, string> {
             : 'a replacement for a faulty piece',
     returnsPolicy: r.policyMarkdown,
   };
+}
+
+/** F14: label for /returns that matches what the store actually offers. */
+export function returnsLabel(r: Pick<SettingsDoc['returns'], 'returnsAllowed' | 'exchangesAllowed'>): string {
+  if (r.returnsAllowed && r.exchangesAllowed) return 'Returns & exchange';
+  if (r.returnsAllowed) return 'Returns';
+  if (r.exchangesAllowed) return 'Exchanges';
+  return 'Returns policy';
+}
+
+/** Labels we generate (or seeded) for /returns; an owner's custom label is left alone. */
+const AUTO_RETURNS_LABELS = new Set(['returns & exchange', 'returns & exchanges', 'returns and exchanges', 'returns', 'exchanges', 'returns policy']);
+
+/** Swap a seeded/auto /returns label for the settings-derived one. */
+export function resolveReturnsLabel(label: string, settings: Pick<SettingsDoc, 'returns'>): string {
+  return AUTO_RETURNS_LABELS.has(label.trim().toLowerCase()) ? returnsLabel(settings.returns) : label;
+}
+
+/** Footer/nav links with the /returns label derived from settings. */
+export function withReturnsNavLabel<T extends { href: string; label: string }>(links: T[], settings: Pick<SettingsDoc, 'returns'>): T[] {
+  return links.map((l) => (l.href === '/returns' ? { ...l, label: resolveReturnsLabel(l.label, settings) } : l));
+}
+
+/** The /returns page with its title, SEO title and auto heading matched to settings. */
+export function withReturnsTitle(page: Page, settings: Pick<SettingsDoc, 'returns'>): Page {
+  const title = resolveReturnsLabel(page.title, settings);
+  const seoTitle = page.seo?.title ? resolveReturnsLabel(page.seo.title, settings) : page.seo?.title;
+  const blocks = page.blocks.map((b) =>
+    b.type === 'richText'
+      ? { ...b, markdown: b.markdown.replace(/^#\s+(.+)$/m, (_, h: string) => `# ${resolveReturnsLabel(h, settings)}`) }
+      : b,
+  );
+  return { ...page, title, seo: page.seo ? { ...page.seo, title: seoTitle } : page.seo, blocks };
 }

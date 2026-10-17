@@ -22,7 +22,6 @@ export function useMediaLibrary(enabled = true) {
   };
   useEffect(() => {
     if (enabled) void reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
   return { items, error, reload, setItems };
 }

@@ -83,6 +83,8 @@ const Legal = z
   .default({});
 
 const SettingsShape = z.object({
+  /** F13: ISO timestamp of the last save; the admin form echoes it back as an optimistic-concurrency precondition. */
+  updatedAt: z.string().default(''),
   currency: z.literal('INR').default('INR'),
   shipping: z.object({
     /** Flat shipping fee, paise (D10). */
@@ -172,3 +174,10 @@ export const SettingsDoc = z.preprocess(
   })),
 );
 export type SettingsDoc = z.infer<typeof SettingsDoc>;
+
+export const SETTINGS_STALE_MESSAGE = 'Settings changed elsewhere — reload to see the latest';
+
+/** F13: true when the form's loaded `updatedAt` no longer matches the stored doc. Pure. */
+export function isStaleSettingsWrite(stored: Pick<SettingsDoc, 'updatedAt'> | null, sentUpdatedAt: string): boolean {
+  return (stored?.updatedAt ?? '') !== sentUpdatedAt;
+}

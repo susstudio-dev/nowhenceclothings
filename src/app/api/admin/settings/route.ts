@@ -1,6 +1,6 @@
 import { writeJsonCas } from '@/lib/storage';
 import { getSettings } from '@/lib/content';
-import { SETTINGS_KEY, SettingsDoc } from '@/lib/schemas/settings';
+import { SETTINGS_KEY, SETTINGS_STALE_MESSAGE, SettingsDoc, isStaleSettingsWrite } from '@/lib/schemas/settings';
 import { adminRoute, HttpError, json, readBody } from '@/lib/admin/api';
 import { brandContrastChecks } from '@/lib/brand';
 
@@ -19,7 +19,11 @@ export async function PUT(req: Request) {
     if (failed.length) {
       throw new HttpError(400, `${failed[0].label} contrast is ${failed[0].ratio.toFixed(2)}:1; needs ${failed[0].min}:1`);
     }
-    const settings = await writeJsonCas(SETTINGS_KEY, SettingsDoc, () => next);
+    // F13: reject a stale form (someone saved since it was loaded) instead of last-write-wins.
+    const settings = await writeJsonCas(SETTINGS_KEY, SettingsDoc, (current) => {
+      if (isStaleSettingsWrite(current, next.updatedAt)) throw new HttpError(409, SETTINGS_STALE_MESSAGE);
+      return { ...next, updatedAt: new Date().toISOString() };
+    });
     await log(
       'settings_update',
       'settings.json',

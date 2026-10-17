@@ -2,7 +2,17 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { SettingsDoc } from './schemas/settings';
 import { Page, STATIC_PAGE_SLUGS } from './schemas/site-content';
-import { DEFAULT_STATIC_PAGES, STATIC_SLUGS, isPlaceholderPage, resolveStaticPage, settingsVars } from './static-pages';
+import {
+  DEFAULT_STATIC_PAGES,
+  STATIC_SLUGS,
+  isPlaceholderPage,
+  resolveReturnsLabel,
+  resolveStaticPage,
+  returnsLabel,
+  settingsVars,
+  withReturnsNavLabel,
+  withReturnsTitle,
+} from './static-pages';
 
 describe('static pages', () => {
   it('covers every S9 slug with a valid page', () => {
@@ -48,5 +58,34 @@ describe('static pages', () => {
     const returns = fillTemplate((DEFAULT_STATIC_PAGES.returns.blocks[0] as { markdown: string }).markdown, v);
     expect(returns).toContain('10 days from delivery to ask for an exchange');
     expect(returns).toContain('Custom policy.');
+  });
+});
+
+describe('F14 returns label', () => {
+  const s = (returnsAllowed: boolean, exchangesAllowed: boolean) =>
+    ({ returns: { returnsAllowed, exchangesAllowed } }) as Pick<SettingsDoc, 'returns'>;
+
+  it('derives the label from settings', () => {
+    expect(returnsLabel(s(true, true).returns)).toBe('Returns & exchange');
+    expect(returnsLabel(s(true, false).returns)).toBe('Returns');
+    expect(returnsLabel(s(false, true).returns)).toBe('Exchanges');
+    expect(returnsLabel(s(false, false).returns)).toBe('Returns policy');
+  });
+
+  it('rewrites auto labels on page title, SEO, heading and nav; keeps custom labels', () => {
+    const page = withReturnsTitle(DEFAULT_STATIC_PAGES.returns, s(true, false));
+    expect(page.title).toBe('Returns');
+    expect(page.seo?.title).toBe('Returns');
+    const first = page.blocks[0];
+    expect(first.type === 'richText' && first.markdown.startsWith('# Returns\n')).toBe(true);
+    const links = withReturnsNavLabel(
+      [
+        { label: 'Returns & exchange', href: '/returns' },
+        { label: 'Shipping', href: '/shipping' },
+      ],
+      s(false, true),
+    );
+    expect(links.map((l) => l.label)).toEqual(['Exchanges', 'Shipping']);
+    expect(resolveReturnsLabel('Our promise', s(false, false))).toBe('Our promise');
   });
 });

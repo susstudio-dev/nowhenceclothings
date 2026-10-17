@@ -4,6 +4,7 @@ import { CartButton } from '@/components/shop/cart-drawer';
 import { NewsletterForm } from '@/components/shop/NewsletterForm';
 import { getSettings, getSiteContent } from '@/lib/content';
 import { jsonLdScript, organizationLd, webSiteLd } from '@/lib/jsonld';
+import { withReturnsNavLabel } from '@/lib/static-pages';
 
 // Header renders the skip link; CartButton mounts the single CartDrawer.
 export default async function ShopLayout({ children }: { children: ReactNode }) {
@@ -23,7 +24,7 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
       <AnnouncementBar announcement={content.announcement} />
       <Header nav={content.nav.primary} cartSlot={<CartButton />} brand={brand} />
       <main id="main">{children}</main>
-      <Footer columns={content.nav.footer} newsletter={<NewsletterForm source="footer" />} email={settings.store.email}
+      <Footer columns={content.nav.footer.map((col) => ({ ...col, links: withReturnsNavLabel(col.links, settings) }))} newsletter={<NewsletterForm source="footer" />} email={settings.store.email}
         brand={brand}
         legalName={settings.legal.legalName || undefined}
       />

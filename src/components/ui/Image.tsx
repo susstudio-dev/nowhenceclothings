@@ -27,7 +27,6 @@ export function Image({ media, sizes = '100vw', priority = false, className, alt
     <picture>
       {avif && <source type="image/avif" srcSet={avif} sizes={sizes} />}
       {webp && <source type="image/webp" srcSet={webp} sizes={sizes} />}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={fallback}
         alt={alt ?? media.alt}
