@@ -229,7 +229,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
                     </>
                   )}
                   {launch?.nextChangeAt && <Countdown releaseAt={launch.nextChangeAt} />}
-                  <p>Limit {pre.perCustomerLimit} per customer. {pre.terms}</p>
+                  <p>Limit {pre.perCustomerLimit} per customer.{deposit ? " Full booking terms are shown before you pay." : ` ${pre.terms}`}</p>
                 </div>
               )}
               <p role="status" className="min-h-[1.25rem] text-small">

@@ -235,3 +235,61 @@ F18, F19 and F20 from the previous section are fixed by the WS-J engineer; the 3
 5. Set `CRON_SECRET` so the sale-start emails go out even if nobody opens `/pay`.
 6. Check `/book`, `/pay`, `/admin/bookings` and the QR panel in a browser, and do one real Razorpay test-mode deposit and refund.
 7. After deploy, check that `curl -I https://nowhenceclothings.com/` gives `x-nowhence-cache: MISS` then `HIT`, and `BYPASS` with an admin cookie.
+
+## Premium redesign + invoices (A14–A17), 2026-10-17
+
+### Integration fixes
+- `src/components/ui/index.ts`: added the 8 missing exports (ButtonLink, Badge, Swatch, SizeSelector, QuantityStepper, Skeleton, Toast, Sheet).
+- `src/components/ui/Logo.tsx`: removed unused `cn` import (lint warning).
+
+### Commands
+| Command | Result |
+|---|---|
+| `npm install` | OK |
+| `npm run typecheck` | clean (`tsc --noEmit`, no output) |
+| `npx vitest run` ×3 (+1 after fixes) | each `Test Files 49 passed (49)` · `Tests 367 passed (367)` |
+| `npm run lint` | 1 warning: `<img>` in `admin/(studio)/products/page.tsx:84` (admin thumbnails; acceptable) |
+| `npx next build` | `✓ Compiled successfully`; shared JS 103 kB, middleware 39.7 kB (rebuilt after visual fixes) |
+| `npx opennextjs-cloudflare build` | "OpenNext build complete." (run again after the fixes) |
+
+### Walk (`next start -p 3490`, throwaway env, Razorpay/Resend stubbed with the `--require` preload; `data/` backed up first, restored afterwards, `diff -rq` clean)
+Seller set to Karnataka (stateCode 29, GSTIN `29ABCDE1234F1Z5`) in the throwaway data only.
+
+| Check | Result |
+|---|---|
+| `POST /api/checkout` tee M ×1, injected `amount:100,total:100`, delivery Karnataka | 201; Razorpay order `amount:259800` (₹2,499 + ₹99 shipping), client values ignored |
+| Same, delivery Maharashtra | 201, `amount:259800` |
+| `POST /api/razorpay/verify` (good HMAC) ×2 | `applied … status:"paid"` each |
+| Invoice numbers | `NWH/26-27/0001` then `NWH/26-27/0002` (sequential) |
+| `GET /api/admin/orders/{id}/invoice` | 200 `application/pdf` both. KA: tee taxable 2,380.00 @ 2.5+2.5% → CGST 59.50 / SGST 59.50; shipping taxable 94.29; total Rs. 2,598.00, words "Two Thousand Five Hundred Ninety Eight Only". MH: IGST 5% 119.00 + 4.71 = 123.71 |
+| Admin PATCH refund (MH order) | status `refunded`; `?kind=credit_note` → 200 PDF `NWH/CN/26-27/0001`, IGST Rs. 123.71 |
+| `GET /api/admin/invoices/ledger?fy=26-27` | CSV: 2 tax invoices, receipt voucher, 2 credit notes with negative values and reference to the original |
+| Quick-buy deposit: `POST /api/bookings` ring polo M, injected `deposit:100,amount:100` | Razorpay order `amount:99900` (server deposit) |
+| Deposit verify | `applied, deposit_paid`; `/pay/{token}` links receipt `NWH/RV/26-27/0001`; signed PDF link 200; tampered token 404; same token on another doc 404; voucher Rs. 999.00, no GST |
+| Admin booking `refund` | Razorpay refund `amount:99900`; credit note `NWH/CN/26-27/0002` referencing the RV |
+| `GET /api/pincode/560001` | 200 Bangalore / Karnataka (0.97 s, live India Post); `999999` → `{"found":false}`; `abc`/`000000` → 400. Upstream-down fallback is covered by `pincode.test.ts` (not forced live) |
+| Coming-soon secrecy scan (17 pages × HTML and `RSC: 1`, incl. `/`, `/shop`, `/search?q=polo`, the 4 hidden PDPs, `/book/polo-navy-rain-emboss`, sitemap) | every page `sharp:0 price:0` |
+
+Not walked: a real Razorpay modal (test keys) and real email delivery.
+
+### Screenshots (`scratchpad/shots/qa/`, 390 and 1440, headless Chrome via CDP with forced-colors off)
+home, home2 (after fixes), quick / quick2 (home presale quick-buy sheet open), shop, pdp (wing sleeve), pre / pdp2 (ring polo), soon, cart, checkout, drawer (bag drawer open after Add to bag), conf (order confirmation with invoice download), book, track, about, terms, login, dash, pedit, orders, bookings, settings.
+
+### Visual findings
+| # | Sev | Where | Finding | Fixed? |
+|---|---|---|---|---|
+| F27 | High (visual) | `src/components/ui/Image.tsx` | Seed `placehold.co` images rendered the product name in large bold Lato inside every card and category tile; the page read like a wireframe. | **Fixed.** placehold.co sources now render a quiet paper-deep plate with a 10px tracked "Photograph to follow" caption, same aspect ratio. Real photography still needed. |
+| F28 | Medium | `src/components/ui/SizeSelector.tsx:40` | `auto-fill` grid left an empty grey cell after XXL in the quick-buy sheet and other wide columns. | **Fixed** (`auto-fit`). The `sizeGridClass` workaround in `quick-buy.ts` can now go. |
+| F29 | Medium | `src/components/shop/ProductView.tsx:232` | Deposit product showed the presale terms "Pre-orders are paid in full today", which contradicts the ₹999 deposit. | **Fixed.** Deposit products show "Full booking terms are shown before you pay." |
+| F30 | Low | `src/components/chrome/Footer.tsx` | Contact email broke mid-word ("nowhenceclothings.\ncom") on mobile. | **Fixed.** Contact spans both columns on mobile; `break-words`. |
+| F31 | Low | cart drawer, confirmation thumbnails | These still use raw `<img>` so they show the placehold.co text in small. | No; goes away with real photography. |
+| F32 | Low | `src/lib/schemas/common.ts:19` | The API `Phone` is strict 10 digits; `+91 …` normalisation happens only in the browser. | No; by design for the API, note for integrators. |
+| F33 | Low | admin orders at 390 | Table scrolls horizontally; status/total are offscreen until you scroll. | No. |
+| F34 | Low | Countdown | Still says "Releases" for the end of a presale (Build 1 open issue). | No. |
+
+### Remaining owner actions
+1. Settings → Legal: fill legal name, GSTIN, registered address and **state code** (without the state code every invoice falls back to IGST). There is no admin screen for `tax.slabs`, `tax.invoicePrefix`, `tax.defaultHsn` yet; defaults are 5% ≤ ₹2,500, 18% above, prefix NWH, HSN 6105.
+2. `wrangler secret put INVOICE_LINK_SECRET` (≥16 chars), otherwise no customer download links.
+3. Replace the placeholder catalogue photography (`placehold.co`) with real shots.
+4. Do one Razorpay test-mode order, deposit, balance and refund in a browser.
+5. Mount `ToastProvider` in the shop layout (admin has it).

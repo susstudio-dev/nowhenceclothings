@@ -21,6 +21,20 @@ export function Image({ media, sizes = '100vw', priority = false, className, alt
   const stored = mediaFormats(media);
   const fallbackFmt = (['webp', 'jpg', 'png', 'avif'] as const).find((f) => stored.includes(f)) ?? 'webp';
   const fallback = media.src ?? `/media/${media.id}/${largest}.${fallbackFmt}`;
+  // Seed catalogue uses placehold.co stand-ins with the product name baked in at
+  // display size; render a quiet tonal plate instead until real photography lands.
+  if (fallback.startsWith('https://placehold.co/')) {
+    return (
+      <span
+        role="img"
+        aria-label={alt ?? media.alt}
+        style={{ aspectRatio: `${media.width} / ${media.height}` }}
+        className={cn('flex h-auto w-full items-end bg-paper-deep p-4 object-cover', className)}
+      >
+        <span aria-hidden className="text-[10px] uppercase tracking-[0.18em] text-muted">Photograph to follow</span>
+      </span>
+    );
+  }
   const avif = mediaSrcSet(media, 'avif');
   const webp = mediaSrcSet(media, 'webp');
   return (

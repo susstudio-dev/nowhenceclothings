@@ -55,9 +55,9 @@ export function Footer({ columns, newsletter, email, className, brand, legalName
             </div>
           ))}
           {email && (
-            <div>
+            <div className="col-span-2 sm:col-span-1">
               <h2 className="eyebrow mb-4">Contact</h2>
-              <a href={`mailto:${email}`} className="link-underline break-all text-small text-ink-soft hover:text-ink">
+              <a href={`mailto:${email}`} className="link-underline break-words text-small text-ink-soft hover:text-ink">
                 {email}
               </a>
             </div>

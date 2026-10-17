@@ -37,7 +37,7 @@ export function SizeSelector({ options, value, onChange, label = 'Size', aside, 
       <div
         role="radiogroup"
         aria-label={label}
-        className="grid grid-cols-[repeat(auto-fill,minmax(3.25rem,1fr))] gap-px border border-line bg-line"
+        className="grid grid-cols-[repeat(auto-fit,minmax(3.25rem,1fr))] gap-px border border-line bg-line"
       >
         {options.map((o) => {
           const on = o.value === value;
