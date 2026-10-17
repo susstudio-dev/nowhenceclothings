@@ -6,6 +6,7 @@ import { BRAND_FONTS, BRAND_FONT_LABELS, brandContrastChecks, emailFromHeader, l
 import { Button, Input } from '@/components/ui';
 import { adminFetch, toPaise, toRupees } from './api-client';
 import { MediaPickerField } from './MediaPicker';
+import { LaunchSettingsPanel } from './LaunchSettingsPanel';
 import { mediaPreviewSrc } from './MediaUploader';
 
 const TABS: { id: SettingsTab; label: string }[] = [
@@ -14,6 +15,7 @@ const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'returns', label: 'Returns' },
   { id: 'legal', label: 'Legal' },
   { id: 'email', label: 'Email' },
+  { id: 'launches', label: 'Launches' },
 ];
 
 const textarea = 'w-full border border-line bg-paper px-3 py-2 text-sm';
@@ -87,6 +89,7 @@ export function SettingsForm({
   }
 
   const panels: Record<SettingsTab, ReactNode> = {
+    launches: <LaunchSettingsPanel value={s.launches} onChange={(launches) => setS((cur) => ({ ...cur, launches }))} />,
     brand: (
       <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-6">

@@ -9,6 +9,20 @@ import { INVENTORY_KEY } from '@/lib/schemas/inventory';
 import { OrdersIndexDoc, ordersIndexKey, type Order, type OrderStatus, type OrderSummary } from '@/lib/schemas/order';
 import { readOrder, sendOrderEmailOnce, updateOrder, withStatus } from './orders';
 import { commitStock, OversellError, restockLines } from './stock';
+import { releasePresaleUnits } from '@/lib/launches-server';
+import { inventoryLines } from './order-lines';
+
+/** A11: give back an order's presale units (cancel / refund / expiry). Never throws. */
+export async function releaseOrderPresale(o: Pick<Order, 'id' | 'preorder' | 'lines'>): Promise<void> {
+  if (!o.preorder) return;
+  for (const pid of new Set(o.lines.map((l) => l.productId))) {
+    try {
+      await releasePresaleUnits(pid, o.id);
+    } catch (err) {
+      console.error('presale release failed', err instanceof Error ? err.message : '');
+    }
+  }
+}
 
 // ---- pure helpers -----------------------------------------------------------
 
@@ -53,6 +67,7 @@ export async function expireOrderIfStale(id: string, windowMinutes: number, now:
   const { order } = await updateOrder(id, (o) =>
     isPaymentExpired(o, windowMinutes, now) ? withStatus(o, 'cancelled', 'system', EXPIRY_NOTE, now) : null,
   );
+  if (order.status === 'cancelled') await releaseOrderPresale(order);
   return order;
 }
 
@@ -116,7 +131,7 @@ export async function restockOrder(id: string, by: string, stockKey: string = IN
   const won = claimed as Order | null;
   if (!won) return false;
   await restockLines(
-    won.lines.map((l) => ({ sku: l.sku, qty: l.qty })),
+    inventoryLines(won),
     stockKey,
   );
   return true;
@@ -138,6 +153,9 @@ export async function afterAdminStatusChange(
     if (shouldRestock(before, after)) restocked = await restockOrder(after.id, by, opts.stockKey);
   } catch (err) {
     console.error('restock failed', after.number, err instanceof Error ? err.message : '');
+  }
+  if (before.status !== after.status && (after.status === 'cancelled' || after.status === 'refunded')) {
+    await releaseOrderPresale(after);
   }
   if (before.status !== after.status && (after.status === 'shipped' || after.status === 'refunded')) {
     if (await sendOrderEmailOnce(after.id, after.status)) emailed = after.status;
@@ -178,7 +196,7 @@ export async function retryCommitStock(id: string, by: string, stockKey: string 
     });
   try {
     await commitStock(
-      claimed.lines.map((l) => ({ sku: l.sku, qty: l.qty })),
+      inventoryLines(claimed),
       stockKey,
     );
   } catch (err) {

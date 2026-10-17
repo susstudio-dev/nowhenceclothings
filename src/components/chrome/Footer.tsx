@@ -50,6 +50,7 @@ export function Footer({ columns, newsletter, email, className, brand, legalName
           brand={brand}
           className="block select-none whitespace-nowrap text-[18vw] leading-[0.8] tracking-[0.04em] text-ink md:text-[16vw]"
           imgClassName="block h-auto w-full max-h-[40vh] object-contain object-left"
+          svgClassName="block h-auto w-full py-10 text-ink md:py-14"
         />
       </div>
       <div className="container-page flex flex-col gap-2 border-t border-line py-6 text-caption text-muted md:flex-row md:justify-between">

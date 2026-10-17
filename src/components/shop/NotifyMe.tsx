@@ -6,7 +6,7 @@ import { Button, Input } from '@/components/ui';
  * Back-in-stock / drop notification signup. Posts to the commerce workstream's
  * `/api/notify` endpoint ({ sku, email }) which appends to notify/{sku}.json.
  */
-export function NotifyMe({ sku, label = 'Notify me' }: { sku: string; label?: string }) {
+export function NotifyMe({ sku, productId, label = 'Notify me' }: { sku?: string; productId?: string; label?: string }) {
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
   const [email, setEmail] = useState('');
 
@@ -17,7 +17,7 @@ export function NotifyMe({ sku, label = 'Notify me' }: { sku: string; label?: st
       const res = await fetch('/api/notify', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ sku, email }),
+        body: JSON.stringify(productId ? { productId, email } : { sku, email }),
       });
       setState(res.ok ? 'done' : 'error');
     } catch {

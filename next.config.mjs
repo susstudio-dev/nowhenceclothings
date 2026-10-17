@@ -80,6 +80,14 @@ const nextConfig = {
         missing: [{ type: 'cookie', key: 'nowhence_admin' }],
         headers: [{ key: 'Cache-Control', value: 'public, max-age=0, s-maxage=60, stale-while-revalidate=600' }],
       },
+      // Home (WS-H perf): most-hit page, changes only on admin publish. Longer
+      // shared window; there is no edge purge on publish yet, so an edit shows
+      // within 5 minutes (stale copies refresh in the background).
+      {
+        source: '/',
+        missing: [{ type: 'cookie', key: 'nowhence_admin' }],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400' }],
+      },
       // Uploaded media is immutable (media/{id}/{w}.{fmt}); opaque bytes get
       // a stricter CSP than the site.
       {

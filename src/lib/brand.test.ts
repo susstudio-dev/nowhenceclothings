@@ -28,7 +28,7 @@ describe('settings schema migration (A9)', () => {
     expect(s.legal).toMatchObject({ legalName: 'Nowhence LLP', gstin: '29ABCDE1234F1Z5', registeredAddress: 'Bengaluru' });
     expect(s.returns.windowDays).toBe(14);
     expect(s.brand.wordmark).toBe('NOWHENCE');
-    expect(s.brand.colours.ink).toBe('#161513');
+    expect(s.brand.colours.ink).toBe('#0b0b0b');
     expect(s.email.senderName).toBe('');
   });
 
@@ -79,7 +79,7 @@ describe('contrast', () => {
 describe('css vars', () => {
   const base = SettingsDoc.parse(legacy).brand;
   it('only maps fonts for the default palette', () => {
-    expect(brandCssVars(base)).toEqual({ '--font-display': 'var(--font-cormorant-garamond)', '--font-sans': 'var(--font-inter-tight)' });
+    expect(brandCssVars(base)).toEqual({ '--font-display': 'var(--font-jost)', '--font-sans': 'var(--font-inter-tight)' });
   });
   it('emits rgb channels for a custom palette', () => {
     const v = brandCssVars({ ...base, bodyFont: 'manrope', colours: { ink: '#000000', paper: '#ffffff', accent: '#ff0000' } });
@@ -87,7 +87,7 @@ describe('css vars', () => {
     expect(v['--c-paper']).toBe('255 255 255');
     expect(v['--c-accent']).toBe('255 0 0');
     expect(v['--font-sans']).toBe('var(--font-manrope)');
-    expect(brandCssText(base).startsWith(':root{--font-display:var(--font-cormorant-garamond);')).toBe(true);
+    expect(brandCssText(base).startsWith(':root{--font-display:var(--font-jost);')).toBe(true);
   });
 });
 

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { DEFAULT_DESCRIPTION } from '@/lib/seo';
 import { getSettings } from '@/lib/content';
+import { DEFAULT_ICON } from '@/lib/brand-defaults';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,11 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     display: 'standalone',
     background_color: s.brand.colours.paper,
     theme_color: s.brand.colours.ink,
-    icons: [{ src: '/icon.png', sizes: '512x512', type: s.brand.favicon ? 'image/webp' : 'image/png' }],
+    icons: s.brand.favicon
+      ? [{ src: '/icon.png', sizes: '512x512', type: 'image/webp' }]
+      : [
+          { src: DEFAULT_ICON.png192, sizes: '192x192', type: 'image/png' },
+          { src: DEFAULT_ICON.png512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+        ],
   };
 }

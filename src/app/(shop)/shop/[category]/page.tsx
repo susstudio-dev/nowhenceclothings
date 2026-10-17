@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ListingPage } from '@/components/shop/ListingPage';
-import { getActiveProducts, getCatalogue, getInventory } from '@/lib/catalogue';
+import { getCatalogue, getInventory } from '@/lib/catalogue';
+import { getStorefrontProducts } from '@/lib/launches-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     params,
     searchParams,
     getCatalogue(),
-    getActiveProducts(),
+    getStorefrontProducts('shop'),
     getInventory(),
   ]);
   const cat = catalogue.categories.find((c) => c.slug === category);

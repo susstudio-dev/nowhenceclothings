@@ -4,7 +4,7 @@
 // /api/checkout/quote, and only SKU + qty are ever sent to checkout.
 
 import { useSyncExternalStore } from 'react';
-import { addLine, EMPTY_CART, removeLineFrom, setCoupon, updateLineQty, type CartLine, type CartState } from './cart-core';
+import { addLine, EMPTY_CART, removeLineFrom, setCoupon, updateLineQty, wouldMixPresale, type CartLine, type CartState } from './cart-core';
 
 export type { CartLine, CartState } from './cart-core';
 
@@ -56,8 +56,17 @@ function commit(next: CartState) {
 
 export const MAX_QTY = 10;
 
+export class MixedCartError extends Error {
+  constructor() {
+    super('Pre-order pieces ship later, so they need their own checkout. Finish or clear your bag first.');
+    this.name = 'MixedCartError';
+  }
+}
+
+/** Throws MixedCartError when the line would mix pre-order and in-stock pieces (A11). */
 export function addToCart(line: CartLine, opts: { open?: boolean } = {}) {
   ensureHydrated();
+  if (wouldMixPresale(state, line)) throw new MixedCartError();
   if (opts.open !== false) drawerOpen = true;
   commit(addLine(state, line, MAX_QTY));
 }

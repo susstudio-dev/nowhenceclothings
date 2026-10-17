@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { ListingPage } from '@/components/shop/ListingPage';
-import { getActiveProducts, getCatalogue, getInventory } from '@/lib/catalogue';
+import { getCatalogue, getInventory } from '@/lib/catalogue';
+import { getStorefrontProducts } from '@/lib/launches-server';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Shop all', alternates: { canonical: '/shop' } };
@@ -8,7 +9,7 @@ export const metadata: Metadata = { title: 'Shop all', alternates: { canonical: 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 
 export default async function ShopPage({ searchParams }: { searchParams: SP }) {
-  const [params, products, catalogue, inventory] = await Promise.all([searchParams, getActiveProducts(), getCatalogue(), getInventory()]);
+  const [params, products, catalogue, inventory] = await Promise.all([searchParams, getStorefrontProducts('shop'), getCatalogue(), getInventory()]);
   return (
     <ListingPage
       title="Shop all"

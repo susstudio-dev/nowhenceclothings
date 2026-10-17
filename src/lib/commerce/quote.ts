@@ -10,6 +10,7 @@ import { available } from '@/lib/schemas/inventory';
 import type { CatalogueDoc } from '@/lib/schemas/catalogue';
 import type { InventoryDoc } from '@/lib/schemas/inventory';
 import type { SettingsDoc } from '@/lib/schemas/settings';
+import { applyPresalePrice, formatShipCopy, resolveLaunch, type EffectivePresale } from '@/lib/launches';
 import { COUPON_MESSAGES, findCoupon, priceCart, type PricingInputLine } from './pricing';
 import type { CartRequestLine, LineIssue, QuoteLine, QuoteResponse } from './types';
 
@@ -49,6 +50,7 @@ export function buildQuote(
   const issues: QuoteResponse['issues'] = [];
   const inputs: PricingInputLine[] = [];
   const meta: Omit<QuoteLine, 'unitPrice' | 'compareAtPrice' | 'lineTotal'>[] = [];
+  let presale: EffectivePresale | null = null;
 
   for (const { sku, qty } of lines) {
     let found: { product: CatalogueDoc['products'][number]; variant: CatalogueDoc['products'][number]['variants'][number] } | null = null;
@@ -63,15 +65,25 @@ export function buildQuote(
       issues.push({ sku, issue: 'unknown' });
       continue;
     }
-    const { product, variant } = found;
+    const { variant } = found;
+    let product = found.product;
     let issue: LineIssue | null = null;
-    const avail = available(ctx.inventory[sku]);
+    const launch = resolveLaunch(product, ctx.catalogue.drops, ctx.settings.launches, now);
+    const isPre = product.status === 'active' && launch.state === 'presale' && !!launch.presale;
+    // Presale units count against the presale cap (checked at checkout), not inventory.
+    const avail = isPre ? qty : available(ctx.inventory[sku]);
     if (product.status !== 'active') issue = 'unavailable';
-    else if (!isReleased(product, ctx.catalogue.drops, now)) issue = 'not_released';
+    else if (launch.state === 'coming_soon') issue = 'not_released';
+    else if (launch.state === 'sold_out') issue = 'out_of_stock';
+    else if (!isPre && !isReleased(product, ctx.catalogue.drops, now)) issue = 'not_released';
     else if (avail <= 0) issue = 'out_of_stock';
     else if (avail < qty) issue = 'insufficient_stock';
     if (issue) issues.push({ sku, issue, available: avail });
     if (issue && issue !== 'insufficient_stock') continue;
+    if (isPre) {
+      product = applyPresalePrice(product, launch.presale!);
+      presale ??= launch.presale!;
+    }
 
     const colour = product.colours.find((c) => c.id === variant.colourId);
     const img = colour?.images[0];
@@ -87,8 +99,12 @@ export function buildQuote(
       qty: useQty,
       image: img?.src,
       available: avail,
+      ...(isPre ? { preorder: true } : {}),
     });
   }
+
+  const mixedPresale = meta.some((m) => m.preorder) && meta.some((m) => !m.preorder);
+  if (mixedPresale) for (const m of meta) if (!m.preorder) issues.push({ sku: m.sku, issue: 'mixed_presale', available: m.available });
 
   const coupon = findCoupon(ctx.coupons, couponCode);
   const b = priceCart({ lines: inputs, settings: ctx.settings, couponCode, coupon, now });
@@ -111,5 +127,16 @@ export function buildQuote(
     freeShippingThreshold: b.freeShippingThreshold,
     freeShippingRemaining: b.freeShippingRemaining,
     shippingEta: ctx.settings.shipping.eta,
+    ...(presale
+      ? {
+          preorder: {
+            shipBy: presale.shipBy,
+            shipCopy: formatShipCopy(presale.shipCopy, presale.shipBy),
+            access: presale.access,
+            terms: presale.terms,
+          },
+        }
+      : {}),
+    ...(mixedPresale ? { mixedPresale: true } : {}),
   };
 }

@@ -28,6 +28,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         <h1 className="font-mono text-2xl">{o.number}</h1>
         <p className="text-sm">
           {ORDER_STATUS_LABELS[o.status]} · placed {o.createdAt.slice(0, 16).replace('T', ' ')}
+          {o.preorder && <strong className="ml-2">Pre-order{o.shipBy ? ` · ships by ${o.shipBy}` : ''}</strong>}
         </p>
       </header>
 

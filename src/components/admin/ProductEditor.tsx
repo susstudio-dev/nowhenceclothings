@@ -8,6 +8,7 @@ import { buildVariantGrid } from '@/lib/admin/variants';
 import { Button, Input, Select } from '@/components/ui';
 import { adminFetch, toPaise, toRupees } from './api-client';
 import { MediaListEditor } from './MediaUploader';
+import { AvailabilityEditor } from './AvailabilityEditor';
 
 type Draft = Omit<Product, 'createdAt' | 'updatedAt'> & { createdAt?: string; updatedAt?: string };
 
@@ -208,6 +209,13 @@ export function ProductEditor({
           onChange={(e) => set('seo', { ...p.seo, description: e.target.value || undefined })}
         />
       </section>
+
+      <AvailabilityEditor
+        value={{ availability: p.availability, comingSoon: p.comingSoon, presale: p.presale }}
+        colours={p.colours}
+        title={p.title}
+        onChange={(v) => setP((cur) => ({ ...cur, ...v }))}
+      />
 
       <section className="space-y-3">
         <h2 className="text-lg">Sizes</h2>

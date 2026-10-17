@@ -6,7 +6,9 @@ import { Markdown } from '@/components/shop/Markdown';
 import { ProductGrid } from '@/components/shop/ProductCard';
 import { ProductView } from '@/components/shop/ProductView';
 import { completeTheLook, dropFor, isSoldOut, stockMap, variantPrice } from '@/components/shop/merch';
-import { getCatalogue, getInventory, getProductBySlug, isReleased } from '@/lib/catalogue';
+import { getInventory, isReleased } from '@/lib/catalogue';
+import { isIndexable } from '@/lib/launches';
+import { getStorefrontCatalogue } from '@/lib/launches-server';
 import { getSettings } from '@/lib/content';
 import { formatPaise } from '@/lib/money';
 import { returnsLabel } from '@/lib/static-pages';
@@ -17,7 +19,8 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const p = await getProductBySlug(slug);
+  // A10: projected product only — hidden titles/images never reach metadata.
+  const p = (await getStorefrontCatalogue()).products.find((x) => x.slug === slug);
   if (!p) return {};
   const img = p.seo.ogImage ?? p.colours[0]?.images[0];
   const ogUrl = img?.src ?? (img && img.widths.length ? `/media/${img.id}/${img.widths[img.widths.length - 1]}.webp` : undefined);
@@ -25,15 +28,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: p.seo.title ?? p.title,
     description: p.seo.description ?? p.description.slice(0, 160),
     alternates: { canonical: `/products/${p.slug}` },
+    ...(isIndexable(p) ? {} : { robots: { index: false, follow: true } }),
     openGraph: { type: 'website', title: p.title, images: ogUrl ? [{ url: ogUrl, width: img!.width, height: img!.height, alt: img!.alt }] : undefined },
   };
 }
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const [catalogue, inventory, settings] = await Promise.all([getStorefrontCatalogue(), getInventory(), getSettings()]);
+  const product = catalogue.products.find((p) => p.slug === slug);
   if (!product) notFound();
-  const [catalogue, inventory, settings] = await Promise.all([getCatalogue(), getInventory(), getSettings()]);
+  const launch = product.launch;
 
   const drop = dropFor(product, catalogue.drops);
   const released = isReleased(product, catalogue.drops);
@@ -44,7 +49,8 @@ export default async function ProductPage({ params }: Props) {
   const site = 'https://nowhenceclothings.com';
 
   const jsonLd = [
-    {
+    // A10: no Product JSON-LD while coming soon.
+    isIndexable(product) && {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: product.title,
@@ -57,9 +63,9 @@ export default async function ProductPage({ params }: Props) {
         url: `${site}/products/${product.slug}`,
         priceCurrency: 'INR',
         price: (price.amount / 100).toFixed(2),
-        availability: !released
+        availability: launch.state === 'presale' || !released
           ? 'https://schema.org/PreOrder'
-          : isSoldOut(product, inventory)
+          : launch.state === 'sold_out' || isSoldOut(product, inventory)
             ? 'https://schema.org/OutOfStock'
             : 'https://schema.org/InStock',
       },
@@ -102,7 +108,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd.filter(Boolean)).replace(/</g, '\\u003c') }} />
       <nav aria-label="Breadcrumb" className="mb-6 text-xs text-muted">
         <ol className="flex flex-wrap gap-2">
           <li><Link href="/shop" className="hover:underline">Shop</Link> /</li>
@@ -115,12 +121,13 @@ export default async function ProductPage({ params }: Props) {
         product={product}
         stock={stockMap(product, inventory)}
         sizeChart={chart}
-        upcomingReleaseAt={!released && drop ? drop.releaseAt : undefined}
+        upcomingReleaseAt={!released && drop && launch.state === 'available' ? drop.releaseAt : undefined}
+        launch={launch}
         maxQty={settings.orders.maxQtyPerLine}
       />
 
       <div className="mt-12 grid gap-10 lg:grid-cols-[3fr_2fr] lg:gap-12">
-        <div>{product.description && <Markdown source={product.description} />}</div>
+        <div>{product.description && launch.state !== 'coming_soon' && <Markdown source={product.description} />}</div>
         <Accordion items={items} defaultOpen={['fit']} />
       </div>
 

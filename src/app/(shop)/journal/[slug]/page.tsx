@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ArticleView, articleMetadata, publishedArticles } from '@/components/shop/Editorial';
-import { getCatalogue, getInventory } from '@/lib/catalogue';
+import { getInventory } from '@/lib/catalogue';
+import { getShopCatalogue } from '@/lib/launches-server';
 import { getSiteContent } from '@/lib/content';
 
 export const dynamic = 'force-dynamic';
@@ -22,6 +23,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function JournalEntry({ params }: Props) {
   const article = await find((await params).slug);
   if (!article) notFound();
-  const [catalogue, inventory] = await Promise.all([getCatalogue(), getInventory()]);
+  const [catalogue, inventory] = await Promise.all([getShopCatalogue(), getInventory()]);
   return <ArticleView article={article} ctx={{ catalogue, inventory }} backHref="/journal" backLabel="Journal" />;
 }

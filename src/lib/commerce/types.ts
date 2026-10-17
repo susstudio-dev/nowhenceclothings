@@ -21,6 +21,8 @@ export const CheckoutRequest = QuoteRequest.extend({
   email: Email,
   phone: Phone,
   address: Address,
+  /** A11: access code for code-gated pre-orders (verified server-side). */
+  presaleAccessCode: z.string().trim().max(64).optional(),
 });
 export type CheckoutRequest = z.infer<typeof CheckoutRequest>;
 
@@ -35,7 +37,14 @@ export const TrackRequest = z.object({
   email: Email,
 });
 
-export type LineIssue = 'unknown' | 'unavailable' | 'not_released' | 'out_of_stock' | 'insufficient_stock';
+export type LineIssue =
+  | 'unknown'
+  | 'unavailable'
+  | 'not_released'
+  | 'out_of_stock'
+  | 'insufficient_stock'
+  /** A11: in-stock line in a bag that also holds pre-order pieces. */
+  | 'mixed_presale';
 
 export interface QuoteLine {
   sku: string;
@@ -51,6 +60,8 @@ export interface QuoteLine {
   image?: string;
   /** Units purchasable now. */
   available: number;
+  /** A11: pre-order line (ships later). */
+  preorder?: boolean;
 }
 
 export interface QuoteResponse {
@@ -65,6 +76,10 @@ export interface QuoteResponse {
   freeShippingThreshold: number;
   freeShippingRemaining: number;
   shippingEta: string;
+  /** A11: set when the bag holds pre-order pieces. */
+  preorder?: { shipBy?: string; shipCopy: string; access: 'public' | 'code' | 'waitlist'; terms: string };
+  /** A11: pre-order and in-stock pieces cannot be checked out together. */
+  mixedPresale?: boolean;
 }
 
 /** What /api/checkout returns so the browser can open Checkout.js. */

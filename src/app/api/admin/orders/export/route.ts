@@ -13,6 +13,7 @@ export async function GET(req: Request) {
     const list = filterOrders(await listOrderSummaries(), {
       status: st.success ? st.data : 'all',
       q: url.searchParams.get('q') ?? undefined,
+      kind: ((k) => (k === 'preorder' || k === 'instock' ? k : 'all'))(url.searchParams.get('kind')),
     });
     const csv = ordersToCsv(await loadOrders(list.map((o) => o.id)));
     await log('orders_export', 'orders-index/', `${list.length} orders`);

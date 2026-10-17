@@ -960,6 +960,531 @@
       "seo": {},
       "createdAt": "2026-10-17T00:00:00.000Z",
       "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-polo-navy-rain-emboss",
+      "slug": "polo-navy-rain-emboss",
+      "title": "Rain Emboss Polo",
+      "description": "A deep navy piqué with a tonal rain pattern pressed into the cloth. Felt before it is seen. Unisex, cut for every body.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 349900,
+      "colours": [
+        {
+          "id": "navy",
+          "name": "Navy",
+          "hex": "#1F2A3D",
+          "images": [
+            {
+              "id": "seed-69961b8ab6f5adc7",
+              "alt": "Rain Emboss Polo in Navy",
+              "width": 1121,
+              "height": 1401,
+              "widths": [
+                480,
+                800
+              ],
+              "formats": [
+                "webp"
+              ]
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-PRN-NAV-XS",
+          "colourId": "navy",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-PRN-NAV-S",
+          "colourId": "navy",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-PRN-NAV-M",
+          "colourId": "navy",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-PRN-NAV-L",
+          "colourId": "navy",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-PRN-NAV-XL",
+          "colourId": "navy",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-PRN-NAV-XXL",
+          "colourId": "navy",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "220 GSM cotton piqué, heat-embossed",
+      "care": "Cold wash inside out. Dry flat in shade. Do not iron on the detail.",
+      "fit": "Unisex regular fit. Size down for a closer fit.",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 100,
+      "seo": {},
+      "availability": "coming_soon",
+      "comingSoon": {
+        "revealTo": "available",
+        "teaser": "A deep navy piqué with a tonal rain pattern pressed into the cloth. Felt before it is seen.",
+        "blurred": [
+          {
+            "sourceId": "seed-69961b8ab6f5adc7",
+            "strength": 30,
+            "media": {
+              "id": "seed-fc4d2647592d38c9",
+              "alt": "Blurred preview",
+              "width": 800,
+              "height": 1000,
+              "widths": [
+                480,
+                800
+              ],
+              "formats": [
+                "webp"
+              ]
+            }
+          }
+        ]
+      },
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-polo-rust-wing-sleeve",
+      "slug": "polo-rust-wing-sleeve",
+      "title": "Wing Sleeve Polo",
+      "description": "Burnt rust, with a quiet detail on the sleeve you will notice on the second look. Unisex, cut for every body.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 349900,
+      "colours": [
+        {
+          "id": "rust",
+          "name": "Rust",
+          "hex": "#8A4A2F",
+          "images": [
+            {
+              "id": "seed-8c78da9a86843d1c",
+              "alt": "Wing Sleeve Polo in Rust",
+              "width": 819,
+              "height": 1024,
+              "widths": [
+                480,
+                800
+              ],
+              "formats": [
+                "webp"
+              ]
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-PWS-RUS-XS",
+          "colourId": "rust",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-PWS-RUS-S",
+          "colourId": "rust",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-PWS-RUS-M",
+          "colourId": "rust",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-PWS-RUS-L",
+          "colourId": "rust",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-PWS-RUS-XL",
+          "colourId": "rust",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-PWS-RUS-XXL",
+          "colourId": "rust",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "220 GSM cotton piqué",
+      "care": "Cold wash inside out. Dry flat in shade. Do not iron on the detail.",
+      "fit": "Unisex regular fit. Size down for a closer fit.",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 101,
+      "seo": {},
+      "availability": "coming_soon",
+      "comingSoon": {
+        "revealTo": "available",
+        "teaser": "Burnt rust, with a quiet detail on the sleeve you will notice on the second look.",
+        "blurred": [
+          {
+            "sourceId": "seed-8c78da9a86843d1c",
+            "strength": 30,
+            "media": {
+              "id": "seed-f04fd5e733848597",
+              "alt": "Blurred preview",
+              "width": 800,
+              "height": 1000,
+              "widths": [
+                480,
+                800
+              ],
+              "formats": [
+                "webp"
+              ]
+            }
+          }
+        ]
+      },
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-polo-cream-diamond-back",
+      "slug": "polo-cream-diamond-back",
+      "title": "Diamond Back Polo",
+      "description": "Cream knit, front kept clean. The story is on the back. Unisex, cut for every body.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 369900,
+      "colours": [
+        {
+          "id": "cream",
+          "name": "Cream",
+          "hex": "#E9E1CF",
+          "images": [
+            {
+              "id": "seed-f33c94ce056ce18b",
+              "alt": "Diamond Back Polo in Cream",
+              "width": 1280,
+              "height": 1600,
+              "widths": [
+                480,
+                800,
+                1200
+              ],
+              "formats": [
+                "webp"
+              ]
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-PDB-CRE-XS",
+          "colourId": "cream",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-PDB-CRE-S",
+          "colourId": "cream",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-PDB-CRE-M",
+          "colourId": "cream",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-PDB-CRE-L",
+          "colourId": "cream",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-PDB-CRE-XL",
+          "colourId": "cream",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-PDB-CRE-XXL",
+          "colourId": "cream",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "Cotton knit with jacquard back panel",
+      "care": "Cold wash inside out. Dry flat in shade. Do not iron on the detail.",
+      "fit": "Unisex regular fit. Size down for a closer fit.",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 102,
+      "seo": {},
+      "availability": "coming_soon",
+      "comingSoon": {
+        "revealTo": "available",
+        "teaser": "Cream knit, front kept clean. The story is on the back.",
+        "blurred": [
+          {
+            "sourceId": "seed-f33c94ce056ce18b",
+            "strength": 30,
+            "media": {
+              "id": "seed-36b217eebf15f081",
+              "alt": "Blurred preview",
+              "width": 800,
+              "height": 1000,
+              "widths": [
+                480,
+                800
+              ],
+              "formats": [
+                "webp"
+              ]
+            }
+          }
+        ]
+      },
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-polo-olive-pebble-hem",
+      "slug": "polo-olive-pebble-hem",
+      "title": "Pebble Hem Polo",
+      "description": "Olive, washed soft, finished at the hem with something small and deliberate. Unisex, cut for every body.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 349900,
+      "colours": [
+        {
+          "id": "olive",
+          "name": "Olive",
+          "hex": "#5B5E44",
+          "images": [
+            {
+              "id": "seed-a23828af18f1712c",
+              "alt": "Pebble Hem Polo in Olive",
+              "width": 1121,
+              "height": 1401,
+              "widths": [
+                480,
+                800
+              ],
+              "formats": [
+                "webp"
+              ]
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-PPH-OLI-XS",
+          "colourId": "olive",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-PPH-OLI-S",
+          "colourId": "olive",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-PPH-OLI-M",
+          "colourId": "olive",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-PPH-OLI-L",
+          "colourId": "olive",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-PPH-OLI-XL",
+          "colourId": "olive",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-PPH-OLI-XXL",
+          "colourId": "olive",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "220 GSM garment-washed cotton piqué",
+      "care": "Cold wash inside out. Dry flat in shade. Do not iron on the detail.",
+      "fit": "Unisex regular fit. Size down for a closer fit.",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 103,
+      "seo": {},
+      "availability": "coming_soon",
+      "comingSoon": {
+        "revealTo": "available",
+        "teaser": "Olive, washed soft, finished at the hem with something small and deliberate.",
+        "blurred": [
+          {
+            "sourceId": "seed-a23828af18f1712c",
+            "strength": 30,
+            "media": {
+              "id": "seed-0287c14925be2314",
+              "alt": "Blurred preview",
+              "width": 800,
+              "height": 1000,
+              "widths": [
+                480,
+                800
+              ],
+              "formats": [
+                "webp"
+              ]
+            }
+          }
+        ]
+      },
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "id": "prod-polo-black-ring-embroidered",
+      "slug": "polo-black-ring-embroidered",
+      "title": "Ring Embroidered Polo",
+      "description": "A heavyweight black polo with a tonal ring embroidered at the chest. Pre-order now; made in one small run and shipped together.",
+      "categoryId": "cat-tops",
+      "collectionIds": [
+        "col-core"
+      ],
+      "status": "active",
+      "price": 379900,
+      "colours": [
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#141412",
+          "images": [
+            {
+              "id": "seed-02771980b22260fb",
+              "alt": "Ring Embroidered Polo in Black",
+              "width": 1600,
+              "height": 2000,
+              "widths": [
+                480,
+                800,
+                1200,
+                1600
+              ],
+              "formats": [
+                "webp"
+              ]
+            }
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "variants": [
+        {
+          "sku": "NWH-PRE-BLA-XS",
+          "colourId": "black",
+          "size": "XS"
+        },
+        {
+          "sku": "NWH-PRE-BLA-S",
+          "colourId": "black",
+          "size": "S"
+        },
+        {
+          "sku": "NWH-PRE-BLA-M",
+          "colourId": "black",
+          "size": "M"
+        },
+        {
+          "sku": "NWH-PRE-BLA-L",
+          "colourId": "black",
+          "size": "L"
+        },
+        {
+          "sku": "NWH-PRE-BLA-XL",
+          "colourId": "black",
+          "size": "XL"
+        },
+        {
+          "sku": "NWH-PRE-BLA-XXL",
+          "colourId": "black",
+          "size": "XXL"
+        }
+      ],
+      "fabric": "240 GSM mercerised cotton piqué, tonal embroidery",
+      "care": "Cold wash inside out. Dry flat in shade. Do not iron on the detail.",
+      "fit": "Unisex regular fit. Size down for a closer fit.",
+      "sizeChartId": "chart-tops",
+      "relatedIds": [],
+      "sortOrder": 104,
+      "seo": {},
+      "availability": "presale",
+      "presale": {
+        "enabled": true,
+        "startsAt": "2026-10-17T00:00:00.000Z",
+        "endsAt": "2026-11-30T18:29:00.000Z",
+        "price": 329900,
+        "cap": 60,
+        "perCustomerLimit": 2,
+        "shipBy": "2026-12-15",
+        "access": "public"
+      },
+      "createdAt": "2026-10-17T00:00:00.000Z",
+      "updatedAt": "2026-10-17T00:00:00.000Z"
     }
   ],
   "categories": [

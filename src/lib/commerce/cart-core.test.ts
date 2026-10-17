@@ -24,3 +24,14 @@ describe('cart reducers', () => {
     expect(setCoupon(setCoupon(s, 'X'), '').couponCode).toBeUndefined();
   });
 });
+
+describe('wouldMixPresale (A11)', () => {
+  it('blocks adding in-stock to a pre-order bag and vice versa', async () => {
+    const { wouldMixPresale } = await import('./cart-core');
+    const preBag = { lines: [{ sku: 'P', qty: 1, preorder: true }] };
+    expect(wouldMixPresale(preBag, { sku: 'S' })).toBe(true);
+    expect(wouldMixPresale(preBag, { sku: 'P2', preorder: true })).toBe(false);
+    expect(wouldMixPresale({ lines: [{ sku: 'S', qty: 1 }] }, { sku: 'P', preorder: true })).toBe(true);
+    expect(wouldMixPresale({ lines: [] }, { sku: 'P', preorder: true })).toBe(false);
+  });
+});

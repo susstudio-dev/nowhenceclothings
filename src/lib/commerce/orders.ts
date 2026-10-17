@@ -3,6 +3,7 @@
 // oversell refund, emails, customer lookup.
 
 import 'server-only';
+import { inventoryLines } from './order-lines';
 import { z } from 'zod';
 import { getSettings } from '@/lib/content';
 import { createJson, readJson, writeJsonCas } from '@/lib/storage';
@@ -194,7 +195,7 @@ export async function confirmPayment(p: {
 
   try {
     await commitStock(
-      paid.lines.map((l) => ({ sku: l.sku, qty: l.qty })),
+      inventoryLines(paid),
       p.stockKey,
     );
   } catch (err) {

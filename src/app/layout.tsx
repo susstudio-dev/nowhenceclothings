@@ -5,6 +5,8 @@ import { fontVariables } from '@/components/chrome/fonts';
 import { getSettings } from '@/lib/content';
 import { brandCssText } from '@/lib/brand';
 import { SettingsDoc } from '@/lib/schemas/settings';
+import { DEFAULT_ICON } from '@/lib/brand-defaults';
+import { DEFAULT_DESCRIPTION } from '@/lib/seo';
 
 // Brand (A9) is read at request time: colours + fonts become CSS variables and
 // the favicon comes from /icon.png (settings-driven), so no rebuild is needed.
@@ -23,8 +25,17 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL('https://nowhenceclothings.com'),
     title: { default: name, template: `%s · ${name}` },
-    description: 'Premium unisex clothing.',
-    icons: { icon: '/icon.png', apple: '/icon.png' },
+    description: DEFAULT_DESCRIPTION,
+    // Owner upload (Settings -> Brand) wins; otherwise the bundled symbol (A12).
+    icons: s.brand.favicon
+      ? { icon: '/icon.png', apple: '/icon.png' }
+      : {
+          icon: [
+            { url: DEFAULT_ICON.png32, sizes: '32x32', type: 'image/png' },
+            { url: DEFAULT_ICON.png192, sizes: '192x192', type: 'image/png' },
+          ],
+          apple: { url: DEFAULT_ICON.apple, sizes: '180x180' },
+        },
   };
 }
 

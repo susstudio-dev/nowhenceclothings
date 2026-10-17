@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Id, IsoDate, MediaRef, Paise, Seo, Size, Slug } from './common';
+import { Availability, ComingSoonConfig, PresaleConfig } from './launches';
 
 export const CATALOGUE_KEY = 'catalogue.json';
 
@@ -49,6 +50,10 @@ export const Product = z.object({
   /** Lower sorts first within merchandising lists. */
   sortOrder: z.number().int().default(0),
   seo: Seo,
+  /** A10/A11. Absent on older docs = 'available'. */
+  availability: Availability.optional(),
+  comingSoon: ComingSoonConfig.optional(),
+  presale: PresaleConfig.optional(),
   createdAt: IsoDate,
   updatedAt: IsoDate,
 });
@@ -84,6 +89,8 @@ export const Drop = z.object({
   heroMedia: MediaRef.optional(),
   description: z.string().default(''),
   seo: Seo,
+  /** A11 drop-level presale; products in the drop inherit it unless they enable their own. */
+  presale: PresaleConfig.optional(),
 });
 export type Drop = z.infer<typeof Drop>;
 

@@ -2,10 +2,14 @@ import Link from 'next/link';
 import { Image, Price } from '@/components/ui';
 import type { Drop, Product } from '@/lib/schemas/catalogue';
 import type { InventoryDoc } from '@/lib/schemas/inventory';
+import type { LaunchView } from '@/lib/launches';
 import { dropFor, isSoldOut, minPrice, variantPrice } from './merch';
 
+/** Products reaching the storefront are projected (A10) and carry `launch`. */
+type CardProduct = Product & { launch?: LaunchView };
+
 export interface ProductCardProps {
-  product: Product;
+  product: CardProduct;
   inventory: InventoryDoc;
   drops: Drop[];
   now?: Date;
@@ -16,11 +20,22 @@ export interface ProductCardProps {
 export function ProductCard({ product, inventory, drops, now = new Date(), priority }: ProductCardProps) {
   const [first, second] = product.colours[0]?.images ?? [];
   const drop = dropFor(product, drops);
-  const upcoming = drop && new Date(drop.releaseAt).getTime() > now.getTime();
-  const soldOut = !upcoming && isSoldOut(product, inventory);
+  const launch = product.launch;
+  const state = launch?.state ?? 'available';
+  const upcoming = state === 'coming_soon' || (state === 'available' && drop && new Date(drop.releaseAt).getTime() > now.getTime());
+  const soldOut = state === 'sold_out' || (state === 'available' && !upcoming && isSoldOut(product, inventory));
   const base = variantPrice(product);
   const from = minPrice(product);
-  const badge = upcoming ? 'Coming soon' : soldOut ? 'Sold out' : base.compareAt ? 'Sale' : null;
+  const badge =
+    state === 'coming_soon' || state === 'presale'
+      ? launch?.badge ?? (state === 'presale' ? 'Pre-order' : 'Coming soon')
+      : upcoming
+        ? 'Coming soon'
+        : soldOut
+          ? 'Sold out'
+          : base.compareAt
+            ? 'Sale'
+            : null;
 
   return (
     <article className="group relative">
@@ -35,7 +50,7 @@ export function ProductCard({ product, inventory, drops, now = new Date(), prior
               className={'h-full w-full object-cover' + (soldOut ? ' opacity-60' : '')}
             />
           )}
-          {second && (
+          {second && state !== 'coming_soon' && (
             <div aria-hidden className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 motion-reduce:transition-none">
               <Image media={second} alt="" sizes="(min-width: 1024px) 25vw, 50vw" className="h-full w-full object-cover" />
             </div>
@@ -46,7 +61,7 @@ export function ProductCard({ product, inventory, drops, now = new Date(), prior
         </div>
         <div className="mt-3 flex items-start justify-between gap-3 text-sm">
           <h3>{product.title}</h3>
-          <Price amount={from} compareAt={from === product.price ? base.compareAt : undefined} size="sm" />
+          {!launch?.priceHidden && <Price amount={from} compareAt={from === product.price ? base.compareAt : undefined} size="sm" />}
         </div>
       </Link>
       {product.colours.length > 1 && (
@@ -68,7 +83,7 @@ export function ProductGrid({
   drops,
   empty = 'Nothing here yet.',
 }: {
-  products: Product[];
+  products: CardProduct[];
   inventory: InventoryDoc;
   drops: Drop[];
   empty?: string;

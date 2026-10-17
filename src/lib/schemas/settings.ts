@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Email, MediaRef, Paise } from './common';
+import { LaunchDefaults } from './launches';
 
 export const SETTINGS_KEY = 'settings.json';
 
@@ -17,13 +18,15 @@ export const BRAND_FONTS = [
   'inter',
   'dm-sans',
   'manrope',
+  'jost',
 ] as const;
 export const BrandFont = z.enum(BRAND_FONTS);
 export type BrandFont = z.infer<typeof BrandFont>;
 
 const HexColour = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a 6-digit hex colour like #161513');
 
-export const DEFAULT_BRAND_COLOURS = { ink: '#161513', paper: '#f8f6f1', accent: '#605440' } as const;
+/** Monochrome defaults (A12) so the earthy product colours carry. */
+export const DEFAULT_BRAND_COLOURS = { ink: '#0b0b0b', paper: '#f4f4f2', accent: '#6b6b67' } as const;
 
 export const DEFAULT_RETURNS_POLICY = `## Conditions
 
@@ -43,7 +46,7 @@ const Brand = z
     logoDark: MediaRef.optional(),
     favicon: MediaRef.optional(),
     wordmark: z.string().trim().max(40).default('NOWHENCE'),
-    displayFont: BrandFont.default('cormorant-garamond'),
+    displayFont: BrandFont.default('jost'),
     bodyFont: BrandFont.default('inter-tight'),
     colours: z
       .object({
@@ -134,6 +137,8 @@ const SettingsShape = z.object({
   brand: Brand,
   returns: Returns,
   legal: Legal,
+  /** A10/A11 global defaults (Settings -> Launches). */
+  launches: LaunchDefaults,
 });
 
 type Raw = Record<string, unknown>;

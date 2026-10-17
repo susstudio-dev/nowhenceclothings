@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Image } from '@/components/ui';
 import { ListingPage } from '@/components/shop/ListingPage';
-import { getActiveProducts, getCatalogue, getInventory } from '@/lib/catalogue';
+import { getCatalogue, getInventory } from '@/lib/catalogue';
+import { getStorefrontProducts } from '@/lib/launches-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +25,7 @@ export default async function CollectionPage({ params, searchParams }: Props) {
     params,
     searchParams,
     getCatalogue(),
-    getActiveProducts(),
+    getStorefrontProducts('shop'),
     getInventory(),
   ]);
   const col = catalogue.collections.find((c) => c.slug === slug);

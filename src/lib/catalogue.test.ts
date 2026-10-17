@@ -6,8 +6,8 @@ import { formatPaise, assertPaise, rupeesToPaise } from './money';
 // Reads the committed seed in data/ via the dev filesystem backend.
 describe('catalogue (seed)', () => {
   it('loads the catalogue and active products', async () => {
-    expect((await getCatalogue()).products.length).toBe(8);
-    expect((await getActiveProducts()).length).toBe(8);
+    expect((await getCatalogue()).products.length).toBe(13); // 8 core + 5 launch polos (WS-G)
+    expect((await getActiveProducts()).length).toBe(13);
   });
 
   it('finds products by slug and hides unknown ones', async () => {

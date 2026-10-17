@@ -93,12 +93,13 @@
         "heading": "Clothes from nowhere in particular.",
         "subheading": "Unisex essentials, made slowly.",
         "media": {
-          "id": "home-hero",
-          "alt": "Campaign",
-          "width": 1600,
-          "height": 2000,
-          "widths": [],
-          "src": "https://placehold.co/1600x2000/EDEAE4/141412?text=Campaign"
+          "id": "brand-default-hero",
+          "alt": "Black Nowhence polo, close detail of tonal ring embroidery across the shoulder",
+          "width": 1440,
+          "height": 2560,
+          "widths": [640, 960, 1440],
+          "formats": ["avif", "webp"],
+          "src": "/brand-default/hero-polo-black-1440.webp"
         },
         "cta": {
           "label": "Shop the core",

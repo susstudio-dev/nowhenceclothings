@@ -24,8 +24,8 @@ describe('seed data validates', () => {
   const cat = CatalogueDoc.parse(seed('catalogue.json'));
   const inv = InventoryDoc.parse(seed('inventory.json'));
 
-  it('catalogue: 8 active products, 2 categories, 1 collection, 1 drop', () => {
-    expect(cat.products).toHaveLength(8);
+  it('catalogue: 13 active products (8 core + 5 launch polos), 2 categories, 1 collection, 1 drop', () => {
+    expect(cat.products).toHaveLength(13);
     expect(cat.products.every((p) => p.status === 'active')).toBe(true);
     expect(cat.categories).toHaveLength(2);
     expect(cat.collections).toHaveLength(1);

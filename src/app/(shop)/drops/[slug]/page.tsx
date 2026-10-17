@@ -5,7 +5,8 @@ import { Countdown } from '@/components/shop/Countdown';
 import { Markdown } from '@/components/shop/Markdown';
 import { NotifyMe } from '@/components/shop/NotifyMe';
 import { ProductGrid } from '@/components/shop/ProductCard';
-import { getActiveProducts, getCatalogue, getInventory } from '@/lib/catalogue';
+import { getCatalogue, getInventory } from '@/lib/catalogue';
+import { getStorefrontProducts } from '@/lib/launches-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /** Drop page (S4): countdown + notify before release; shoppable grid after. */
 export default async function DropPage({ params }: Props) {
   const { slug } = await params;
-  const [catalogue, products, inventory] = await Promise.all([getCatalogue(), getActiveProducts(), getInventory()]);
+  const [catalogue, products, inventory] = await Promise.all([getCatalogue(), getStorefrontProducts('shop'), getInventory()]);
   const drop = catalogue.drops.find((d) => d.slug === slug);
   if (!drop) notFound();
   const items = products.filter((p) => p.dropId === drop.id);

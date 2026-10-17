@@ -106,6 +106,10 @@ export const Order = z.object({
   emailsSent: z.array(z.enum(['confirmation', 'shipped', 'refunded'])).default([]),
   history: z.array(OrderHistoryEntry).min(1),
   notes: z.string().default(''),
+  /** A11: presale order (paid in full now, ships later). */
+  preorder: z.boolean().optional(),
+  /** A11: estimated ship-by date (YYYY-MM-DD) for pre-orders. */
+  shipBy: z.string().optional(),
   createdAt: IsoDate,
   updatedAt: IsoDate,
 });
@@ -119,6 +123,8 @@ export const OrderSummary = z.object({
   total: Paise,
   status: OrderStatus,
   itemCount: z.number().int().nonnegative(),
+  preorder: z.boolean().optional(),
+  shipBy: z.string().optional(),
   createdAt: IsoDate,
   updatedAt: IsoDate,
 });
@@ -136,6 +142,7 @@ export function summarize(o: Order): OrderSummary {
     total: o.total,
     status: o.status,
     itemCount: o.lines.reduce((n, l) => n + l.qty, 0),
+    ...(o.preorder ? { preorder: true, ...(o.shipBy ? { shipBy: o.shipBy } : {}) } : {}),
     createdAt: o.createdAt,
     updatedAt: o.updatedAt,
   };

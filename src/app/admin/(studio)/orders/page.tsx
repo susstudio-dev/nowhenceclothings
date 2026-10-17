@@ -8,13 +8,14 @@ import { expireStaleOrders, needsStockCommit, STOCK_HOLDING_STATUSES } from '@/l
 
 export const metadata = { title: 'Orders' };
 
-export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; kind?: string }> }) {
   await requireCapability('orders.read');
   const sp = await searchParams;
   const st = OrderStatus.safeParse(sp.status);
   const status = st.success ? st.data : 'all';
   await expireStaleOrders(); // F6 lazy sweep
-  const list = filterOrders(await listOrderSummaries(), { status, q: sp.q });
+  const kind = sp.kind === 'preorder' || sp.kind === 'instock' ? sp.kind : 'all';
+  const list = filterOrders(await listOrderSummaries(), { status, q: sp.q, kind });
   // F8: paid-or-later orders whose stock decrement never completed. Summaries
   // lack stockCommittedAt, so load recent stock-holding orders in full.
   const recent = Date.now() - 45 * 24 * 3600_000;
@@ -26,7 +27,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       .filter((o): o is NonNullable<typeof o> => o != null && needsStockCommit(o))
       .map((o) => o.id),
   );
-  const qs = new URLSearchParams({ ...(st.success ? { status: st.data } : {}), ...(sp.q ? { q: sp.q } : {}) }).toString();
+  const qs = new URLSearchParams({ ...(st.success ? { status: st.data } : {}), ...(sp.q ? { q: sp.q } : {}), ...(kind !== 'all' ? { kind } : {}) }).toString();
 
   return (
     <div className="space-y-6">
@@ -46,6 +47,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                 {ORDER_STATUS_LABELS[s]}
               </option>
             ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1">
+          Type
+          <select name="kind" defaultValue={kind} className="border border-line px-2 py-2">
+            <option value="all">All orders</option>
+            <option value="preorder">Pre-orders</option>
+            <option value="instock">In-stock orders</option>
           </select>
         </label>
         <label className="flex flex-col gap-1">
@@ -93,6 +102,9 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                 <td>{formatPaise(o.total)}</td>
                 <td>
                   {ORDER_STATUS_LABELS[o.status]}
+                  {o.preorder && (
+                    <span className="block text-xs">Pre-order{o.shipBy ? ` · ships by ${o.shipBy}` : ''}</span>
+                  )}
                   {unstocked.has(o.id) && <span className="block text-xs text-sale">Stock not deducted</span>}
                 </td>
               </tr>

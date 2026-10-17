@@ -9,5 +9,6 @@ export * from './Image';
 export { cn } from './cn';
 export * from './Spinner';
 export * from './Wordmark';
+export * from './Logo';
 export * from './icons';
 export { useFocusTrap, useScrollLock } from './use-overlay';

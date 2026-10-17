@@ -10,3 +10,4 @@ export * from './site-content';
 export * from './logs';
 export * from './users';
 export * from './media';
+export * from './launches';

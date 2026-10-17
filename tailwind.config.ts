@@ -18,7 +18,7 @@ const config: Config = {
         success: 'rgb(var(--c-success) / <alpha-value>)',
       },
       fontFamily: {
-        display: ['var(--font-display)', 'Georgia', 'serif'],
+        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
       },
       // Strict type scale (1.25 ratio, 16px base). [size, { lineHeight, letterSpacing }]
@@ -31,8 +31,8 @@ const config: Config = {
         h4: ['1.5625rem', { lineHeight: '2rem', letterSpacing: '-0.01em' }],
         h3: ['1.9375rem', { lineHeight: '2.375rem', letterSpacing: '-0.015em' }],
         h2: ['2.4375rem', { lineHeight: '2.75rem', letterSpacing: '-0.02em' }],
-        h1: ['3.0625rem', { lineHeight: '3.25rem', letterSpacing: '-0.025em' }],
-        hero: ['clamp(3rem, 8vw, 6.5rem)', { lineHeight: '0.95', letterSpacing: '-0.03em' }],
+        h1: ['3.0625rem', { lineHeight: '3.375rem', letterSpacing: '-0.02em' }],
+        hero: ['clamp(2.75rem, 7vw, 5.75rem)', { lineHeight: '1', letterSpacing: '-0.02em' }],
       },
       spacing: {
         gutter: 'var(--gutter)',

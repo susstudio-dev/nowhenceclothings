@@ -52,4 +52,5 @@ export const ISSUE_TEXT: Record<string, string> = {
   not_released: 'This drop has not been released yet.',
   out_of_stock: 'Sold out.',
   insufficient_stock: 'Only a few left — quantity reduced.',
+  mixed_presale: 'In stock — check this out separately from your pre-order.',
 };

@@ -1,1 +1,215 @@
-{ "items": [] }
+{
+  "items": [
+    {
+      "id": "seed-polo-navy-rain-emboss-blur",
+      "alt": "Blurred preview",
+      "width": 800,
+      "height": 1000,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "navy-rain-emboss-blurred.webp",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-polo-rust-wing-sleeve-blur",
+      "alt": "Blurred preview",
+      "width": 800,
+      "height": 1000,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "rust-wing-sleeve-blurred.webp",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-polo-cream-diamond-back-blur",
+      "alt": "Blurred preview",
+      "width": 800,
+      "height": 1000,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "cream-diamond-back-blurred.webp",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-polo-olive-pebble-hem-blur",
+      "alt": "Blurred preview",
+      "width": 800,
+      "height": 1000,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "olive-pebble-hem-blurred.webp",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-69961b8ab6f5adc7",
+      "alt": "Rain Emboss Polo in Navy",
+      "width": 1121,
+      "height": 1401,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "polo-navy-rain-emboss.jpg",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-fc4d2647592d38c9",
+      "alt": "Blurred preview",
+      "width": 800,
+      "height": 1000,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "seed-polo-navy-rain-emboss-blurred.webp",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-8c78da9a86843d1c",
+      "alt": "Wing Sleeve Polo in Rust",
+      "width": 819,
+      "height": 1024,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "polo-rust-wing-sleeve.jpg",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-f04fd5e733848597",
+      "alt": "Blurred preview",
+      "width": 800,
+      "height": 1000,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "seed-polo-rust-wing-sleeve-blurred.webp",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-f33c94ce056ce18b",
+      "alt": "Diamond Back Polo in Cream",
+      "width": 1280,
+      "height": 1600,
+      "widths": [
+        480,
+        800,
+        1200
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "polo-cream-diamond-back.jpg",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-36b217eebf15f081",
+      "alt": "Blurred preview",
+      "width": 800,
+      "height": 1000,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "seed-polo-cream-diamond-back-blurred.webp",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-a23828af18f1712c",
+      "alt": "Pebble Hem Polo in Olive",
+      "width": 1121,
+      "height": 1401,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "polo-olive-pebble-hem.png",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-0287c14925be2314",
+      "alt": "Blurred preview",
+      "width": 800,
+      "height": 1000,
+      "widths": [
+        480,
+        800
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "seed-polo-olive-pebble-hem-blurred.webp",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    },
+    {
+      "id": "seed-02771980b22260fb",
+      "alt": "Ring Embroidered Polo in Black",
+      "width": 1600,
+      "height": 2000,
+      "widths": [
+        480,
+        800,
+        1200,
+        1600
+      ],
+      "formats": [
+        "webp"
+      ],
+      "name": "polo-black-embroidered-detail.jpg",
+      "uploadedAt": "2026-10-17T00:00:00.000Z",
+      "uploadedBy": "seed"
+    }
+  ]
+}

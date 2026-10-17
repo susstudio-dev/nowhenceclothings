@@ -11,6 +11,7 @@ export const BRAND_FONT_LABELS: Record<BrandFont, { label: string; kind: 'serif'
   inter: { label: 'Inter', kind: 'sans' },
   'dm-sans': { label: 'DM Sans', kind: 'sans' },
   manrope: { label: 'Manrope', kind: 'sans' },
+  jost: { label: 'Jost', kind: 'sans' },
 };
 export { BRAND_FONTS };
 
@@ -122,7 +123,7 @@ export function emailFromHeader(email: SettingsDoc['email']): string {
   return `${name} <${addr}>`;
 }
 
-export type SettingsTab = 'brand' | 'shipping' | 'returns' | 'legal' | 'email';
+export type SettingsTab = 'brand' | 'shipping' | 'returns' | 'legal' | 'email' | 'launches';
 export interface ReadinessItem {
   id: string;
   label: string;

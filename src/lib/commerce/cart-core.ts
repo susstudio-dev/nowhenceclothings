@@ -14,6 +14,8 @@ export interface CartLine {
   unitPrice?: number;
   compareAtPrice?: number;
   image?: string;
+  /** A11: pre-order line. Pre-orders cannot share a bag with in-stock pieces. */
+  preorder?: boolean;
 }
 
 export interface CartState {
@@ -48,4 +50,9 @@ export function removeLineFrom(s: CartState, sku: string): CartState {
 export function setCoupon(s: CartState, code: string | undefined): CartState {
   const c = code?.trim().toUpperCase();
   return c ? { ...s, couponCode: c } : { lines: s.lines };
+}
+
+/** A11: true when adding `line` would mix pre-order and in-stock pieces. Pure. */
+export function wouldMixPresale(s: CartState, line: Pick<CartLine, 'sku' | 'preorder'>): boolean {
+  return s.lines.some((l) => l.sku !== line.sku && !!l.preorder !== !!line.preorder);
 }

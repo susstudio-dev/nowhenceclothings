@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 const CACHE = 'public, max-age=300, s-maxage=3600';
 
-export async function GET() {
+export async function GET(req: Request) {
   const s = await getSettings();
   const fav = s.brand.favicon;
   if (fav?.src) return Response.redirect(new URL(fav.src, 'https://nowhenceclothings.com'), 302);
@@ -24,6 +24,8 @@ export async function GET() {
       });
     }
   }
+  // A12: no upload yet -> the owner's bundled symbol.
+  if (!fav) return Response.redirect(new URL('/brand-default/icon-512.png', req.url), 302);
   const letter = (s.brand.wordmark || s.store.name || 'N').trim().charAt(0).toUpperCase() || 'N';
   const res = new ImageResponse(
     (

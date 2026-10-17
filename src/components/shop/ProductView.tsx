@@ -4,7 +4,9 @@ import { Button, Dialog, Image, Price } from '@/components/ui';
 import type { Product, SizeChart } from '@/lib/schemas/catalogue';
 import type { MediaRef } from '@/lib/schemas/common';
 // Commerce workstream (WS-C) owns the cart store.
-import { addToCart } from '@/lib/commerce/cart-client';
+import { addToCart, MixedCartError } from '@/lib/commerce/cart-client';
+import type { LaunchView } from '@/lib/launches';
+import { PresaleAccessGate, presaleCodeKey } from './PresaleAccessGate';
 import { Countdown } from './Countdown';
 import { NotifyMe } from './NotifyMe';
 import { SizeGuide } from './SizeGuide';
@@ -18,12 +20,26 @@ export interface ProductViewProps {
   /** ISO release time when the product is in a drop that has not released yet. */
   upcomingReleaseAt?: string;
   maxQty?: number;
+  /** A10/A11 launch state (from the public projection). */
+  launch?: LaunchView;
 }
 
 const LOW_STOCK = 3;
 
 /** Product page interactive area (S3, S4): gallery, colour swatches, size selector, add to bag. */
-export function ProductView({ product, stock, sizeChart, upcomingReleaseAt }: ProductViewProps) {
+export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, launch }: ProductViewProps) {
+  const soon = launch?.state === 'coming_soon';
+  const pre = launch?.state === 'presale' ? launch.presale : undefined;
+  const [unlocked, setUnlocked] = useState(false);
+  const [mixMsg, setMixMsg] = useState('');
+  useEffect(() => {
+    if (pre?.access !== 'code') return;
+    try {
+      if (sessionStorage.getItem(presaleCodeKey(product.id))) setUnlocked(true);
+    } catch {
+      /* storage blocked */
+    }
+  }, [pre?.access, product.id]);
   const [colourId, setColourId] = useState(product.colours[0].id);
   const [size, setSize] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'added' | 'error'>('idle');
@@ -35,7 +51,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt }: Pr
     [product.variants, colour.id],
   );
   const variant = size ? variantsBySize.get(size as Product['sizes'][number]) : undefined;
-  const units = variant ? stock[variant.sku] ?? 0 : 0;
+  const units = variant ? (pre ? 10 : stock[variant.sku] ?? 0) : 0;
   const price = variantPrice(product, variant);
   const upcoming = !!upcomingReleaseAt;
 
@@ -57,9 +73,15 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt }: Pr
         unitPrice: price.amount,
         compareAtPrice: price.compareAt,
         image: img ? img.src ?? (img.widths.length ? `/media/${img.id}/${img.widths[0]}.webp` : undefined) : undefined,
+        ...(pre ? { preorder: true } : {}),
       });
+      setMixMsg('');
       setStatus('added');
-    } catch {
+    } catch (e) {
+      if (e instanceof MixedCartError) {
+        setMixMsg(e.message);
+        return;
+      }
       setStatus('error');
     }
   }
@@ -70,8 +92,17 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt }: Pr
 
       <div className="lg:sticky lg:top-24 lg:self-start">
         <h1 className="font-display text-3xl">{product.title}</h1>
-        <Price amount={price.amount} compareAt={price.compareAt} size="lg" className="mt-2" />
-        <p className="mt-1 text-xs text-muted">Inclusive of all taxes</p>
+        {launch?.badge && launch.state !== 'available' && (
+          <p className="mt-2 inline-block border border-ink px-2 py-1 text-[11px] uppercase tracking-widest">{launch.badge}</p>
+        )}
+        {!launch?.priceHidden && (
+          <>
+            <Price amount={price.amount} compareAt={price.compareAt} size="lg" className="mt-2" />
+            <p className="mt-1 text-xs text-muted">Inclusive of all taxes</p>
+          </>
+        )}
+        {soon && launch?.teaser && <p className="mt-4 text-sm">{launch.teaser}</p>}
+        {pre && <p className="mt-3 text-sm">{pre.shipCopy}</p>}
 
         <fieldset className="mt-8">
           <legend className="text-xs uppercase tracking-widest">
@@ -103,6 +134,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt }: Pr
           </div>
         </fieldset>
 
+        {!soon && (
         <fieldset className="mt-6" aria-describedby={sizeError ? 'size-error' : undefined}>
           <div className="flex items-center justify-between">
             <legend className="text-xs uppercase tracking-widest">Size</legend>
@@ -149,9 +181,40 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt }: Pr
             ) : null}
           </p>
         </fieldset>
+        )}
 
         <div className="mt-4 space-y-3">
-          {upcoming ? (
+          {soon ? (
+            <>
+              {launch?.nextChangeAt && <Countdown releaseAt={launch.nextChangeAt} />}
+              {launch?.notify && (
+                <>
+                  <p className="text-sm">Get an email the moment this is ready.</p>
+                  <NotifyMe productId={product.id} label="Notify me" />
+                </>
+              )}
+            </>
+          ) : pre ? (
+            <>
+              {pre.access === 'code' && !unlocked ? (
+                <PresaleAccessGate productId={product.id} onUnlocked={() => setUnlocked(true)} />
+              ) : (
+                <Button fullWidth size="lg" onClick={add}>
+                  {pre.ctaLabel}
+                </Button>
+              )}
+              {pre.access === 'waitlist' && (
+                <>
+                  <p className="text-sm">Open to the waitlist only. Check out with the email you signed up with, or join below.</p>
+                  <NotifyMe productId={product.id} label="Join the waitlist" />
+                </>
+              )}
+              {launch?.nextChangeAt && <Countdown releaseAt={launch.nextChangeAt} />}
+              <p className="text-xs text-muted">
+                Limit {pre.perCustomerLimit} per customer. {pre.terms}
+              </p>
+            </>
+          ) : upcoming ? (
             <>
               <Countdown releaseAt={upcomingReleaseAt!} />
               <p className="text-sm">Get an email the moment this drops.</p>
@@ -170,7 +233,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt }: Pr
             </Button>
           )}
           <p role="status" className="text-sm">
-            {status === 'added' ? 'Added to your bag.' : status === 'error' ? 'Could not add to bag. Try again.' : ''}
+            {mixMsg || (status === 'added' ? 'Added to your bag.' : status === 'error' ? 'Could not add to bag. Try again.' : '')}
           </p>
         </div>
       </div>

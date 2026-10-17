@@ -21,3 +21,10 @@ describe('Image srcset formats (QA F5)', () => {
     expect(mediaSrcSet(MediaRef.parse({ ...base, src: '/x.jpg' }), 'webp')).toBeUndefined();
   });
 });
+
+describe('bundled brand-default media (A12)', () => {
+  it('builds srcsets from /brand-default/{base}-{w}.{fmt}', () => {
+    const m = { id: 'x', alt: '', width: 1440, height: 2560, widths: [640, 1440], formats: ['avif', 'webp'] as ('avif' | 'webp')[], src: '/brand-default/hero-a-1440.webp' };
+    expect(mediaSrcSet(m, 'avif')).toBe('/brand-default/hero-a-640.avif 640w, /brand-default/hero-a-1440.avif 1440w');
+  });
+});

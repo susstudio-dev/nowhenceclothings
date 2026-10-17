@@ -3,12 +3,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Button, Input, Select } from '@/components/ui';
 import { clearCart, useCart } from '@/lib/commerce/cart-client';
 import type { CheckoutResponse } from '@/lib/commerce/types';
 import { useQuote } from '@/lib/commerce/use-quote';
 import { CartLines, CartTotals, CouponForm } from './cart-lines';
+import { MIXED_CART_MESSAGE } from '@/lib/launches';
+import { storedPresaleCode } from './PresaleAccessGate';
 
 export const LAST_ORDER_KEY = 'nowhence.lastOrder';
 
@@ -67,6 +69,11 @@ export function CheckoutForm() {
   const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({});
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [accessCode, setAccessCode] = useState('');
+  useEffect(() => {
+    const saved = storedPresaleCode();
+    if (saved) setAccessCode(saved);
+  }, []);
 
   const set = (k: keyof Fields) => (e: { target: { value: string } }) => setF((p) => ({ ...p, [k]: e.target.value }));
 
@@ -96,6 +103,7 @@ export function CheckoutForm() {
         body: JSON.stringify({
           lines: cart.lines.map((l) => ({ sku: l.sku, qty: l.qty })),
           couponCode: cart.couponCode,
+          ...(quote?.preorder?.access === 'code' && accessCode.trim() ? { presaleAccessCode: accessCode.trim() } : {}),
           email: f.email.trim(),
           phone,
           address: {
@@ -197,9 +205,26 @@ export function CheckoutForm() {
         <fieldset className="space-y-2">
           <legend className="mb-2 text-lg font-medium">Shipping</legend>
           <p className="text-sm">
-            Standard shipping{quote?.shippingEta ? ` · ${quote.shippingEta}` : ''}
+            {quote?.preorder ? quote.preorder.shipCopy : <>Standard shipping{quote?.shippingEta ? ` · ${quote.shippingEta}` : ''}</>}
           </p>
         </fieldset>
+        {quote?.preorder && (
+          <fieldset className="space-y-2">
+            <legend className="mb-2 text-lg font-medium">Pre-order</legend>
+            <p className="text-sm text-muted">{quote.preorder.terms}</p>
+            {quote.preorder.access === 'waitlist' && (
+              <p className="text-sm">This pre-order is open to the waitlist. Use the email you signed up with.</p>
+            )}
+            {quote.preorder.access === 'code' && (
+              <Input label="Access code" autoComplete="off" value={accessCode} onChange={(e) => setAccessCode(e.target.value)} required />
+            )}
+          </fieldset>
+        )}
+        {quote?.mixedPresale && (
+          <p role="alert" className="text-sm text-sale">
+            {MIXED_CART_MESSAGE}
+          </p>
+        )}
         {formError && (
           <p id="checkout-error" role="alert" className="text-sm text-sale">
             {formError}

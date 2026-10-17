@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { NavItem } from '@/lib/schemas/site-content';
 import { cn } from '@/components/ui/cn';
 import { IconBag, IconMenu, IconSearch } from '@/components/ui/icons';
@@ -34,11 +34,17 @@ export function Header({ nav, cartCount = 0, cartSlot, searchHref = '/search', c
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  const sentinel = useRef<HTMLDivElement>(null);
+
+  // Perf (audit): reading window.scrollY in a scroll listener right after
+  // hydration forced a synchronous layout. An IntersectionObserver on a 4px
+  // sentinel at the top of the page reports the same state off the main path.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 4);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const el = sentinel.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setScrolled(!entry.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   useEffect(() => setMenuOpen(false), [pathname]);
@@ -47,6 +53,7 @@ export function Header({ nav, cartCount = 0, cartSlot, searchHref = '/search', c
 
   return (
     <>
+      <div ref={sentinel} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-1 w-px" />
       <a href="#main" className="skip-link">
         Skip to content
       </a>

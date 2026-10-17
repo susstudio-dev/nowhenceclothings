@@ -82,6 +82,8 @@ export function upsertSummary(list: OrderSummary[], summary: OrderSummary): Orde
 export interface OrderFilter {
   status?: OrderStatus | 'all';
   q?: string;
+  /** A11: 'preorder' = pre-orders only, 'instock' = regular orders only. */
+  kind?: 'all' | 'preorder' | 'instock';
 }
 
 export function filterOrders(list: OrderSummary[], f: OrderFilter): OrderSummary[] {
@@ -89,6 +91,8 @@ export function filterOrders(list: OrderSummary[], f: OrderFilter): OrderSummary
   return list.filter((o) => {
     if (f.status && f.status !== 'all' && o.status !== f.status) return false;
     if (q && !`${o.number} ${o.email} ${o.name}`.toLowerCase().includes(q)) return false;
+    if (f.kind === 'preorder' && !o.preorder) return false;
+    if (f.kind === 'instock' && o.preorder) return false;
     return true;
   });
 }

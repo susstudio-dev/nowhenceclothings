@@ -6,6 +6,7 @@ import { LogoutButton } from './LoginForm';
 const ITEMS: { href: string; label: string; cap?: Capability }[] = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/products', label: 'Products' },
+  { href: '/admin/launches', label: 'Launches', cap: 'catalogue.write' },
   { href: '/admin/inventory', label: 'Inventory', cap: 'inventory.write' },
   { href: '/admin/orders', label: 'Orders', cap: 'orders.read' },
   { href: '/admin/coupons', label: 'Coupons & sales', cap: 'coupons.write' },

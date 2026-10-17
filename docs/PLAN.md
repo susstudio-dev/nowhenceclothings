@@ -72,6 +72,32 @@ Phase 5  Integration & QA  ◄─────────────┘  (qa-re
 - [x] Launch-readiness checklist on admin dashboard
 - [x] Tests + typecheck green
 
+## WS-G — Coming soon + presale (A10, A11) · agent `commerce-engineer`
+- [x] Schema: availability, comingSoon, presale on product/drop + Settings → Launches defaults (additive, old data parses)
+- [x] Admin: product "Availability" tab, Settings → Launches, blurred-variant generation, notify-list view + "email list"
+- [x] Storefront: blurred cards/page, badges, countdown, `/coming-soon`, home section, pre-order CTA, access code gate
+- [x] Checkout: presale cap + per-customer limit via CAS, no mixed carts, `preorder` flag, auto-switch at dates
+- [x] Orders: preorder filter + ship-by
+- [x] Seed: 5 polos from `assets/photography`
+- [x] Tests + typecheck green
+
+## WS-H — Brand pass + perf (A12, audit findings) · agent `design-system-engineer`
+- [x] Logo SVGs as default wordmark/favicon/app icon; Jost added; monochrome defaults
+- [x] Home hero from photography; home meta description fallback
+- [x] Font loading (fewer weights, adjustFontFallback), modern browserslist, home caching
+- [ ] Typecheck/tests/build green
+
+## WS-I — Pre-booking with deposit (A13) · agent `commerce-engineer`
+- [ ] Schema: presale paymentMode full|deposit, deposit config, Booking doc `bookings/{id}.json` + index (additive)
+- [ ] `/book/{slug}` page (code gate) → deposit Razorpay order → verify/webhook → booking + email with `/pay/{token}`
+- [ ] Sale-start transition (request-time + cron) → balance_due emails; `/pay/{token}` balance checkout → normal paid order
+- [ ] Expiry per configured outcome; deposit refunds via Razorpay refund API
+- [ ] Admin: product pre-booking settings, booking link copy + QR, Bookings list/detail/actions/CSV
+- [ ] Tests (deposit/balance math, cap CAS, token unguessable, transitions, idempotent webhooks) + QA
+
+## WS-J — Edge caching for Worker responses · agent `qa-reviewer`
+- [ ] `custom-worker.mjs`: Cache API for anonymous GET of public pages honouring `s-maxage`; bypass admin cookie, cart/checkout/api; purge on admin publish
+
 ## Phase 6 — Launch (owner + engineer)
 - [ ] Create R2 bucket, set secrets (`JWT_SECRET`, `ADMIN_OWNER_*`, `RAZORPAY_*`, `RESEND_API_KEY`)
 - [ ] Attach `nowhenceclothings.com` route, Razorpay live keys + webhook URL

@@ -6,7 +6,7 @@ import { SettingsForm } from '@/components/admin/SettingsForm';
 
 export const metadata = { title: 'Settings' };
 
-const TABS: SettingsTab[] = ['brand', 'shipping', 'returns', 'legal', 'email'];
+const TABS: SettingsTab[] = ['brand', 'shipping', 'returns', 'legal', 'email', 'launches'];
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const admin = await requireAdmin('manager');
