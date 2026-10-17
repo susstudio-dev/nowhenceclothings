@@ -18,12 +18,12 @@ import {
 // Real filesystem backend (NODE_ENV !== 'production' under vitest → data/).
 const DIR = '__test__/storage-cas';
 const KEY = `${DIR}/cas.json`;
-const DATA = path.join(process.cwd(), 'data');
+const DATA = path.join(process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data'));
 
 async function cleanup() {
   await fs.rm(path.join(DATA, DIR), { recursive: true, force: true });
   await fs.rm(path.join(DATA, '.meta', `${KEY.split('/').join('__')}.json`), { force: true });
-  await fs.rm(path.join(process.cwd(), 'public', 'media', 'test-img'), { recursive: true, force: true });
+  await fs.rm(path.join(process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data'), 'media', 'test-img'), { recursive: true, force: true });
 }
 afterEach(cleanup);
 afterAll(cleanup);

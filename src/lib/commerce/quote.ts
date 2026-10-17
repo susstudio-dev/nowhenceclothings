@@ -71,15 +71,16 @@ export function buildQuote(
     const launch = resolveLaunch(product, ctx.catalogue.drops, ctx.settings.launches, now);
     const isPre = product.status === 'active' && launch.state === 'presale' && !!launch.presale;
     // Presale units count against the presale cap (checked at checkout), not inventory.
-    const avail = isPre ? qty : available(ctx.inventory[sku]);
+    // F19: the per-customer limit is flagged here so the bag warns early.
+    const avail = isPre ? Math.min(qty, launch.presale!.perCustomerLimit) : available(ctx.inventory[sku]);
     if (product.status !== 'active') issue = 'unavailable';
     else if (launch.state === 'coming_soon') issue = 'not_released';
     else if (launch.state === 'sold_out') issue = 'out_of_stock';
     else if (!isPre && !isReleased(product, ctx.catalogue.drops, now)) issue = 'not_released';
     else if (avail <= 0) issue = 'out_of_stock';
-    else if (avail < qty) issue = 'insufficient_stock';
+    else if (avail < qty) issue = isPre ? 'presale_limit' : 'insufficient_stock';
     if (issue) issues.push({ sku, issue, available: avail });
-    if (issue && issue !== 'insufficient_stock') continue;
+    if (issue && issue !== 'insufficient_stock' && issue !== 'presale_limit') continue;
     if (isPre) {
       product = applyPresalePrice(product, launch.presale!);
       presale ??= launch.presale!;
@@ -99,7 +100,9 @@ export function buildQuote(
       qty: useQty,
       image: img?.src,
       available: avail,
-      ...(isPre ? { preorder: true } : {}),
+      ...(isPre
+        ? { preorder: true, shipCopy: launch.presale!.shipCopy, ...(launch.presale!.shipBy ? { shipBy: launch.presale!.shipBy } : {}) }
+        : {}),
     });
   }
 

@@ -152,6 +152,10 @@ export async function presaleGate(
       const r = resolveLaunch(product, ctx.catalogue.drops, ctx.settings.launches, now);
       if (r.state !== 'presale' || !r.presale) throw new CheckoutError('Pre-orders for this piece have closed.', 409, 'presale_closed', q);
       const pre = r.presale;
+      if (pre.paymentMode === 'deposit') {
+        // A13: deposit presales are booked through /book/{slug}, never the cart.
+        throw new CheckoutError('This piece is pre-booked with a deposit. Book it from its page.', 409, 'presale_deposit', q);
+      }
       assertPresaleAccess(pre, {
         code: req.presaleAccessCode,
         email: req.email,

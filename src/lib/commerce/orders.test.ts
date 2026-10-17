@@ -60,7 +60,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  const meta = path.join(process.cwd(), 'data', '.meta');
+  const meta = path.join(process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data'), '.meta');
   const months = new Set<string>();
   for (const c of created) {
     await deleteKey(orderKey(c.id));

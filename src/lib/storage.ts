@@ -10,7 +10,16 @@ import { hashOf, mayWrite, newLineage, parseMeta } from './storage-version-core'
 // snapshots and uploaded images — the Workers runtime has no writable disk.
 // R2 is strongly consistent, so reads immediately see the latest write.
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+// F18: NOWHENCE_DATA_DIR overrides the dev data root (vitest points it at a
+// per-worker temp dir so tests never touch data/).
+const DATA_DIR = process.env.NOWHENCE_DATA_DIR
+  ? path.resolve(process.env.NOWHENCE_DATA_DIR)
+  : path.join(process.cwd(), 'data');
+
+/** The local (dev) data root. */
+export function localDataDir(): string {
+  return DATA_DIR;
+}
 const PUBLIC_UPLOADS = path.join(process.cwd(), 'public', 'uploads');
 
 // Minimal structural types for the R2 binding — avoids depending on
@@ -554,7 +563,9 @@ export async function putMedia(
     await bucket.put(key, bytes, { httpMetadata: { contentType: MEDIA_CONTENT_TYPES[format] } });
   } else {
     if (inWorkerRuntime) throw new StorageUnavailableError();
-    const full = path.join(process.cwd(), 'public', key);
+    // F20: dev media mirror the R2 root under the data dir and are served only
+    // through the /media route, never as public static assets.
+    const full = path.join(DATA_DIR, key);
     await fs.mkdir(path.dirname(full), { recursive: true });
     await fs.writeFile(full, bytes);
   }
@@ -579,11 +590,13 @@ export async function readMedia(
       etag: `"${obj.etag}"`,
     };
   }
-  try {
-    const buf = await fs.readFile(path.join(process.cwd(), 'public', key));
-    return { body: new Uint8Array(buf), contentType: MEDIA_CONTENT_TYPES[format], size: buf.byteLength };
-  } catch (err: unknown) {
-    if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') return null;
-    throw err;
+  for (const root of [DATA_DIR, path.join(process.cwd(), 'public')]) {
+    try {
+      const buf = await fs.readFile(path.join(root, key));
+      return { body: new Uint8Array(buf), contentType: MEDIA_CONTENT_TYPES[format], size: buf.byteLength };
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException)?.code !== 'ENOENT') throw err;
+    }
   }
+  return null;
 }

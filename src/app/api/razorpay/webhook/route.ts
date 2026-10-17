@@ -1,13 +1,14 @@
 import { confirmPayment, recordPaymentEvent } from '@/lib/commerce/orders';
 import { verifyWebhookSignature } from '@/lib/commerce/razorpay';
 import { jsonError, jsonOk } from '@/lib/commerce/http';
+import { bookingRefForRazorpayOrder, confirmBookingPayment, isBookingPaymentNotes } from '@/lib/bookings-server';
 
 export const dynamic = 'force-dynamic';
 
 interface WebhookBody {
   event?: string;
   payload?: {
-    payment?: { entity?: { id?: string; order_id?: string; amount?: number; status?: string } };
+    payment?: { entity?: { id?: string; order_id?: string; amount?: number; status?: string; notes?: unknown } };
   };
 }
 
@@ -36,6 +37,30 @@ export async function POST(req: Request) {
   const at = new Date().toISOString();
 
   if ((type === 'payment.captured' || type === 'order.paid') && payment?.id && payment.order_id) {
+    // A13: booking payments carry notes.kind = booking_*; the map is the fallback.
+    if (isBookingPaymentNotes(payment.notes) || (await bookingRefForRazorpayOrder(payment.order_id))) {
+      try {
+        const res = await confirmBookingPayment({
+          razorpayOrderId: payment.order_id,
+          razorpayPaymentId: payment.id,
+          amount: payment.amount,
+          by: 'webhook',
+        });
+        await recordPaymentEvent({
+          eventId,
+          type: `booking:${type}`,
+          at,
+          razorpayOrderId: payment.order_id,
+          razorpayPaymentId: payment.id,
+          result: res.result,
+        });
+        if (res.result === 'amount_mismatch') console.error('booking webhook amount mismatch', payment.order_id);
+        return jsonOk({ ok: true, result: res.result });
+      } catch (err) {
+        console.error('booking webhook failed', err instanceof Error ? err.message : '');
+        return jsonError(500, 'retry');
+      }
+    }
     try {
       const res = await confirmPayment({
         razorpayOrderId: payment.order_id,

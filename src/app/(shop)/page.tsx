@@ -28,6 +28,13 @@ export default async function HomePage() {
     <>
       <BlockRenderer blocks={blocks} ctx={{ catalogue, inventory }} />
       <ComingSoonSection heading={d.home.heading} products={soon} inventory={inventory} drops={publicDrops(raw.drops)} />
+      {catalogue.products.length === 0 && soon.length === 0 && (
+        <section className="mx-auto max-w-3xl px-4 py-24 text-center">
+          <p className="text-xs uppercase tracking-[0.3em] text-muted">Nowhence</p>
+          <h2 className="mt-4 font-display text-3xl md:text-4xl">The first drop is almost here.</h2>
+          <p className="mt-4 text-muted">Considered unisex essentials, made in small runs. Join the list below to hear first.</p>
+        </section>
+      )}
     </>
   );
 }

@@ -63,7 +63,7 @@ const stock = async () => (await readJson(STOCK_KEY, InventoryDoc))?.['LC-SKU']?
 afterAll(async () => {
   for (const id of ids) {
     await deleteKey(orderKey(id));
-    await fs.rm(path.join(process.cwd(), 'data', '.meta', `orders__${id}.json.json`), { force: true });
+    await fs.rm(path.join(process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data'), '.meta', `orders__${id}.json.json`), { force: true });
   }
   for (const key of months) {
     await writeJsonCas(

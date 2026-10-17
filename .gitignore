@@ -24,3 +24,5 @@ next-env.d.ts
 .dev.vars
 cloudflare-env.d.ts
 data/__test__/
+data/media/
+public/media/test-img/

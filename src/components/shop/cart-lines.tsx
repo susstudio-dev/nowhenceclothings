@@ -56,7 +56,14 @@ export function CartLines({
               </p>
               {issue && (
                 <p className="text-sm text-sale" role="status">
-                  {ISSUE_TEXT[issue.issue]}
+                  {issue.issue === 'presale_limit' && issue.available
+                    ? `Pre-orders are limited to ${issue.available} per customer — quantity reduced.`
+                    : ISSUE_TEXT[issue.issue]}
+                </p>
+              )}
+              {q?.preorder && (
+                <p className="text-xs text-muted">
+                  Pre-order · {q.shipBy ? `ships by ${formatShipBy(q.shipBy)}` : q.shipCopy}
                 </p>
               )}
               <div className="mt-auto flex items-center justify-between pt-2">
@@ -93,6 +100,11 @@ export function CartLines({
       })}
     </ul>
   );
+}
+
+function formatShipBy(iso: string): string {
+  const d = new Date(iso.length === 10 ? `${iso}T00:00:00+05:30` : iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
 }
 
 export function FreeShippingProgress({ quote }: { quote: QuoteResponse | null }) {

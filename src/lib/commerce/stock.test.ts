@@ -9,8 +9,8 @@ const KEY = '__test__/commerce-inventory.json';
 const level = (stock: number) => ({ stock, reserved: 0, lowStockAt: 3 });
 
 afterAll(async () => {
-  await fs.rm(path.join(process.cwd(), 'data', '__test__', 'commerce-inventory.json'), { force: true });
-  await fs.rm(path.join(process.cwd(), 'data', '.meta', '__test____commerce-inventory.json.json'), { force: true });
+  await fs.rm(path.join(process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data'), '__test__', 'commerce-inventory.json'), { force: true });
+  await fs.rm(path.join(process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data'), '.meta', '__test____commerce-inventory.json.json'), { force: true });
 });
 
 describe('applyStockDecrement (pure)', () => {

@@ -42,8 +42,39 @@ export const ComingSoonConfig = z.object({
 });
 export type ComingSoonConfig = z.infer<typeof ComingSoonConfig>;
 
+// ---- A13 pre-booking with deposit -------------------------------------------
+export const PRESALE_PAYMENT_MODES = ['full', 'deposit'] as const;
+export const PresalePaymentMode = z.enum(PRESALE_PAYMENT_MODES);
+export type PresalePaymentMode = z.infer<typeof PresalePaymentMode>;
+export const DEPOSIT_TYPES = ['fixed', 'percent'] as const;
+export const PRICE_LOCKS = ['booking', 'sale'] as const;
+export const UNPAID_OUTCOMES = ['forfeit', 'refund', 'manual'] as const;
+export const UnpaidOutcome = z.enum(UNPAID_OUTCOMES);
+export type UnpaidOutcome = z.infer<typeof UnpaidOutcome>;
+
+/** Per product / drop deposit settings. Absent fields use Settings -> Launches. */
+export const DepositConfig = z.object({
+  depositType: z.enum(DEPOSIT_TYPES).optional(),
+  /** Paise when fixed; whole percent (1-100) when percent. */
+  depositValue: z.number().int().positive().optional(),
+  /** Booking window; falls back to the presale startsAt / endsAt. */
+  bookingOpensAt: IsoDate.optional(),
+  bookingClosesAt: IsoDate.optional(),
+  /** When the balance becomes payable. Required for deposit mode to take bookings. */
+  saleStartsAt: IsoDate.optional(),
+  balanceWindowDays: z.number().int().min(1).max(90).optional(),
+  priceLock: z.enum(PRICE_LOCKS).optional(),
+  depositRefundable: z.boolean().optional(),
+  policyMarkdown: z.string().max(4000).optional(),
+  unpaidOutcome: UnpaidOutcome.optional(),
+});
+export type DepositConfig = z.infer<typeof DepositConfig>;
+
 export const PresaleConfig = z.object({
   enabled: z.boolean().default(false),
+  /** A13: 'full' (default) = pay in full at checkout; 'deposit' = pre-book via /book/{slug}. */
+  paymentMode: PresalePaymentMode.optional(),
+  deposit: DepositConfig.optional(),
   startsAt: IsoDate.optional(),
   endsAt: IsoDate.optional(),
   /** Optional presale price (paise). Falls back to the normal price. */
@@ -94,6 +125,24 @@ export const LaunchDefaults = z
         ctaLabel: z.string().max(40).default('Pre-order'),
         badge: z.string().max(40).default('Pre-order'),
         autoSwitchAtEnd: z.boolean().default(true),
+        /** A13 deposit defaults. */
+        deposit: z
+          .object({
+            depositType: z.enum(DEPOSIT_TYPES).default('fixed'),
+            depositValue: z.number().int().positive().default(99900),
+            balanceWindowDays: z.number().int().min(1).max(90).default(7),
+            priceLock: z.enum(PRICE_LOCKS).default('booking'),
+            depositRefundable: z.boolean().default(false),
+            policyMarkdown: z
+              .string()
+              .max(4000)
+              .default(
+                'Your deposit reserves your size and colour. When the sale starts we email you a private link to pay the balance within the window shown. If the balance is not paid in time, the deposit is handled as stated above.',
+              ),
+            unpaidOutcome: UnpaidOutcome.default('forfeit'),
+            bookCtaLabel: z.string().max(40).default('Pre-book with deposit'),
+          })
+          .default({}),
       })
       .default({}),
     page: z

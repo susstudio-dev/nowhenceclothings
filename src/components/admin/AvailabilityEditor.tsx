@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Colour } from '@/lib/schemas/catalogue';
 import type { MediaRef } from '@/lib/schemas/common';
-import type { Availability, BlurredImage, ComingSoonConfig, PresaleConfig } from '@/lib/schemas/launches';
+import type { Availability, BlurredImage, ComingSoonConfig, DepositConfig, PresaleConfig } from '@/lib/schemas/launches';
+import { BookingLinkPanel } from './BookingLinkPanel';
 import { Button, Input, Select } from '@/components/ui';
-import { toPaise, toRupees } from './api-client';
+import { adminFetch, toPaise, toRupees } from './api-client';
 import { mediaPreviewSrc, uploadImage } from './MediaUploader';
 
 const textarea = 'w-full border border-line bg-paper px-3 py-2 text-sm';
@@ -141,7 +142,108 @@ export function PresaleFields({ value, onChange }: { value: PresaleConfig; onCha
         Terms (blank = default)
         <textarea rows={2} className={textarea} value={value.terms ?? ''} onChange={(e) => set({ terms: opt(e.target.value) })} />
       </label>
+      <Select
+        label="Payment"
+        value={value.paymentMode ?? 'full'}
+        options={[
+          { value: 'full', label: 'Pay in full at checkout' },
+          { value: 'deposit', label: 'Pre-book with a deposit' },
+        ]}
+        onChange={(e) => set({ paymentMode: e.target.value === 'deposit' ? 'deposit' : undefined })}
+      />
+      {value.paymentMode === 'deposit' && (
+        <div className="md:col-span-2">
+          <DepositFields value={value.deposit ?? {}} onChange={(deposit) => set({ deposit })} />
+        </div>
+      )}
     </div>
+  );
+}
+
+/** A13 pre-booking settings. Blank = Settings -> Launches default. */
+export function DepositFields({ value, onChange }: { value: DepositConfig; onChange: (next: DepositConfig) => void }) {
+  const set = (patch: Partial<DepositConfig>) => onChange({ ...value, ...patch });
+  const percent = value.depositType === 'percent';
+  return (
+    <fieldset className="grid gap-4 border border-line p-3 md:grid-cols-2">
+      <legend className="px-1 text-sm font-medium">Pre-booking (deposit)</legend>
+      <Select
+        label="Deposit type"
+        value={value.depositType ?? ''}
+        options={[
+          { value: '', label: 'Use default' },
+          { value: 'fixed', label: 'Fixed amount (₹)' },
+          { value: 'percent', label: 'Percent of price' },
+        ]}
+        onChange={(e) => set({ depositType: (e.target.value || undefined) as DepositConfig['depositType'] })}
+      />
+      <Input
+        label={percent ? 'Deposit (%)' : 'Deposit (₹)'}
+        hint="Blank = default."
+        type="number"
+        min={1}
+        max={percent ? 100 : undefined}
+        value={value.depositValue == null ? '' : percent ? String(value.depositValue) : toRupees(value.depositValue)}
+        onChange={(e) => set({ depositValue: percent ? optInt(e.target.value) : toPaise(e.target.value) || undefined })}
+      />
+      <Input
+        label="Bookings open"
+        hint="Blank = presale start."
+        type="datetime-local"
+        value={toLocal(value.bookingOpensAt)}
+        onChange={(e) => set({ bookingOpensAt: fromLocal(e.target.value) })}
+      />
+      <Input
+        label="Bookings close"
+        hint="Blank = presale end / sale start."
+        type="datetime-local"
+        value={toLocal(value.bookingClosesAt)}
+        onChange={(e) => set({ bookingClosesAt: fromLocal(e.target.value) })}
+      />
+      <Input
+        label="Sale starts (balance due)"
+        hint="Required to take bookings."
+        type="datetime-local"
+        value={toLocal(value.saleStartsAt)}
+        onChange={(e) => set({ saleStartsAt: fromLocal(e.target.value) })}
+      />
+      <Input
+        label="Balance window (days)"
+        hint="Blank = default."
+        type="number"
+        min={1}
+        max={90}
+        value={value.balanceWindowDays ? String(value.balanceWindowDays) : ''}
+        onChange={(e) => set({ balanceWindowDays: optInt(e.target.value) })}
+      />
+      <Select
+        label="Final price"
+        value={value.priceLock ?? ''}
+        options={[
+          { value: '', label: 'Use default' },
+          { value: 'booking', label: 'Locked at booking' },
+          { value: 'sale', label: 'Price at sale start' },
+        ]}
+        onChange={(e) => set({ priceLock: (e.target.value || undefined) as DepositConfig['priceLock'] })}
+      />
+      <TriState label="Deposit refundable" value={value.depositRefundable} onChange={(v) => set({ depositRefundable: v })} />
+      <Select
+        label="If the balance is not paid"
+        value={value.unpaidOutcome ?? ''}
+        options={[
+          { value: '', label: 'Use default' },
+          { value: 'forfeit', label: 'Keep the deposit' },
+          { value: 'refund', label: 'Refund the deposit automatically' },
+          { value: 'manual', label: 'Admin decides' },
+        ]}
+        onChange={(e) => set({ unpaidOutcome: (e.target.value || undefined) as DepositConfig['unpaidOutcome'] })}
+      />
+      <p className="self-end text-xs text-muted">Cap and per-customer limit above apply to bookings too.</p>
+      <label className="flex flex-col gap-1 text-sm md:col-span-2">
+        Booking policy (Markdown, blank = default)
+        <textarea rows={3} maxLength={4000} className={textarea} value={value.policyMarkdown ?? ''} onChange={(e) => set({ policyMarkdown: opt(e.target.value) })} />
+      </label>
+    </fieldset>
   );
 }
 
@@ -150,11 +252,14 @@ export function AvailabilityEditor({
   value,
   colours,
   title,
+  slug,
   onChange,
 }: {
   value: AvailabilityValue;
   colours: Colour[];
   title: string;
+  /** A13: enables the booking link + QR. */
+  slug?: string;
   onChange: (next: AvailabilityValue) => void;
 }) {
   const cs: ComingSoonConfig = value.comingSoon ?? { revealTo: 'available', blurred: [] };
@@ -164,7 +269,21 @@ export function AvailabilityEditor({
   const [msg, setMsg] = useState('');
 
   const images = colours.flatMap((c) => c.images);
-  const strength = cs.blurStrength ?? 30;
+  // WS-G open 4: an unset per-product strength uses the global Settings → Launches default.
+  const [globalStrength, setGlobalStrength] = useState<number | null>(null);
+  useEffect(() => {
+    let live = true;
+    adminFetch<{ settings: { launches?: { comingSoon?: { blurStrength?: number } } } }>('/api/admin/settings')
+      .then((r) => {
+        const v = r.settings.launches?.comingSoon?.blurStrength;
+        if (live && typeof v === 'number') setGlobalStrength(v);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+  const strength = cs.blurStrength ?? globalStrength ?? 30;
   const missing = images.filter((m) => !cs.blurred.some((b) => b.sourceId === m.id && b.strength === strength));
 
   async function generate() {
@@ -277,6 +396,9 @@ export function AvailabilityEditor({
         <legend className="text-sm font-medium">Presale</legend>
         <p className="text-xs text-muted">Products in a drop inherit the drop&apos;s presale (Launches page) unless enabled here.</p>
         <PresaleFields value={ps} onChange={(presale) => onChange({ ...value, presale })} />
+        {slug && ps.enabled && ps.paymentMode === 'deposit' && (
+          <BookingLinkPanel slug={slug} code={ps.access === 'code' ? ps.accessCode : undefined} />
+        )}
       </fieldset>
     </section>
   );

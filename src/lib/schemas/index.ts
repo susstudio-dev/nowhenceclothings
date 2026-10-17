@@ -11,3 +11,4 @@ export * from './logs';
 export * from './users';
 export * from './media';
 export * from './launches';
+export * from './bookings';

@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 // document or silently grant access: path parsing, patch application, op
 // expansion, authorization, seed merging and the compare-and-swap decision.
 export default defineConfig({
-  test: { include: ['src/**/*.test.ts'], environment: 'node' },
+  test: { include: ['src/**/*.test.ts'], environment: 'node', setupFiles: ['./vitest.setup.ts'] },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

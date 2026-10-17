@@ -196,7 +196,17 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
             </>
           ) : pre ? (
             <>
-              {pre.access === 'code' && !unlocked ? (
+              {pre.paymentMode === 'deposit' && pre.deposit ? (
+                <>
+                  <a
+                    href={`/book/${product.slug}`}
+                    className="flex w-full items-center justify-center bg-ink px-6 py-4 text-sm uppercase tracking-widest text-paper"
+                  >
+                    {pre.deposit.ctaLabel}
+                  </a>
+                  <p className="text-sm">{pre.deposit.label} today; pay the balance when the sale starts.</p>
+                </>
+              ) : pre.access === 'code' && !unlocked ? (
                 <PresaleAccessGate productId={product.id} onUnlocked={() => setUnlocked(true)} />
               ) : (
                 <Button fullWidth size="lg" onClick={add}>

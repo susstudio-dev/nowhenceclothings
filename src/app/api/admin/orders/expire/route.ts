@@ -1,5 +1,6 @@
 import { expireStaleOrders } from '@/lib/commerce/lifecycle';
 import { timingSafeEqualStr } from '@/lib/commerce/lifecycle-auth';
+import { sweepBookings } from '@/lib/bookings-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,5 +15,7 @@ export async function POST(req: Request) {
   const got = req.headers.get('x-cron-secret') ?? '';
   if (!secret || !timingSafeEqualStr(got, secret)) return new Response('Not found', { status: 404 });
   const cancelled = await expireStaleOrders();
-  return Response.json({ cancelled });
+  // A13: sale-start (balance_due + email) and balance-window expiry.
+  const bookings = await sweepBookings();
+  return Response.json({ cancelled, bookings });
 }

@@ -5,7 +5,7 @@ import { audit, readAudit } from './audit';
 import { readUsers, updateUsers } from './users';
 import { hashOf, mayWrite, parseMeta, versionToken } from './storage-version-core';
 
-const DATA = path.join(process.cwd(), 'data');
+const DATA = path.join(process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data'));
 let backup: { audit: boolean; users: string | null };
 
 async function exists(p: string) {

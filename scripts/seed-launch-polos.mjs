@@ -13,6 +13,10 @@ import sharp from 'sharp';
 const ROOT = process.cwd();
 const DATA = path.join(ROOT, 'data');
 const MEDIA = path.join(ROOT, 'public', 'media');
+// F20: sharp originals of coming-soon pieces must never be public static
+// assets. They live in the dev mirror of the R2 root (data/media) and are
+// served only through the /media route.
+const PRIVATE_MEDIA = path.join(ROOT, 'data', 'media');
 const PHOTOS = path.join(ROOT, 'assets', 'photography');
 const T = '2026-10-17T00:00:00.000Z';
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
@@ -24,7 +28,7 @@ const read = (f) => JSON.parse(readFileSync(path.join(DATA, f), 'utf8'));
 const write = (f, v) => writeFileSync(path.join(DATA, f), JSON.stringify(v, null, 2) + '\n');
 
 /** Crop to 4:5 and write every width as WebP. Returns a MediaRef. */
-async function putImage(file, id, alt) {
+async function putImage(file, id, alt, dir = MEDIA) {
   const src = sharp(path.join(PHOTOS, file)).rotate();
   const meta = await src.metadata();
   const W = Math.min(1600, meta.width, Math.floor((meta.height * 4) / 5));
@@ -32,9 +36,9 @@ async function putImage(file, id, alt) {
   const base = await src.resize(W, H, { fit: 'cover', position: 'attention' }).toBuffer();
   const widths = WIDTHS.filter((w) => w <= W);
   if (!widths.length) widths.push(W);
-  mkdirSync(path.join(MEDIA, id), { recursive: true });
+  mkdirSync(path.join(dir, id), { recursive: true });
   for (const w of widths) {
-    await sharp(base).resize(w).webp({ quality: 82 }).toFile(path.join(MEDIA, id, `${w}.webp`));
+    await sharp(base).resize(w).webp({ quality: 82 }).toFile(path.join(dir, id, `${w}.webp`));
   }
   return { ref: { id, alt, width: W, height: H, widths, formats: ['webp'] }, base };
 }
@@ -112,15 +116,28 @@ const POLOS = [
     description:
       'A heavyweight black polo with a tonal ring embroidered at the chest. Pre-order now; made in one small run and shipped together.',
     fabric: '240 GSM mercerised cotton piqué, tonal embroidery',
+    // A13 example: pre-book with a ₹999 deposit; balance due from sale start
+    // (15 Nov 2026, 10:00 IST) within 7 days. Presale ends at sale start, so
+    // the piece then sells normally from stock.
     presale: {
       enabled: true,
       startsAt: '2026-10-17T00:00:00.000Z',
-      endsAt: '2026-11-30T18:29:00.000Z',
+      endsAt: '2026-11-15T04:30:00.000Z',
       price: 329900,
       cap: 60,
       perCustomerLimit: 2,
       shipBy: '2026-12-15',
       access: 'public',
+      paymentMode: 'deposit',
+      deposit: {
+        depositType: 'fixed',
+        depositValue: 99900,
+        saleStartsAt: '2026-11-15T04:30:00.000Z',
+        balanceWindowDays: 7,
+        priceLock: 'booking',
+        depositRefundable: false,
+        unpaidOutcome: 'forfeit',
+      },
     },
   },
 ];
@@ -133,7 +150,10 @@ catalogue.products = catalogue.products.filter((p) => !ids.has(p.id));
 // Media ids are random (like uploads), so a blurred id never reveals or
 // guesses the sharp original. Remove the previous run's files first.
 const isSeedPolo = (m) => m.uploadedBy === 'seed' && /^seed-polo|^polo-/.test(m.name ?? '');
-for (const m of library.items.filter(isSeedPolo)) rmSync(path.join(MEDIA, m.id), { recursive: true, force: true });
+for (const m of library.items.filter(isSeedPolo)) {
+  rmSync(path.join(MEDIA, m.id), { recursive: true, force: true });
+  rmSync(path.join(PRIVATE_MEDIA, m.id), { recursive: true, force: true });
+}
 library.items = library.items.filter((m) => !isSeedPolo(m));
 const rid = () => `seed-${randomBytes(8).toString('hex')}`;
 
@@ -142,7 +162,7 @@ for (const p of POLOS) {
   const [colourId, colourName, hex] = p.colour;
   const alt = `${p.title} in ${colourName}`;
   const mediaId = rid();
-  const { ref, base } = await putImage(p.file, mediaId, alt);
+  const { ref, base } = await putImage(p.file, mediaId, alt, p.availability === 'coming_soon' ? PRIVATE_MEDIA : MEDIA);
   library.items.push({ ...ref, name: p.file, uploadedAt: T, uploadedBy: 'seed' });
   let comingSoon;
   if (p.availability === 'coming_soon') {

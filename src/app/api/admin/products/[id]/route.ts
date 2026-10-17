@@ -4,6 +4,7 @@ import { adminRoute, HttpError, json, readBody } from '@/lib/admin/api';
 import { ProductBody, ProductStatusInput } from '@/lib/admin/inputs';
 import { saveProduct } from '@/lib/admin/products';
 import { setProductStatus } from '@/lib/admin/catalogue-mutations';
+import { purgeEdge } from '@/lib/edge-purge';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     if (body.id !== id) throw new HttpError(400, 'Product id does not match the URL');
     const product = await saveProduct(body, 'update');
     await log('product_update', `catalogue.json#product:${id}`, product.title);
+    await purgeEdge({ productSlugs: [product.slug] });
     return json({ product });
   });
 }
@@ -27,6 +29,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const { status } = await readBody(req, ProductStatusInput);
     await writeJsonCas(CATALOGUE_KEY, CatalogueDoc, (cur) => setProductStatus(cur ?? CatalogueDoc.parse({}), id, status));
     await log('product_status', `catalogue.json#product:${id}`, status);
+    await purgeEdge();
     return json({ ok: true, status });
   });
 }
@@ -39,6 +42,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       setProductStatus(cur ?? CatalogueDoc.parse({}), id, 'archived'),
     );
     await log('product_archive', `catalogue.json#product:${id}`);
+    await purgeEdge();
     return json({ ok: true, status: 'archived' });
   });
 }

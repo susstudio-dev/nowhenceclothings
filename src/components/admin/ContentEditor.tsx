@@ -106,7 +106,13 @@ export function ContentEditor({
   }
 
   async function publish() {
-    if (!window.confirm('Publish the draft to the live site?')) return;
+    const warnings: string[] = [];
+    if (doc.home.blocks.length === 0) warnings.push('- The home page has NO blocks (the site will fall back to the default home).');
+    if (doc.nav.primary.length === 0) warnings.push('- The primary navigation is EMPTY (the site will fall back to the default menu).');
+    const msg = warnings.length
+      ? `Warning:\n${warnings.join('\n')}\n\nPublish the draft to the live site anyway?`
+      : 'Publish the draft to the live site?';
+    if (!window.confirm(msg)) return;
     if (timer.current) clearTimeout(timer.current);
     if (state !== 'saved') await save();
     try {

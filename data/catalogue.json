@@ -1476,12 +1476,22 @@
       "presale": {
         "enabled": true,
         "startsAt": "2026-10-17T00:00:00.000Z",
-        "endsAt": "2026-11-30T18:29:00.000Z",
+        "endsAt": "2026-11-15T04:30:00.000Z",
         "price": 329900,
         "cap": 60,
         "perCustomerLimit": 2,
         "shipBy": "2026-12-15",
-        "access": "public"
+        "access": "public",
+        "paymentMode": "deposit",
+        "deposit": {
+          "depositType": "fixed",
+          "depositValue": 99900,
+          "saleStartsAt": "2026-11-15T04:30:00.000Z",
+          "balanceWindowDays": 7,
+          "priceLock": "booking",
+          "depositRefundable": false,
+          "unpaidOutcome": "forfeit"
+        }
       },
       "createdAt": "2026-10-17T00:00:00.000Z",
       "updatedAt": "2026-10-17T00:00:00.000Z"

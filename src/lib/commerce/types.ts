@@ -44,7 +44,9 @@ export type LineIssue =
   | 'out_of_stock'
   | 'insufficient_stock'
   /** A11: in-stock line in a bag that also holds pre-order pieces. */
-  | 'mixed_presale';
+  | 'mixed_presale'
+  /** F19: pre-order qty above the presale per-customer limit (qty clamped). */
+  | 'presale_limit';
 
 export interface QuoteLine {
   sku: string;
@@ -62,6 +64,9 @@ export interface QuoteLine {
   available: number;
   /** A11: pre-order line (ships later). */
   preorder?: boolean;
+  /** A11: this pre-order line's own ship date / copy. */
+  shipBy?: string;
+  shipCopy?: string;
 }
 
 export interface QuoteResponse {

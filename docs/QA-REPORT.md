@@ -173,3 +173,65 @@ The engineers' open issues still stand: the Settings blur default isn't used by 
 2. After any `npm run seed`, run `node scripts/seed-launch-polos.mjs`.
 3. Keep slugs of hidden-title products neutral (the slug is public).
 4. Do a real Razorpay test pre-order to confirm a repeat order from the same email is refused and the cap counts down.
+
+## WS-I + WS-J (2026-10-17)
+
+Integrated WS-I (A13 pre-booking with deposit) and WS-J (edge caching) plus the F18/F19/F20 and WS-G 4/6/7 fixes. No integration edits were needed. Nothing committed.
+
+### Commands (real output, Git Bash from `D:/2027/...`)
+| Command | Result |
+|---|---|
+| `npm run typecheck` | `tsc --noEmit`, no errors. |
+| `npx vitest run` ×3 | Each run: `Test Files 40 passed (40)` · `Tests 316 passed (316)`. |
+| `npm run lint` | `✔ No ESLint warnings or errors`. |
+| `npx next build` | Exit 0. New routes: `/book/[slug]` 2.15 kB, `/pay/[token]` 1.74 kB, `/admin/bookings`, `/admin/bookings/[id]`, `/api/bookings`, `/api/pay/[token]`, `/api/admin/bookings/[id]`, `/api/admin/bookings/export`. Shared JS 103 kB, middleware 39.7 kB. |
+| `npx opennextjs-cloudflare build` | Exit 0, "OpenNext build complete." |
+| `npx wrangler deploy --dry-run` | Bundles `custom-worker.mjs` (which imports `src/lib/edge-cache.ts`); the output contains `x-nowhence-cache`. |
+| `vitest run src/lib/edge-cache.test.ts` | 6/6 pass. These include the `nowhence_admin=tok` cookie leading to no caching, `not_nowhence_admin` still being cached, and `/admin`, `/api`, `/cart`, `/checkout`, `/orders`, `/book`, `/pay`, query strings, RSC requests and writes all bypassing the cache. |
+
+### Walk (`next start -p 3102`, throwaway env, Razorpay/Resend HTTP stubbed by a `--require` preload in the scratchpad; `data/` backed up first and restored afterwards, `diff -rq` clean)
+| Check | Result |
+|---|---|
+| `GET /book/polo-black-ring-embroidered` | 200. Shows "₹3,299 · ₹999 deposit today" and the policy text. |
+| `POST /api/bookings` with injected `amount/deposit/total: 100` | 200 `deposit:99900`. The outbound Razorpay order had `amount:99900`, so the client values were ignored. The pay token is returned only in this response. |
+| `POST /api/razorpay/verify` bad sig / good sig / repeat | 400 "Payment could not be verified." → 200 `result:"applied", status:"deposit_paid"` → 200 `result:"duplicate"`. Verify never returns the token. |
+| Webhook `payment.captured` for a deposit: bad sig / good / replay | 400 `invalid signature` → `applied` → `duplicate`. The booking has 2 history entries, not 3. |
+| Time travel via admin `PUT /api/admin/products/…` (saleStartsAt in the past) | PUT 200, but the **existing booking stayed `deposit_paid`**, because bookings freeze `terms.saleStartsAt` when they are made (F23). I then backdated `terms.saleStartsAt` in the booking docs directly. |
+| `/pay/{token}`, priceLock `booking` | `balance_due`. Shows ₹3,299 − ₹999 = **₹2,300** (shipping free). `finalUnitPrice 329900`. |
+| `/pay/{token}`, priceLock `sale` | `balance_due`. Live price ₹3,799 − ₹999 = **₹2,800**. `finalUnitPrice 379900`. |
+| Wrong token: `GET /pay/AAAA…` | 404. |
+| `POST /api/pay/{token}` with injected `amount:100` | `amount:230000`, matching the Razorpay order (server-computed). |
+| Balance verify ×2 | `applied, completed, number NWH-261017-93LG` → `duplicate` (same order). Order `paid`, subtotal 329900, discount 99900, total 230000, note "Converted from booking … Deposit paid: ₹999.00." Inventory `NWH-PRE-BLA-M` went from 5 to **4**. |
+| Expiry `refund` (sale 10 days ago) | `/pay` shows "Refunded". Razorpay `POST /v1/payments/pay_qa3/refund {"amount":99900}`; `refund.razorpayRefundId` was stored; emails `balance_due, expired, refunded`. |
+| Expiry `manual` | "Expired", `needsReview:true`, no refund call. |
+| `/admin/bookings` with cookie / without | 200, all 4 numbers listed / 307 to login. |
+| `GET /api/admin/bookings/export` with cookie / without | 200 `text/csv`, `attachment; filename="nowhence-bookings-2026-10-17.csv"`, 16 columns / 401. Name `=HYPERLINK(...)` was exported as `'=HYPERLINK(...)` (formula-escaped). |
+| Hidden products: `/book/polo-navy-rain-emboss`, `/book/polo-cream-diamond-back`, `/book/nope-xyz` | 404 each. Title, price and `seed-` id appear 0 times in HTML and RSC. `POST /api/bookings` with a coming-soon slug returns 404 `not_found`. |
+| Cron `POST /api/admin/orders/expire` without `CRON_SECRET` | 404 (as designed). The sweep path is covered by `bookings-server.test.ts`. |
+
+Not walked: an edge cache HIT/MISS on a real Worker (needs a deploy; `caches.default` is a no-op under `next start`), and the `/book`, `/pay` and admin booking UIs by eye.
+
+### Findings
+| # | Sev | Where | Finding | Fixed? |
+|---|---|---|---|---|
+| F23 | Medium | `src/lib/bookings-server.ts` `advanceBooking` / `Booking.terms` | Changing the product's `saleStartsAt` (or window or outcome) after bookings exist doesn't affect existing bookings. If the owner postpones or brings forward the sale, already-booked customers get balance emails at the **old** time. Admin "extend deadline" only moves the balance deadline. | No. Owner decision: either treat the terms as a contract (current behaviour; document it in the admin UI) or add a "re-apply sale date to open bookings" admin action. |
+| F24 | Low | `bookings-server.test.ts` | The webhook block uses the real clock and will fail after 2026-11-15 (WS-I open 1). | No. Pin `now`. |
+| F25 | Low | refunds | Refunding a converted order refunds only the balance; the deposit is refunded from the booking (WS-I open 2). | No. Document for staff. |
+| F26 | Info | `data/__test__/` | Empty dir left over from an earlier test run (from before F18). Runs no longer write to `data/`. | Harmless; delete it. |
+
+F18, F19 and F20 from the previous section are fixed by the WS-J engineer; the 3 green runs above are the evidence for F18.
+
+### Cloudflare rate-limit rule: add these paths (alongside the F7 rules and `/api/presale/access`)
+- `POST /api/bookings` (creates a Razorpay order and holds presale units)
+- `POST /api/pay/*` (balance Razorpay order)
+- `GET /pay/*` (token lookup; the 256-bit token makes guessing infeasible, but each request hits R2)
+- `POST /api/admin/bookings/*` (admin actions, already behind auth; optional)
+
+### Remaining owner actions
+1. Deploy, then publish home content or delete the empty `site-content.json` from R2 (WS-J 1).
+2. Upload the 4 sharp polo folders from `data/media/` to R2 under `media/<id>/` (WS-J 2).
+3. Add stock for `NWH-PRE-BLA-*` before 15 Nov 2026 10:00 IST; otherwise conversions are "stock not deducted".
+4. Decide F23 and pin the test clock (F24) before 15 Nov.
+5. Set `CRON_SECRET` so the sale-start emails go out even if nobody opens `/pay`.
+6. Check `/book`, `/pay`, `/admin/bookings` and the QR panel in a browser, and do one real Razorpay test-mode deposit and refund.
+7. After deploy, check that `curl -I https://nowhenceclothings.com/` gives `x-nowhence-cache: MISS` then `HIT`, and `BYPASS` with an admin cookie.

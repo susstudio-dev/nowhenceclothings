@@ -12,7 +12,7 @@ import { inventoryLines } from './commerce/order-lines';
 
 const DIR = '__test__/presale';
 const KEY = `${DIR}/ledger.json`;
-const DATA = path.join(process.cwd(), 'data');
+const DATA = path.join(process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data'));
 async function cleanup() {
   await fs.rm(path.join(DATA, DIR), { recursive: true, force: true });
   await fs.rm(path.join(DATA, '.meta', `${KEY.split('/').join('__')}.json`), { force: true });
@@ -109,6 +109,11 @@ describe('buildQuote with launches', () => {
     const q = buildQuote(ctx, [{ sku: 'SOON-INK-M', qty: 1 }]);
     expect(q.issues[0]).toMatchObject({ issue: 'not_released' });
     expect(JSON.stringify(q)).not.toContain('Title soon');
+  });
+  it('F19: flags qty above the per-customer limit and carries the line ship date', () => {
+    const q = buildQuote(ctx, [{ sku: 'PRE-INK-M', qty: 3 }]);
+    expect(q.issues).toEqual([{ sku: 'PRE-INK-M', issue: 'presale_limit', available: 2 }]);
+    expect(q.lines[0]).toMatchObject({ qty: 2, preorder: true, shipBy: '2026-12-15' });
   });
   it('pre-orders do not move inventory', () => {
     expect(inventoryLines({ preorder: true, lines: [] as never })).toEqual([]);

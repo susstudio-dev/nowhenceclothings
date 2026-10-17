@@ -23,6 +23,8 @@ export function LaunchSettingsPanel({ value, onChange }: { value: LaunchDefaults
   const ps = value.presale;
   const setCs = (patch: Partial<LaunchDefaults['comingSoon']>) => onChange({ ...value, comingSoon: { ...cs, ...patch } });
   const setPs = (patch: Partial<LaunchDefaults['presale']>) => onChange({ ...value, presale: { ...ps, ...patch } });
+  const dep = ps.deposit;
+  const setDep = (patch: Partial<LaunchDefaults['presale']['deposit']>) => setPs({ deposit: { ...dep, ...patch } });
   const setPage = (patch: Partial<LaunchDefaults['page']>) => onChange({ ...value, page: { ...value.page, ...patch } });
   const setHome = (patch: Partial<LaunchDefaults['home']>) => onChange({ ...value, home: { ...value.home, ...patch } });
 
@@ -96,6 +98,66 @@ export function LaunchSettingsPanel({ value, onChange }: { value: LaunchDefaults
           <label className="flex flex-col gap-1 text-sm md:col-span-2">
             Terms
             <textarea rows={3} maxLength={4000} className={textarea} value={ps.terms} onChange={(e) => setPs({ terms: e.target.value })} />
+          </label>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg">Pre-booking (deposit) defaults</h2>
+        <p className="text-sm text-muted">Used when a product or drop presale is set to &quot;Pre-book with a deposit&quot; and leaves a field blank.</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Select
+            label="Deposit type"
+            value={dep.depositType}
+            options={[
+              { value: 'fixed', label: 'Fixed amount (₹)' },
+              { value: 'percent', label: 'Percent of price' },
+            ]}
+            onChange={(e) => setDep({ depositType: e.target.value as typeof dep.depositType })}
+          />
+          <Input
+            label={dep.depositType === 'percent' ? 'Deposit (%)' : 'Deposit (₹)'}
+            type="number"
+            min={1}
+            value={dep.depositType === 'percent' ? String(dep.depositValue) : String(dep.depositValue / 100)}
+            onChange={(e) => {
+              const n = Number(e.target.value) || 0;
+              const v = dep.depositType === 'percent' ? Math.min(100, Math.max(1, Math.trunc(n))) : Math.max(1, Math.round(n * 100));
+              setDep({ depositValue: v });
+            }}
+          />
+          <Input
+            label="Balance window (days after sale start)"
+            type="number"
+            min={1}
+            max={90}
+            value={String(dep.balanceWindowDays)}
+            onChange={(e) => setDep({ balanceWindowDays: Math.min(90, Math.max(1, Math.trunc(Number(e.target.value) || 1))) })}
+          />
+          <Select
+            label="Final price"
+            value={dep.priceLock}
+            options={[
+              { value: 'booking', label: 'Locked at booking' },
+              { value: 'sale', label: 'Price at sale start' },
+            ]}
+            onChange={(e) => setDep({ priceLock: e.target.value as typeof dep.priceLock })}
+          />
+          <Select
+            label="If the balance is not paid"
+            value={dep.unpaidOutcome}
+            options={[
+              { value: 'forfeit', label: 'Keep the deposit' },
+              { value: 'refund', label: 'Refund the deposit automatically' },
+              { value: 'manual', label: 'Admin decides' },
+            ]}
+            onChange={(e) => setDep({ unpaidOutcome: e.target.value as typeof dep.unpaidOutcome })}
+          />
+          <Input label="Booking button label" maxLength={40} value={dep.bookCtaLabel} onChange={(e) => setDep({ bookCtaLabel: e.target.value })} />
+          <Check label="Deposit refundable" checked={dep.depositRefundable} onChange={(v) => setDep({ depositRefundable: v })} />
+          <label className="flex flex-col gap-1 text-sm md:col-span-2">
+            Booking policy (Markdown)
+            <textarea rows={3} maxLength={4000} className={textarea} value={dep.policyMarkdown} onChange={(e) => setDep({ policyMarkdown: e.target.value })} />
           </label>
         </div>
       </section>

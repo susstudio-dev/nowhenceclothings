@@ -214,6 +214,7 @@ export function ProductEditor({
         value={{ availability: p.availability, comingSoon: p.comingSoon, presale: p.presale }}
         colours={p.colours}
         title={p.title}
+        slug={p.slug}
         onChange={(v) => setP((cur) => ({ ...cur, ...v }))}
       />
 

@@ -2,6 +2,7 @@ import { adminRoute, json, readBody } from '@/lib/admin/api';
 import { ProductBody } from '@/lib/admin/inputs';
 import { saveProduct } from '@/lib/admin/products';
 import { getCatalogue } from '@/lib/catalogue';
+import { purgeEdge } from '@/lib/edge-purge';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
     const body = await readBody(req, ProductBody);
     const product = await saveProduct(body, 'create');
     await log('product_create', `catalogue.json#product:${product.id}`, product.title);
+    await purgeEdge({ productSlugs: [product.slug] });
     return json({ product }, 201);
   });
 }

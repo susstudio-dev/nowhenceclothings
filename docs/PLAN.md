@@ -88,15 +88,15 @@ Phase 5  Integration & QA  ◄─────────────┘  (qa-re
 - [x] Typecheck/tests/build green
 
 ## WS-I — Pre-booking with deposit (A13) · agent `commerce-engineer`
-- [ ] Schema: presale paymentMode full|deposit, deposit config, Booking doc `bookings/{id}.json` + index (additive)
-- [ ] `/book/{slug}` page (code gate) → deposit Razorpay order → verify/webhook → booking + email with `/pay/{token}`
-- [ ] Sale-start transition (request-time + cron) → balance_due emails; `/pay/{token}` balance checkout → normal paid order
-- [ ] Expiry per configured outcome; deposit refunds via Razorpay refund API
-- [ ] Admin: product pre-booking settings, booking link copy + QR, Bookings list/detail/actions/CSV
-- [ ] Tests (deposit/balance math, cap CAS, token unguessable, transitions, idempotent webhooks) + QA
+- [x] Schema: presale paymentMode full|deposit, deposit config, Booking doc `bookings/{id}.json` + index (additive)
+- [x] `/book/{slug}` page (code gate) → deposit Razorpay order → verify/webhook → booking + email with `/pay/{token}`
+- [x] Sale-start transition (request-time + cron) → balance_due emails; `/pay/{token}` balance checkout → normal paid order
+- [x] Expiry per configured outcome; deposit refunds via Razorpay refund API
+- [x] Admin: product pre-booking settings, booking link copy + QR, Bookings list/detail/actions/CSV
+- [x] Tests (deposit/balance math, cap CAS, token unguessable, transitions, idempotent webhooks) + QA — tests in `bookings*.test.ts`, `qr.test.ts`; QA pass 2026-10-17 (QA-REPORT "WS-I + WS-J")
 
 ## WS-J — Edge caching for Worker responses · agent `qa-reviewer`
-- [ ] `custom-worker.mjs`: Cache API for anonymous GET of public pages honouring `s-maxage`; bypass admin cookie, cart/checkout/api; purge on admin publish
+- [x] `custom-worker.mjs`: Cache API for anonymous GET of public pages honouring `s-maxage`; bypass admin cookie, cart/checkout/api; purge on admin publish
 
 ## Phase 6 — Launch (owner + engineer)
 - [ ] Create R2 bucket, set secrets (`JWT_SECRET`, `ADMIN_OWNER_*`, `RAZORPAY_*`, `RESEND_API_KEY`)

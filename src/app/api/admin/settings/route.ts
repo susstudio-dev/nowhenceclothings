@@ -3,6 +3,7 @@ import { getSettings } from '@/lib/content';
 import { SETTINGS_KEY, SETTINGS_STALE_MESSAGE, SettingsDoc, isStaleSettingsWrite } from '@/lib/schemas/settings';
 import { adminRoute, HttpError, json, readBody } from '@/lib/admin/api';
 import { brandContrastChecks } from '@/lib/brand';
+import { purgeEdge } from '@/lib/edge-purge';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,7 @@ export async function PUT(req: Request) {
       'settings.json',
       `flatFee=${settings.shipping.flatFee} free>=${settings.shipping.freeShippingThreshold} returns=${settings.returns.windowDays}d fonts=${settings.brand.displayFont}/${settings.brand.bodyFont}`,
     );
+    await purgeEdge();
     return json({ settings });
   });
 }

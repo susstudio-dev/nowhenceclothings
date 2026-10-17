@@ -9,7 +9,7 @@ const NOTIFY = '__test__/notify-sub.json';
 const NEWS = '__test__/newsletter-sub.json';
 
 afterAll(async () => {
-  const data = path.join(process.cwd(), 'data');
+  const data = path.join(process.env.NOWHENCE_DATA_DIR ?? path.join(process.cwd(), 'data'));
   for (const k of [NOTIFY, NEWS]) {
     await fs.rm(path.join(data, k), { force: true });
     await fs.rm(path.join(data, '.meta', `${k.replace(/\//g, '__')}.json`), { force: true });

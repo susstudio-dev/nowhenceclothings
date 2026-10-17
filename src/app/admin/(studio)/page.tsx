@@ -8,6 +8,8 @@ import { ORDER_STATUS_LABELS } from '@/lib/admin/orders';
 import { listOrderSummaries } from '@/lib/admin/store';
 import { getSettings } from '@/lib/content';
 import { launchReadiness } from '@/lib/brand';
+import { bookingTotals } from '@/lib/bookings';
+import { listBookingSummaries } from '@/lib/bookings-server';
 
 export const metadata = { title: 'Overview' };
 
@@ -21,6 +23,7 @@ export default async function AdminHome() {
   const showOrders = roleHas(admin.role, 'orders.read');
   const orders = showOrders ? await listOrderSummaries(2) : [];
   const toPack = orders.filter((o) => o.status === 'paid');
+  const bookings = showOrders ? bookingTotals(await listBookingSummaries().catch(() => [])) : null;
 
   return (
     <div className="space-y-10">
@@ -61,6 +64,19 @@ export default async function AdminHome() {
           <div className="border border-line p-4">
             <dt className="text-sm text-muted">Paid, waiting to pack</dt>
             <dd className="text-2xl">{toPack.length}</dd>
+          </div>
+        )}
+        {bookings && bookings.count > 0 && (
+          <div className="border border-line p-4">
+            <dt className="text-sm text-muted">
+              <Link href="/admin/bookings" className="underline">
+                Pre-bookings
+              </Link>
+            </dt>
+            <dd className="text-2xl">{formatPaise(bookings.depositsCollected)}</dd>
+            <dd className="text-xs text-muted">
+              {bookings.count} bookings · {bookings.byStatus.balance_due ?? 0} balance due · {bookings.byStatus.completed ?? 0} completed
+            </dd>
           </div>
         )}
       </dl>

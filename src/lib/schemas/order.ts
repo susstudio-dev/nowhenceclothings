@@ -110,6 +110,10 @@ export const Order = z.object({
   preorder: z.boolean().optional(),
   /** A11: estimated ship-by date (YYYY-MM-DD) for pre-orders. */
   shipBy: z.string().optional(),
+  /** A13: order converted from a pre-booking (deposit shown as `discount`). */
+  bookingId: Id.optional(),
+  /** A13: deposit already paid against this order, paise. */
+  depositPaid: Paise.optional(),
   createdAt: IsoDate,
   updatedAt: IsoDate,
 });

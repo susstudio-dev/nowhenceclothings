@@ -29,6 +29,12 @@ afterEach(() => {
 });
 
 describe('order emails', () => {
+  it('confirmation shows ship-by for pre-orders', () => {
+    const m = renderOrderEmail({ ...order, preorder: true, shipBy: '2026-12-15' }, 'confirmation', settings);
+    expect(m.html).toContain('Pre-order');
+    expect(m.html).toMatch(/15 December 2026/);
+    expect(renderOrderEmail(order, 'confirmation', settings).html).not.toContain('Pre-order');
+  });
   it('escapes html', () => expect(escapeHtml(`<a href="x">'&`)).toBe('&lt;a href=&quot;x&quot;&gt;&#39;&amp;'));
   it('renders confirmation with escaped name', () => {
     const m = renderOrderEmail(order, 'confirmation', settings);

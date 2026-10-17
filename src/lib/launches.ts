@@ -12,6 +12,9 @@ import type {
   PresaleAccess,
   PresaleConfig,
   PresaleLedgerDoc,
+  DepositConfig,
+  PresalePaymentMode,
+  UnpaidOutcome,
 } from './schemas/launches';
 
 export interface EffectiveComingSoon {
@@ -45,6 +48,47 @@ export interface EffectivePresale {
   ctaLabel: string;
   badge: string;
   autoSwitchAtEnd: boolean;
+  /** A13. Absent = 'full'. */
+  paymentMode?: PresalePaymentMode;
+  /** A13: resolved deposit terms when paymentMode is 'deposit'. */
+  deposit?: EffectiveDeposit;
+}
+
+/** A13 resolved deposit settings (product/drop value, else Settings -> Launches). */
+export interface EffectiveDeposit {
+  depositType: 'fixed' | 'percent';
+  depositValue: number;
+  bookingOpensAt?: string;
+  bookingClosesAt?: string;
+  saleStartsAt?: string;
+  balanceWindowDays: number;
+  priceLock: 'booking' | 'sale';
+  depositRefundable: boolean;
+  policyMarkdown: string;
+  unpaidOutcome: UnpaidOutcome;
+  bookCtaLabel: string;
+}
+
+export function effectiveDeposit(
+  cfg: DepositConfig | undefined,
+  presale: { startsAt?: string; endsAt?: string },
+  d: LaunchDefaults,
+): EffectiveDeposit {
+  const c = cfg ?? {};
+  const g = d.presale.deposit;
+  return {
+    depositType: c.depositType ?? g.depositType,
+    depositValue: c.depositValue ?? g.depositValue,
+    bookingOpensAt: c.bookingOpensAt ?? presale.startsAt,
+    bookingClosesAt: c.bookingClosesAt ?? presale.endsAt,
+    saleStartsAt: c.saleStartsAt,
+    balanceWindowDays: c.balanceWindowDays ?? g.balanceWindowDays,
+    priceLock: c.priceLock ?? g.priceLock,
+    depositRefundable: c.depositRefundable ?? g.depositRefundable,
+    policyMarkdown: c.policyMarkdown?.trim() || g.policyMarkdown,
+    unpaidOutcome: c.unpaidOutcome ?? g.unpaidOutcome,
+    bookCtaLabel: g.bookCtaLabel,
+  };
 }
 
 export interface ResolvedLaunch {
@@ -101,6 +145,9 @@ export function effectivePresale(
     ctaLabel: c.ctaLabel?.trim() || g.ctaLabel,
     badge: c.badge?.trim() || g.badge,
     autoSwitchAtEnd: pick(c.autoSwitchAtEnd, g.autoSwitchAtEnd),
+    ...(c.paymentMode === 'deposit'
+      ? { paymentMode: 'deposit' as const, deposit: effectiveDeposit(c.deposit, c, d) }
+      : {}),
   };
 }
 
@@ -172,6 +219,9 @@ export interface LaunchView {
     ctaLabel: string;
     endsAt?: string;
     perCustomerLimit: number;
+    /** A13: 'deposit' = book via /book/{slug} instead of the cart. */
+    paymentMode?: 'deposit';
+    deposit?: { label: string; saleStartsAt?: string; ctaLabel: string };
   };
 }
 
@@ -266,6 +316,16 @@ export function toPublicProduct(product: Product, drops: Drop[], d: LaunchDefaul
           ctaLabel: pre.ctaLabel,
           endsAt: pre.endsAt,
           perCustomerLimit: pre.perCustomerLimit,
+          ...(pre.paymentMode === 'deposit' && pre.deposit
+            ? {
+                paymentMode: 'deposit' as const,
+                deposit: {
+                  label: depositLabel(pre.deposit),
+                  ...(pre.deposit.saleStartsAt ? { saleStartsAt: pre.deposit.saleStartsAt } : {}),
+                  ctaLabel: pre.deposit.bookCtaLabel,
+                },
+              }
+            : {}),
         },
       },
     };
@@ -297,6 +357,13 @@ export function applyPresalePrice<P extends Product>(product: P, pre: Pick<Effec
   if (product.price > pre.price) out.compareAtPrice = product.price;
   else delete out.compareAtPrice;
   return out;
+}
+
+/** "₹999 deposit" / "20% deposit". */
+export function depositLabel(dep: Pick<EffectiveDeposit, 'depositType' | 'depositValue'>): string {
+  if (dep.depositType === 'percent') return `${dep.depositValue}% deposit`;
+  const r = dep.depositValue / 100;
+  return `₹${r.toLocaleString('en-IN', { maximumFractionDigits: 2 })} deposit`;
 }
 
 export function formatShipCopy(copy: string, shipBy: string | undefined): string {

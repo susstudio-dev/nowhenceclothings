@@ -63,11 +63,16 @@ function linesTable(order: Order): string {
   return (
     `<table style="width:100%;border-collapse:collapse;font-size:14px">${rows}` +
     row('Subtotal', formatPaise(order.subtotal)) +
-    (order.discount ? row(`Discount${order.couponCode ? ` (${escapeHtml(order.couponCode)})` : ''}`, `−${formatPaise(order.discount)}`) : '') +
+    (order.discount ? row(order.bookingId ? 'Deposit paid' : `Discount${order.couponCode ? ` (${escapeHtml(order.couponCode)})` : ''}`, `−${formatPaise(order.discount)}`) : '') +
     row('Shipping', order.shipping ? formatPaise(order.shipping) : 'Free') +
     row('Total (incl. GST)', formatPaise(order.total), true) +
     `</table>`
   );
+}
+
+function formatShipBy(iso: string): string {
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? `${iso}T00:00:00+05:30` : iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
 }
 
 function wrap(title: string, body: string): string {
@@ -91,7 +96,13 @@ export function renderOrderEmail(order: Order, kind: OrderEmailKind, settings: P
       subject = `Order ${order.number} confirmed`;
       html = wrap(
         `Thank you, ${name}.`,
-        `<p>Your order <strong>${order.number}</strong> is confirmed. We will let you know when it ships.</p>${linesTable(order)}${link}`,
+        `<p>Your order <strong>${order.number}</strong> is confirmed. We will let you know when it ships.</p>` +
+          (order.preorder
+            ? `<p style="padding:12px;background:#f6f4f0"><strong>Pre-order.</strong> ${
+                order.shipBy ? `Estimated to ship by <strong>${escapeHtml(formatShipBy(order.shipBy))}</strong>.` : 'Ships when the drop is ready.'
+              }</p>`
+            : '') +
+          `${linesTable(order)}${link}`,
       );
       break;
     case 'shipped': {
