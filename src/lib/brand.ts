@@ -172,3 +172,34 @@ export function formatLegalDate(iso: string): string {
   if (mi < 0 || mi > 11) return '';
   return `${Number(m[3])} ${months[mi]} ${m[1]}`;
 }
+
+export interface FaviconAsset {
+  /** Pixel size of what /icon.png actually returns (the manifest must declare this). */
+  width: number;
+  height: number;
+  type: string;
+  /** Stored WebP width to stream for an uploaded favicon; absent for a direct `src`. */
+  mediaWidth?: number;
+}
+
+const ICON_TYPES: Record<string, string> = { png: 'image/png', webp: 'image/webp', avif: 'image/avif', jpg: 'image/jpeg', jpeg: 'image/jpeg', svg: 'image/svg+xml', ico: 'image/x-icon' };
+
+/**
+ * What /icon.png serves for an uploaded favicon (A9b): a direct `src` as is,
+ * else the smallest stored WebP width >= 192. Shared by the route and the web
+ * manifest so the declared `sizes` always match the real file.
+ */
+export function faviconAsset(fav: { width: number; height: number; widths?: number[]; src?: string }): FaviconAsset {
+  if (fav.src) {
+    const ext = /\.([a-z0-9]+)(?:[?#].*)?$/i.exec(fav.src)?.[1]?.toLowerCase() ?? '';
+    return { width: fav.width, height: fav.height, type: ICON_TYPES[ext] ?? 'image/png' };
+  }
+  const widths = fav.widths?.length ? [...fav.widths].sort((a, b) => a - b) : [fav.width];
+  const w = widths.find((x) => x >= 192) ?? widths[widths.length - 1];
+  return { width: w, height: Math.max(1, Math.round((w * fav.height) / fav.width)), type: 'image/webp', mediaWidth: w };
+}
+
+/** Manifest `sizes` for an icon ("any" for SVG). */
+export function iconSizes(a: Pick<FaviconAsset, 'width' | 'height' | 'type'>): string {
+  return a.type === 'image/svg+xml' ? 'any' : `${a.width}x${a.height}`;
+}

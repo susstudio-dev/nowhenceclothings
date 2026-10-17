@@ -3,8 +3,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { countdownParts } from './merch';
 
-/** Drop countdown (S4). Refreshes the route at zero so the page becomes purchasable. */
-export function Countdown({ releaseAt, className }: { releaseAt: string; className?: string }) {
+/**
+ * Drop / launch countdown (S4). Refreshes the route at zero so the page becomes purchasable.
+ * `label` names the moment: "Releases" (default, coming-soon reveal and drops), "Sale opens", "Pre-orders close".
+ */
+export function Countdown({ releaseAt, className, label: what = 'Releases' }: { releaseAt: string; className?: string; label?: string }) {
   const router = useRouter();
   const target = new Date(releaseAt);
   const [now, setNow] = useState<Date | null>(null);
@@ -30,7 +33,7 @@ export function Countdown({ releaseAt, className }: { releaseAt: string; classNa
   return (
     <div className={className}>
       <p className="text-label uppercase text-muted">
-        Releases <time dateTime={releaseAt}>{label} IST</time>
+        {what} <time dateTime={releaseAt}>{label} IST</time>
       </p>
       {/* Visual ticker hidden from AT; the sentence above is the accessible version. */}
       <div aria-hidden className="mt-3 flex gap-6 font-display text-h3 font-light tabular-nums">

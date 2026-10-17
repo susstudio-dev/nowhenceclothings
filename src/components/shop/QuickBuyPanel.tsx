@@ -5,7 +5,7 @@ import { SizeSelector } from '@/components/ui/SizeSelector';
 import { Swatch } from '@/components/ui/Swatch';
 import type { PublicProduct } from '@/lib/launches';
 import { QuickBuySheet } from './checkout/QuickBuySheet';
-import { sizeGridClass, type QuickBuyMode } from './quick-buy';
+import { RESERVE_SEPARATE_NOTE, sizeGridClass, type QuickBuyMode } from './quick-buy';
 
 /** Colour + size + one primary button; opens checkout/booking in a sheet over the page (A16). */
 export function QuickBuyPanel({
@@ -48,6 +48,7 @@ export function QuickBuyPanel({
       >
         {cta}
       </Button>
+      {mode === 'deposit' && <p className="-mt-3 text-caption text-muted">{RESERVE_SEPARATE_NOTE}</p>}
       {access && access !== 'public' && (
         <p className="text-caption text-muted">{access === 'code' ? 'Access code required at checkout.' : 'Open to the waitlist. Use the email you signed up with.'}</p>
       )}

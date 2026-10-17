@@ -8,7 +8,9 @@ import {
   contrastGrade,
   contrastRatio,
   emailFromHeader,
+  faviconAsset,
   formatLegalDate,
+  iconSizes,
   launchReadiness,
   missingForLaunch,
 } from './brand';
@@ -124,5 +126,24 @@ describe('misc', () => {
     expect(emailFromHeader({ senderName: '', from: 'orders@n.com', replyTo: '' })).toBe('orders@n.com');
     expect(formatLegalDate('2026-10-17')).toBe('17 October 2026');
     expect(formatLegalDate('')).toBe('');
+  });
+});
+
+describe('favicon asset (manifest sizes match /icon.png)', () => {
+  it('uses the smallest stored width >= 192 for uploads', () => {
+    const a = faviconAsset({ width: 1024, height: 1024, widths: [64, 256, 640] });
+    expect(a).toEqual({ width: 256, height: 256, type: 'image/webp', mediaWidth: 256 });
+    expect(iconSizes(a)).toBe('256x256');
+  });
+  it('falls back to the largest width, then the original', () => {
+    expect(faviconAsset({ width: 128, height: 128, widths: [32, 128] }).mediaWidth).toBe(128);
+    expect(faviconAsset({ width: 180, height: 180, widths: [] })).toMatchObject({ width: 180, mediaWidth: 180 });
+  });
+  it('keeps the aspect ratio of non-square uploads', () => {
+    expect(iconSizes(faviconAsset({ width: 1000, height: 500, widths: [500] }))).toBe('500x250');
+  });
+  it('declares a direct src at its own size and type', () => {
+    expect(faviconAsset({ width: 512, height: 512, src: '/brand-default/icon-512.png' })).toEqual({ width: 512, height: 512, type: 'image/png' });
+    expect(iconSizes(faviconAsset({ width: 1, height: 1, src: 'https://cdn.example/x.svg?v=2' }))).toBe('any');
   });
 });

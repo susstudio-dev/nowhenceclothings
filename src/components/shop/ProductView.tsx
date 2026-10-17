@@ -17,7 +17,8 @@ import { NotifyMe } from './NotifyMe';
 import { SizeGuide } from './SizeGuide';
 import { variantPrice } from './merch';
 import { QuickBuySheet } from './checkout/QuickBuySheet';
-import { quickBuyAction, sizeGridClass } from './quick-buy';
+import { quickBuyAction, RESERVE_SEPARATE_NOTE, sizeGridClass } from './quick-buy';
+import { countdownFor, depositSummary, depositTodayLine } from './presale-copy';
 
 export interface ProductViewProps {
   product: Product;
@@ -71,6 +72,8 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
   const gated = pre?.access === 'code' && !unlocked && !deposit;
   const canBuy = !soon && !upcoming && !gated && !(variant && units === 0);
   const action = launch ? quickBuyAction({ ...product, launch } as PublicProduct) : { mode: 'buy' as const, label: 'Buy now' };
+  const depositTerms = launch ? depositSummary({ price: product.price, launch }) : undefined;
+  const preCountdown = pre && launch ? countdownFor(launch) : undefined;
 
   function line() {
     const img = colour.images[0];
@@ -150,7 +153,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
             </div>
           )}
           {soon && launch?.teaser && <p className="mt-6 max-w-md text-small text-ink-soft">{launch.teaser}</p>}
-          {pre && <p className="mt-4 text-small text-ink-soft">{pre.shipCopy}</p>}
+          {pre?.shipCopy && <p className="mt-4 text-small text-ink-soft">{pre.shipCopy}</p>}
 
           <div className="mt-8 space-y-8 border-t border-line pt-8">
             <Swatch
@@ -208,7 +211,10 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
               ) : deposit ? (
                 <>
                   <Button fullWidth size="lg" onClick={buyNow}>{primaryLabel}</Button>
-                  <p className="text-caption text-muted">{deposit.label} today; the balance when the sale opens.</p>
+                  <p className="text-small tabular-nums text-ink-soft">
+                    {depositTerms ? depositTodayLine(depositTerms) : `${deposit.label} today · the balance when the sale opens`}
+                  </p>
+                  <p className="text-caption text-muted">{RESERVE_SEPARATE_NOTE}</p>
                 </>
               ) : (
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -228,7 +234,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
                       <NotifyMe productId={product.id} label="Join the waitlist" />
                     </>
                   )}
-                  {launch?.nextChangeAt && <Countdown releaseAt={launch.nextChangeAt} />}
+                  {preCountdown && <Countdown releaseAt={preCountdown.at} label={preCountdown.label} />}
                   <p>Limit {pre.perCustomerLimit} per customer.{deposit ? " Full booking terms are shown before you pay." : ` ${pre.terms}`}</p>
                 </div>
               )}

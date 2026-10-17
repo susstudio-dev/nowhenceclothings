@@ -4,36 +4,56 @@ import localFont from 'next/font/local';
 // registered as `--font-{key}`; the root layout maps the owner's choice onto
 // --font-display / --font-sans at request time (lib/brand brandCssVars), so a
 // font change needs no rebuild. Only the A12 defaults (Jost + Inter Tight) are
-// preloaded; the alternates load on demand. Latin subset, metric-matched
+// preloaded, and only their above-the-fold weights; the alternates load on demand. Latin subset, metric-matched
 // fallbacks (adjustFontFallback) to avoid layout shift.
 //
 // Files are bundled in src/fonts (downloaded once from Google Fonts) rather than
 // fetched by next/font/google at build time: a flaky Google response on the
 // Cloudflare build machine failed a production deploy (2026-10-17).
 
+// Preload only the weights painted above the fold (Jost 300 for display
+// titles, Inter Tight 400 for body); the other weights load on first use.
+// next/font's `preload` is per call, so each family is split into two calls
+// that share one explicit `font-family` name: the browser still sees a single
+// family with every weight, and only the first call's files get <link rel=preload>.
+
 /** Geometric display sans: headlines, editorial titles (default, A12). */
 export const fontDisplay = localFont({
-  src: [
-    { path: '../../fonts/jost-300.woff2', weight: '300', style: 'normal' },
-    { path: '../../fonts/jost-400.woff2', weight: '400', style: 'normal' },
-    { path: '../../fonts/jost-500.woff2', weight: '500', style: 'normal' },
-  ],
+  src: [{ path: '../../fonts/jost-300.woff2', weight: '300', style: 'normal' }],
+  declarations: [{ prop: 'font-family', value: "'Nowhence Jost'" }],
   display: 'swap',
   adjustFontFallback: 'Arial',
   fallback: ['system-ui', 'sans-serif'],
   variable: '--font-jost',
 });
+const fontDisplayRest = localFont({
+  src: [
+    { path: '../../fonts/jost-400.woff2', weight: '400', style: 'normal' },
+    { path: '../../fonts/jost-500.woff2', weight: '500', style: 'normal' },
+  ],
+  declarations: [{ prop: 'font-family', value: "'Nowhence Jost'" }],
+  display: 'swap',
+  preload: false,
+  adjustFontFallback: false,
+  variable: '--font-jost-rest',
+});
 
 /** Grotesk: body, UI, labels (default). */
 export const fontSans = localFont({
-  src: [
-    { path: '../../fonts/inter-tight-400.woff2', weight: '400', style: 'normal' },
-    { path: '../../fonts/inter-tight-500.woff2', weight: '500', style: 'normal' },
-  ],
+  src: [{ path: '../../fonts/inter-tight-400.woff2', weight: '400', style: 'normal' }],
+  declarations: [{ prop: 'font-family', value: "'Nowhence Inter Tight'" }],
   display: 'swap',
   adjustFontFallback: 'Arial',
   fallback: ['system-ui', 'sans-serif'],
   variable: '--font-inter-tight',
+});
+const fontSansRest = localFont({
+  src: [{ path: '../../fonts/inter-tight-500.woff2', weight: '500', style: 'normal' }],
+  declarations: [{ prop: 'font-family', value: "'Nowhence Inter Tight'" }],
+  display: 'swap',
+  preload: false,
+  adjustFontFallback: false,
+  variable: '--font-inter-tight-rest',
 });
 
 // next/font needs literal options (no spreads), hence the repetition.
@@ -49,6 +69,6 @@ const manrope = localFont({ src: [{ path: '../../fonts/manrope-400.woff2', weigh
  * Apply to <html>: registers every curated `--font-{key}`. --font-display and
  * --font-sans are set by the root layout's brand style (defaults in globals.css).
  */
-export const fontVariables = [fontDisplay, fontSans, cormorant, playfair, fraunces, dmSerif, inter, dmSans, manrope]
+export const fontVariables = [fontDisplay, fontDisplayRest, fontSans, fontSansRest, cormorant, playfair, fraunces, dmSerif, inter, dmSans, manrope]
   .map((f) => f.variable)
   .join(' ');

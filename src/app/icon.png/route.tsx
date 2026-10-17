@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { getSettings } from '@/lib/content';
 import { readMedia } from '@/lib/storage';
+import { faviconAsset } from '@/lib/brand';
 
 // Settings-driven favicon / app icon (A9b, fixes QA F10). Serves the owner's
 // uploaded favicon (smallest stored WebP width >= 192), or a generated
@@ -15,9 +16,7 @@ export async function GET(req: Request) {
   const fav = s.brand.favicon;
   if (fav?.src) return Response.redirect(new URL(fav.src, 'https://nowhenceclothings.com'), 302);
   if (fav) {
-    const widths = fav.widths.length ? fav.widths : [fav.width];
-    const w = widths.find((x) => x >= 192) ?? widths[widths.length - 1];
-    const obj = await readMedia(fav.id, w, 'webp');
+    const obj = await readMedia(fav.id, faviconAsset(fav).mediaWidth!, 'webp');
     if (obj) {
       return new Response(obj.body as BodyInit, {
         headers: { 'content-type': obj.contentType, 'cache-control': CACHE, 'x-content-type-options': 'nosniff' },

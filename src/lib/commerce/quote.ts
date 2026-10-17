@@ -10,7 +10,7 @@ import { available } from '@/lib/schemas/inventory';
 import type { CatalogueDoc } from '@/lib/schemas/catalogue';
 import type { InventoryDoc } from '@/lib/schemas/inventory';
 import type { SettingsDoc } from '@/lib/schemas/settings';
-import { applyPresalePrice, formatShipCopy, resolveLaunch, type EffectivePresale } from '@/lib/launches';
+import { applyPresalePrice, formatShipCopy, presaleTerms, resolveLaunch, type EffectivePresale } from '@/lib/launches';
 import { COUPON_MESSAGES, findCoupon, priceCart, type PricingInputLine } from './pricing';
 import type { CartRequestLine, LineIssue, QuoteLine, QuoteResponse } from './types';
 
@@ -136,7 +136,7 @@ export function buildQuote(
             shipBy: presale.shipBy,
             shipCopy: formatShipCopy(presale.shipCopy, presale.shipBy),
             access: presale.access,
-            terms: presale.terms,
+            terms: presaleTerms(presale.terms, presale.shipBy),
           },
         }
       : {}),

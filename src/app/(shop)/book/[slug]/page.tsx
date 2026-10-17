@@ -9,6 +9,7 @@ import { getSettings } from '@/lib/content';
 import { bookingUnitPrice, bookingWindow, depositPerUnit } from '@/lib/bookings';
 import { depositLabel, toPublicProduct } from '@/lib/launches';
 import { formatPaise } from '@/lib/money';
+import { depositTodayLine } from '@/components/shop/presale-copy';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,11 +45,16 @@ export default async function BookPage({ params, searchParams }: Props) {
   const { product, win, now, pub } = d;
   const img = pub.colours[0]?.images[0];
   const dep = win.dep;
+  const unitDeposit = depositPerUnit(pub.price, dep);
+  const summary = { price: pub.price, deposit: unitDeposit, balance: pub.price - unitDeposit, priceLock: dep.priceLock, saleStartsAt: dep.saleStartsAt };
 
   const steps = [
-    { t: 'Reserve today', d: `${depositLabel(dep)} holds your size.` },
+    { t: 'Reserve today', d: `${pub.price ? formatPaise(unitDeposit) : depositLabel(dep)} holds your size.` },
     { t: dep.saleStartsAt ? `Sale opens ${fmt(dep.saleStartsAt)}` : 'Sale opens', d: 'We email you a private link.' },
-    { t: 'Pay the balance', d: `Within ${dep.balanceWindowDays} days, plus shipping. Then it ships.` },
+    {
+      t: 'Pay the balance',
+      d: `${dep.priceLock === 'booking' && pub.price ? `${formatPaise(summary.balance)} within` : 'Within'} ${dep.balanceWindowDays} days, plus shipping if any. Then it ships.`,
+    },
   ];
 
   return (
@@ -62,9 +68,11 @@ export default async function BookPage({ params, searchParams }: Props) {
         <header className="space-y-4">
           <p className="care-tag text-clay">Pre-booking</p>
           <h1 className="font-display text-display font-light text-ink">{pub.title}</h1>
-          <p className="text-body text-ink-soft">
-            <span className="tabular-nums text-ink">{formatPaise(pub.price)}</span> · {depositLabel(dep)} today, balance when the sale opens.
-          </p>
+          {pub.price > 0 && (
+            <p className="text-body text-ink-soft">
+              <span className="tabular-nums text-ink">{formatPaise(pub.price)}</span> · <span className="tabular-nums">{depositTodayLine(summary)}</span>
+            </p>
+          )}
         </header>
 
         <ol className="grid grid-cols-3 gap-4 border-y border-line py-5">

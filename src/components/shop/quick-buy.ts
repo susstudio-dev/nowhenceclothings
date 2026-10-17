@@ -17,11 +17,14 @@ export function depositAmount(label: string, price: number): number | undefined 
   return undefined;
 }
 
+/** Under every deposit-mode Reserve button (customers look for a bag button). */
+export const RESERVE_SEPARATE_NOTE = 'Reserved pieces are paid separately from your bag.';
+
 /** Mode + primary button label for a presale product. */
 export function quickBuyAction(p: PublicProduct): { mode: QuickBuyMode; label: string } {
   const pre = p.launch.presale;
   if (pre?.paymentMode === 'deposit' && pre.deposit) {
-    const amt = depositAmount(pre.deposit.label, p.price);
+    const amt = pre.deposit.amount ?? depositAmount(pre.deposit.label, p.price);
     return { mode: 'deposit', label: amt != null ? `Reserve for ${formatPaise(amt)}` : pre.deposit.ctaLabel };
   }
   if (pre) return { mode: 'full', label: `Pre-order ${formatPaise(p.price)}` };

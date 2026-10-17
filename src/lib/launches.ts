@@ -221,7 +221,15 @@ export interface LaunchView {
     perCustomerLimit: number;
     /** A13: 'deposit' = book via /book/{slug} instead of the cart. */
     paymentMode?: 'deposit';
-    deposit?: { label: string; saleStartsAt?: string; ctaLabel: string };
+    deposit?: {
+      label: string;
+      saleStartsAt?: string;
+      ctaLabel: string;
+      /** Deposit per unit in paise at the shown price (display only; /api/bookings recomputes). */
+      amount?: number;
+      priceLock?: 'booking' | 'sale';
+      balanceWindowDays?: number;
+    };
   };
 }
 
@@ -310,9 +318,9 @@ export function toPublicProduct(product: Product, drops: Drop[], d: LaunchDefaul
         nextChangeAt: r.nextChangeAt,
         presale: {
           shipBy: pre.shipBy,
-          shipCopy: formatShipCopy(pre.shipCopy, pre.shipBy),
+          shipCopy: formatShipCopy(pre.shipCopy, pre.shipBy, { deposit: pre.paymentMode === 'deposit' }),
           access: pre.access,
-          terms: pre.terms,
+          terms: presaleTerms(pre.terms, pre.shipBy),
           ctaLabel: pre.ctaLabel,
           endsAt: pre.endsAt,
           perCustomerLimit: pre.perCustomerLimit,
@@ -323,6 +331,9 @@ export function toPublicProduct(product: Product, drops: Drop[], d: LaunchDefaul
                   label: depositLabel(pre.deposit),
                   ...(pre.deposit.saleStartsAt ? { saleStartsAt: pre.deposit.saleStartsAt } : {}),
                   ctaLabel: pre.deposit.bookCtaLabel,
+                  amount: unitDeposit(priced.price, pre.deposit),
+                  priceLock: pre.deposit.priceLock,
+                  balanceWindowDays: pre.deposit.balanceWindowDays,
                 },
               }
             : {}),
@@ -366,11 +377,36 @@ export function depositLabel(dep: Pick<EffectiveDeposit, 'depositType' | 'deposi
   return `₹${r.toLocaleString('en-IN', { maximumFractionDigits: 2 })} deposit`;
 }
 
-export function formatShipCopy(copy: string, shipBy: string | undefined): string {
-  const date = shipBy
-    ? new Date(`${shipBy}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
-    : 'the date shown';
-  return copy.replace(/\{date\}/g, date);
+/** Same rule as bookings.depositPerUnit (kept here to avoid a circular import). */
+function unitDeposit(price: number, dep: Pick<EffectiveDeposit, 'depositType' | 'depositValue'>): number {
+  const raw = dep.depositType === 'percent' ? Math.round((price * dep.depositValue) / 100) : dep.depositValue;
+  return Math.max(0, Math.min(price, raw));
+}
+
+const SENTENCE = /[^.!?]+[.!?]*/g;
+const DATE_REF = /\{date\}|the date shown/i;
+
+/**
+ * Fill `{date}` with the ship-by date. Without a ship-by date, sentences that
+ * point at a date ("Ships by {date}.") are dropped rather than promising "the
+ * date shown" when none is shown; deposit pieces then say when they ship.
+ */
+export function formatShipCopy(copy: string, shipBy: string | undefined, opts: { deposit?: boolean } = {}): string {
+  if (shipBy) {
+    const date = new Date(`${shipBy}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+    return copy.replace(/\{date\}/g, date);
+  }
+  const kept = (copy.match(SENTENCE) ?? [])
+    .map((x) => x.trim())
+    .filter((x) => x && !DATE_REF.test(x))
+    .join(' ');
+  return opts.deposit ? [kept, 'Ships after the sale opens.'].filter(Boolean).join(' ') : kept;
+}
+
+/** Presale terms without a dangling "ship by the date shown" when no date is set. */
+export function presaleTerms(terms: string, shipBy: string | undefined): string {
+  if (shipBy) return terms;
+  return terms.replace(/\s+and ship by the date shown/gi, '').replace(/\s*Ships? by the date shown\.?/gi, '').trim();
 }
 
 export type Surface = 'shop' | 'home' | 'comingSoonPage';

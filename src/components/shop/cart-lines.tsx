@@ -13,6 +13,7 @@ import { ISSUE_TEXT } from '@/lib/commerce/use-quote';
 import type { QuoteResponse } from '@/lib/commerce/types';
 import { formatPaise } from '@/lib/money';
 import { MIXED_CART_MESSAGE } from '@/lib/launches';
+import { preorderShipLine } from './presale-copy';
 
 export function formatShipBy(iso: string): string {
   const d = new Date(iso.length === 10 ? `${iso}T00:00:00+05:30` : iso);
@@ -88,7 +89,9 @@ export function CartLines({
               </div>
               {q?.preorder && (
                 <p className="mt-2">
-                  <Badge tone="clay">Pre-order · {q.shipBy ? `ships by ${formatShipBy(q.shipBy)}` : q.shipCopy}</Badge>
+                  <Badge tone="clay">
+                    {q.shipBy ? `Pre-order · ships by ${formatShipBy(q.shipBy)}` : q.shipCopy ? `Pre-order · ${q.shipCopy}` : 'Pre-order'}
+                  </Badge>
                 </p>
               )}
               {issue && (
@@ -160,10 +163,7 @@ export function PresaleNotice({ quote }: { quote: QuoteResponse | null }) {
     return (
       <div className="space-y-1 border-l border-clay pl-3">
         <p className="text-label uppercase text-clay">Pre-order</p>
-        <p className="text-caption text-ink-soft">
-          {quote.preorder.shipBy ? `Ships by ${formatShipBy(quote.preorder.shipBy)}. ` : ''}
-          {quote.preorder.shipCopy}
-        </p>
+        <p className="text-caption text-ink-soft">{preorderShipLine(quote.preorder.shipBy, quote.preorder.shipCopy, formatShipBy)}</p>
       </div>
     );
   return null;

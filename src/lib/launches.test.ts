@@ -9,7 +9,9 @@ import {
   assertNotMixed,
   assertPresaleAccess,
   codeMatches,
+  formatShipCopy,
   isIndexable,
+  presaleTerms,
   listedOn,
   releasePresale,
   reservePresale,
@@ -197,5 +199,37 @@ describe('seed data', () => {
       }
     }
     expect(polos.find((p) => p.availability === 'presale')?.presale?.enabled).toBe(true);
+  });
+});
+
+describe('ship copy and deposit projection', () => {
+  it('fills {date} when a ship-by date is set', () => {
+    expect(formatShipCopy('Made to order. Ships by {date}.', '2026-12-15')).toBe('Made to order. Ships by 15 December 2026.');
+  });
+  it('drops the date sentence when no ship-by date is set (never "the date shown")', () => {
+    expect(formatShipCopy('Made to order. Ships by {date}.', undefined)).toBe('Made to order.');
+    expect(formatShipCopy('Ships by {date}.', undefined)).toBe('');
+    expect(formatShipCopy('Made to order. Ships by {date}.', undefined, { deposit: true })).toBe('Made to order. Ships after the sale opens.');
+    expect(formatShipCopy('Hand finished in Tiruppur.', undefined)).toBe('Hand finished in Tiruppur.');
+  });
+  it('strips "ship by the date shown" from default terms without a date', () => {
+    const t = D.presale.terms;
+    expect(presaleTerms(t, undefined)).toBe('Pre-orders are paid in full today. Pre-orders cannot be combined with in-stock pieces.');
+    expect(presaleTerms(t, '2026-12-15')).toBe(t);
+  });
+  it('projects deposit amount, price lock and balance window for the storefront', () => {
+    const p = product({
+      availability: 'presale',
+      price: 149900,
+      variants: [{ sku: 'NWH-X-NAV-M', colourId: 'navy', size: 'M' }],
+      presale: {
+        enabled: true,
+        paymentMode: 'deposit',
+        deposit: { depositType: 'fixed', depositValue: 50000, saleStartsAt: '2026-10-31T04:30:00.000Z', balanceWindowDays: 7, priceLock: 'booking' },
+      },
+    } as Partial<Product>);
+    const pub = toPublicProduct(p, [], D, NOW);
+    expect(pub.launch.presale?.shipCopy).toBe('Made to order. Ships after the sale opens.');
+    expect(pub.launch.presale?.deposit).toMatchObject({ amount: 50000, priceLock: 'booking', balanceWindowDays: 7, saleStartsAt: '2026-10-31T04:30:00.000Z' });
   });
 });

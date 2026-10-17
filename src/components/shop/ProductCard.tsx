@@ -56,7 +56,8 @@ export function ProductCard({ product, inventory, drops, now = new Date(), prior
           )}
           {badge && <span className="care-tag absolute left-2 top-2 bg-paper/90 text-ink md:left-3 md:top-3">{badge}</span>}
         </div>
-        <div className="mt-3 flex items-baseline justify-between gap-3">
+        {/* Two-up mobile tiles are ~180px: stack title over price so a sale price never truncates the name. */}
+        <div className="mt-3 flex flex-col gap-0.5 md:flex-row md:items-baseline md:justify-between md:gap-3">
           <h3 className="min-w-0 truncate text-small text-ink">{product.title}</h3>
           {!launch?.priceHidden && (
             <Price amount={from} compareAt={from === product.price ? base.compareAt : undefined} size="sm" className="shrink-0 text-small" />

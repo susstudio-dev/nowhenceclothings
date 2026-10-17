@@ -19,6 +19,8 @@ import { storedPresaleCode } from '../PresaleAccessGate';
 import { AddressFieldset, BillingFields, Check, ContactFields } from './fields';
 import { TrustLine } from './CheckoutView';
 import { payDeposit, payForOrder, useCheckoutDetails } from './flow';
+import { preorderShipLine, reserveHowItWorks } from '../presale-copy';
+import { RESERVE_SEPARATE_NOTE } from '../quick-buy';
 
 /** Structural subset of a (public) catalogue product. */
 export interface QuickBuyProduct {
@@ -52,10 +54,8 @@ interface DepositQuote {
   perCustomerLimit: number;
   access: 'public' | 'code' | 'waitlist';
   ctaLabel: string;
-  terms: { saleStartsAt: string; balanceWindowDays: number; priceLock: 'booking' | 'sale'; depositRefundable: boolean; unpaidOutcome: string };
+  terms: { saleStartsAt?: string; balanceWindowDays: number; priceLock: 'booking' | 'sale'; depositRefundable: boolean; unpaidOutcome: string };
 }
-
-const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
 
 function usePricing(mode: QuickBuyMode, slug: string, sku: string | undefined, qty: number) {
   const [order, setOrder] = useState<QuoteResponse | null>(null);
@@ -260,19 +260,22 @@ export function QuickBuySheet({ product, colourId: initialColour, size: initialS
           <div className="space-y-2 border-l border-clay pl-4 text-caption text-ink-soft">
             <p className="text-label uppercase text-clay">How reserving works</p>
             <p>
-              Pay {formatPaise(deposit.deposit)} now. When the sale opens on {fmtDate(deposit.terms.saleStartsAt)}, we email a private link to pay the
-              balance{deposit.terms.priceLock === 'booking' ? ' at today’s price' : ''} plus shipping within {deposit.terms.balanceWindowDays} days.
+              {reserveHowItWorks({
+                deposit: deposit.deposit,
+                unitPrice: deposit.unitPrice,
+                qty,
+                priceLock: deposit.terms.priceLock,
+                saleStartsAt: deposit.terms.saleStartsAt,
+                balanceWindowDays: deposit.terms.balanceWindowDays,
+              })}
             </p>
-            <p>Deposit is {deposit.terms.depositRefundable ? 'refundable' : 'non-refundable'}.</p>
+            <p>Deposit is {deposit.terms.depositRefundable ? 'refundable' : 'non-refundable'}. {RESERVE_SEPARATE_NOTE}</p>
           </div>
         )}
         {mode !== 'deposit' && order?.preorder && (
           <div className="space-y-1 border-l border-clay pl-4 text-caption text-ink-soft">
             <p className="text-label uppercase text-clay">Pre-order</p>
-            <p>
-              {order.preorder.shipBy ? `Ships by ${formatShipBy(order.preorder.shipBy)}. ` : ''}
-              {order.preorder.shipCopy}
-            </p>
+            <p>{preorderShipLine(order.preorder.shipBy, order.preorder.shipCopy, formatShipBy)}</p>
           </div>
         )}
         {(priceError || (blocked && order?.issues[0])) && (
