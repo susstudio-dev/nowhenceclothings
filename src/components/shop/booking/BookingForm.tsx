@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Button, Input } from '@/components/ui';
 import { Swatch } from '@/components/ui/Swatch';
 import { SizeSelector } from '@/components/ui/SizeSelector';
@@ -11,6 +11,7 @@ import { validateDetails, type DetailErrors } from '@/lib/commerce/checkout-deta
 import { AddressFieldset, BillingFields, Check, ContactFields } from '../checkout/fields';
 import { TrustLine } from '../checkout/CheckoutView';
 import { payDeposit, useCheckoutDetails } from '../checkout/flow';
+import { checkoutParams, track } from '@/lib/analytics/meta';
 
 export interface BookingFormProps {
   slug: string;
@@ -23,6 +24,8 @@ export interface BookingFormProps {
   ctaLabel: string;
   /** Size display order. */
   sizes?: string[];
+  /** Meta InitiateCheckout on page load: product id, and the per-unit deposit (paise) when the price is public. */
+  analytics?: { productId: string; deposit?: number };
 }
 
 /** A13 /book/{slug}: choose colour + size, pay the deposit, land on /pay/{token}. */
@@ -40,6 +43,15 @@ export function BookingForm(p: BookingFormProps) {
   const [error, setError] = useState<string | null>(null);
   const sizeOrder = useMemo(() => p.sizes ?? [...new Set(p.variants.map((v) => v.size))], [p.sizes, p.variants]);
   const variant = p.variants.find((v) => v.colourId === colourId && v.size === size);
+
+  // Meta InitiateCheckout once per /book visit (no size chosen yet: product id).
+  const initiated = useRef(false);
+  const a = p.analytics;
+  useEffect(() => {
+    if (initiated.current || !a) return;
+    initiated.current = true;
+    track('InitiateCheckout', checkoutParams([{ productId: a.productId, qty: 1 }], a.deposit));
+  }, [a]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();

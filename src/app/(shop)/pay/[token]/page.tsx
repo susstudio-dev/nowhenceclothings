@@ -128,6 +128,7 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
               phone={b.phone}
               email={b.email}
               balance={q.balance}
+              analytics={{ sku: b.sku, qty: b.qty }}
               address={b.address ? { name: b.address.name, line1: b.address.line1, line2: b.address.line2, city: b.address.city, state: b.address.state, pincode: b.address.pincode } : undefined}
             />
           </section>

@@ -9,6 +9,7 @@ import { AddressFieldset, BillingFields, ContactFields } from '../checkout/field
 import { TrustLine } from '../checkout/CheckoutView';
 import { useCheckoutDetails } from '../checkout/flow';
 import { payWithRazorpay, type CheckoutOpts } from './pay';
+import { balanceEventId, checkoutParams, trackOnce } from '@/lib/analytics/meta';
 
 /** A13 /pay/{token}: delivery + billing address, then pay the server-computed balance. */
 export function BalanceForm({
@@ -18,6 +19,7 @@ export function BalanceForm({
   email,
   balance,
   address,
+  analytics,
 }: {
   token: string;
   name: string;
@@ -26,6 +28,8 @@ export function BalanceForm({
   email?: string;
   /** Address given at booking, if any. */
   address?: AddressFields;
+  /** Booked piece, for the Meta Purchase content_ids. */
+  analytics?: { sku: string; qty: number };
 }) {
   const router = useRouter();
   const { details, setDetails } = useCheckoutDetails();
@@ -66,7 +70,13 @@ export function BalanceForm({
       const json = (await res.json().catch(() => ({}))) as { error?: string; number?: string; razorpay?: CheckoutOpts };
       if (!res.ok || !json.razorpay) throw new Error(json.error || 'Could not start the payment.');
       saveRemembered(details);
-      const out = await payWithRazorpay(json.razorpay, `Booking ${json.number} balance`);
+      const rz = json.razorpay;
+      // Meta Purchase for the balance actually charged. Its own eventID: the
+      // deposit already used the booking number, and Meta would dedupe the two.
+      const eventID = balanceEventId(json.number ?? token);
+      const out = await payWithRazorpay(rz, `Booking ${json.number} balance`, () =>
+        trackOnce(eventID, 'Purchase', checkoutParams(analytics ? [analytics] : [], rz.amount), { eventID }),
+      );
       if (out === 'paid') router.refresh();
       setBusy(false);
     } catch (err) {

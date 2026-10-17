@@ -28,7 +28,7 @@ export async function PUT(req: Request) {
     await log(
       'settings_update',
       'settings.json',
-      `flatFee=${settings.shipping.flatFee} free>=${settings.shipping.freeShippingThreshold} returns=${settings.returns.windowDays}d fonts=${settings.brand.displayFont}/${settings.brand.bodyFont}`,
+      `flatFee=${settings.shipping.flatFee} free>=${settings.shipping.freeShippingThreshold} returns=${settings.returns.windowDays}d fonts=${settings.brand.displayFont}/${settings.brand.bodyFont} pixel=${settings.analytics.metaPixelId || 'off'}`,
     );
     await purgeEdge();
     return json({ settings });

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { headers } from 'next/headers';
 import './globals.css';
 import { fontVariables } from '@/components/chrome/fonts';
 import { getSettings } from '@/lib/content';
@@ -7,6 +8,8 @@ import { brandCssText } from '@/lib/brand';
 import { SettingsDoc } from '@/lib/schemas/settings';
 import { DEFAULT_ICON } from '@/lib/brand-defaults';
 import { DEFAULT_DESCRIPTION } from '@/lib/seo';
+import { MetaPixel } from '@/components/analytics/MetaPixel';
+import { isTrackedPath, normalisePixelId } from '@/lib/analytics/meta';
 
 // Brand (A9) is read at request time: colours + fonts become CSS variables and
 // the favicon comes from /icon.png (settings-driven), so no rebuild is needed.
@@ -44,14 +47,31 @@ export async function generateViewport(): Promise<Viewport> {
   return { themeColor: s.brand.colours.paper };
 }
 
+/**
+ * Meta Pixel id for this request, or '' (off). Settings -> Marketing owns the
+ * id; /admin never gets the pixel. Middleware stamps `x-admin-path` on every
+ * /admin request (custom-worker.mjs strips any client-sent copy, so a public
+ * page cannot be cached without the pixel by spoofing it).
+ */
+async function pixelIdFor(s: SettingsDoc): Promise<string> {
+  const adminPath = (await headers()).get('x-admin-path');
+  if (adminPath && !isTrackedPath(adminPath)) return '';
+  return normalisePixelId(s.analytics.metaPixelId);
+}
+
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const s = await loadSettings();
+  const pixelId = await pixelIdFor(s);
   return (
     <html lang="en-IN" className={fontVariables}>
       <head>
         <style id="brand-vars" dangerouslySetInnerHTML={{ __html: brandCssText(s.brand) }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {/* Before children: its effects (bootstrap) run before page effects (ViewContent etc). */}
+        {pixelId && <MetaPixel pixelId={pixelId} />}
+        {children}
+      </body>
     </html>
   );
 }

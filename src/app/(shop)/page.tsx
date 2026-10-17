@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { BlockRenderer } from '@/components/shop/BlockRenderer';
 import { ComingSoonSection } from '@/components/shop/ComingSoonGrid';
-import { PresaleHero } from '@/components/shop/PresaleHero';
+import { HomeEditorial } from '@/components/shop/HomeEditorial';
+import { PresaleHero, PresaleNote } from '@/components/shop/PresaleHero';
 import { heroPresaleProduct } from '@/components/shop/quick-buy';
 import { getCatalogue, getInventory } from '@/lib/catalogue';
 import { getSettings, getSiteContent } from '@/lib/content';
@@ -37,14 +38,25 @@ export default async function HomePage() {
     .map((b) => (b.type === 'hero' && isPlaceholderMedia(b.media) ? { ...b, media: DEFAULT_HERO_MEDIA } : b))
     // The footer already carries the newsletter; unfinished story copy never ships.
     .filter((b) => b.type !== 'newsletter' && !(b.type === 'story' && isPlaceholderCopy(b.body)));
-  // The presale piece takes the lead slot in place of the editorial hero.
+  // The presale piece takes the lead slot; the editorial hero's words and image move to the brand moment below it.
+  const hero = blocks.find((b) => b.type === 'hero');
   const ordered = featured ? blocks.filter((b) => b.type !== 'hero') : blocks;
+  const editorial = featured && hero?.type === 'hero' && hero.heading.trim() ? hero : undefined;
+  // Sections above bring their own bottom padding, except a full-bleed hero or the pre-order strip.
+  const soonSpacing = featured && (editorial || ordered.length) ? undefined : 'pt-section';
 
   return (
     <>
-      {featured && <PresaleHero product={featured} inventory={inventory} />}
+      {featured && (
+        <>
+          <PresaleHero product={featured} />
+          <PresaleNote product={featured} />
+          {editorial && <HomeEditorial heading={editorial.heading} body={editorial.subheading} media={editorial.media} cta={editorial.cta} />}
+        </>
+      )}
       <BlockRenderer blocks={ordered} ctx={{ catalogue, inventory }} firstIsHero={!featured} />
-      <ComingSoonSection heading={d.home.heading} products={soon} inventory={inventory} drops={catalogue.drops} />
+      {/* Last on the page: the footer's own top margin is the gap, so no bottom padding here. */}
+      <ComingSoonSection heading={d.home.heading} products={soon} className={soonSpacing} />
       {products.length === 0 && soon.length === 0 && (
         <section className="container-page py-section text-center">
           <p className="eyebrow">Nowhence</p>

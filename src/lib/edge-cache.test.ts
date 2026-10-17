@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HTML_MAX_EDGE_TTL, edgeTtl, isCacheableRequest, purgePathsFor } from './edge-cache';
+import { HTML_MAX_EDGE_TTL, edgeTtl, isCacheableRequest, purgePathsFor, withoutInternalHeaders } from './edge-cache';
 import { purgeEdge } from './edge-purge';
 
 const req = (url: string, extra: Partial<Parameters<typeof isCacheableRequest>[0]> = {}) =>
@@ -49,5 +49,19 @@ describe('purge', () => {
     expect(n).toBe(3);
     expect(seen).toContain('https://x.test/coming-soon');
     expect(await purgeEdge({}, null)).toBe(0);
+  });
+});
+
+describe('withoutInternalHeaders', () => {
+  it('strips a client-sent x-admin-path (would hide the Meta Pixel on a cached public page)', () => {
+    const h = new Headers({ 'x-admin-path': '/admin', accept: 'text/html' });
+    const out = withoutInternalHeaders(h)!;
+    expect(out.has('x-admin-path')).toBe(false);
+    expect(out.get('accept')).toBe('text/html');
+    expect(h.has('x-admin-path')).toBe(true); // input untouched
+  });
+
+  it('returns null when there is nothing to strip', () => {
+    expect(withoutInternalHeaders(new Headers({ accept: 'text/html' }))).toBeNull();
   });
 });

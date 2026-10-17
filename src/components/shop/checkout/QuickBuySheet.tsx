@@ -4,7 +4,7 @@
 // then Razorpay opens on top of it. Prices shown come from the server.
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Button, Image, Input, cn } from '@/components/ui';
 import type { MediaRef } from '@/lib/schemas/common';
 import { Sheet } from '@/components/ui/Sheet';
@@ -21,6 +21,7 @@ import { TrustLine } from './CheckoutView';
 import { payDeposit, payForOrder, useCheckoutDetails } from './flow';
 import { preorderShipLine, reserveHowItWorks } from '../presale-copy';
 import { RESERVE_SEPARATE_NOTE } from '../quick-buy';
+import { checkoutParams, track } from '@/lib/analytics/meta';
 
 /** Structural subset of a (public) catalogue product. */
 export interface QuickBuyProduct {
@@ -36,7 +37,10 @@ export type QuickBuyMode = 'deposit' | 'full' | 'buy';
 export interface QuickBuySheetProps {
   product: QuickBuyProduct;
   colourId: string;
-  size: string;
+  /** Preselected size; omit or '' to have the customer choose one in the sheet. */
+  size?: string;
+  /** Display-only amounts (paise) shown before a size is chosen; the server reprices on selection. */
+  preview?: { price?: number; deposit?: number };
   /** deposit = A13 pre-booking; full = A11 pre-order paid in full; buy = in-stock. */
   mode: QuickBuyMode;
   onClose: () => void;
@@ -99,7 +103,7 @@ function usePricing(mode: QuickBuyMode, slug: string, sku: string | undefined, q
   return { order, deposit, error, loading };
 }
 
-export function QuickBuySheet({ product, colourId: initialColour, size: initialSize, mode, onClose, open = true, accessCode, unavailableSizes = [] }: QuickBuySheetProps) {
+export function QuickBuySheet({ product, colourId: initialColour, size: initialSize = '', mode, onClose, open = true, accessCode, unavailableSizes = [], preview }: QuickBuySheetProps) {
   const router = useRouter();
   const [colourId, setColourId] = useState(initialColour || product.colours[0]?.id || '');
   const [size, setSize] = useState(initialSize);
@@ -140,24 +144,40 @@ export function QuickBuySheet({ product, colourId: initialColour, size: initialS
   const limit = mode === 'deposit' ? Math.min(10, deposit?.perCustomerLimit ?? 1) : Math.min(10, Math.max(1, line?.available ?? 10));
   const needsCode = mode === 'deposit' ? deposit?.access === 'code' : order?.preorder?.access === 'code';
   const amount = mode === 'deposit' ? deposit?.deposit : order?.total;
+  // Before a size is picked there is no server quote yet: show the display preview.
+  const shownAmount = amount ?? (variant ? undefined : mode === 'deposit' ? preview?.deposit : preview?.price);
   const blocked = mode !== 'deposit' && Boolean(order?.issues.length);
 
+  // Meta InitiateCheckout once per sheet opening (buy, pre-order or reserve),
+  // as soon as the server has priced it: value = what this sheet will charge.
+  const initiated = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      initiated.current = false;
+      return;
+    }
+    if (initiated.current || !variant || amount == null) return;
+    initiated.current = true;
+    track('InitiateCheckout', checkoutParams([{ sku: variant.sku, qty }], amount));
+  }, [open, variant, qty, amount]);
+
   const cta =
-    amount == null
+    shownAmount == null
       ? mode === 'deposit'
         ? 'Reserve'
         : 'Pay'
       : mode === 'deposit'
-        ? `Reserve for ${formatPaise(amount)}`
+        ? `Reserve for ${formatPaise(shownAmount)}`
         : mode === 'full'
-          ? `Pre-order · ${formatPaise(amount)}`
-          : `Pay ${formatPaise(amount)}`;
+          ? `Pre-order · ${formatPaise(shownAmount)}`
+          : `Pay ${formatPaise(shownAmount)}`;
 
   async function submit(e?: FormEvent) {
     e?.preventDefault();
     setFormError(null);
     if (!variant) {
       setErrors({ size: 'Choose a size.' });
+      requestAnimationFrame(() => document.querySelector<HTMLElement>('[role="dialog"] [role="radiogroup"] input:not([disabled]), [role="dialog"] [role="radiogroup"] [role="radio"]')?.focus());
       return;
     }
     const v = validateDetails(details, { requireAddress: mode !== 'deposit' || addAddress });
@@ -200,7 +220,7 @@ export function QuickBuySheet({ product, colourId: initialColour, size: initialS
               {formError}
             </p>
           )}
-          <Button type="button" onClick={() => submit()} fullWidth size="lg" loading={busy} disabled={busy || loading || blocked || !variant || amount == null}>
+          <Button type="button" onClick={() => submit()} fullWidth size="lg" loading={busy} disabled={busy || blocked || (Boolean(variant) && (loading || amount == null))}>
             {cta}
           </Button>
           <TrustLine />
@@ -225,11 +245,18 @@ export function QuickBuySheet({ product, colourId: initialColour, size: initialS
                   <>
                     {formatPaise(deposit.deposit)} today <span className="text-muted">· {formatPaise(deposit.unitPrice * qty)} in all</span>
                   </>
+                ) : !variant && preview?.deposit != null ? (
+                  <>
+                    {formatPaise(preview.deposit)} today
+                    {preview.price != null && <span className="text-muted"> · {formatPaise(preview.price)} in all</span>}
+                  </>
                 ) : (
                   <span className="skeleton inline-block h-4 w-32 align-middle" />
                 )
               ) : line ? (
                 formatPaise(line.lineTotal)
+              ) : !variant && preview?.price != null ? (
+                formatPaise(preview.price)
               ) : (
                 <span className="skeleton inline-block h-4 w-20 align-middle" />
               )}
@@ -246,7 +273,7 @@ export function QuickBuySheet({ product, colourId: initialColour, size: initialS
               onChange={(v) => setColourId(v)}
             />
           )}
-          <SizeSelector options={sizes} value={size} onChange={(v) => setSize(v)} error={errors.size} />
+          <SizeSelector options={sizes} value={size} onChange={(v) => { setSize(v); setErrors((e) => ({ ...e, size: undefined })); }} error={errors.size} />
           {limit > 1 && (
             <div className="flex items-center justify-between">
               <span className="text-label uppercase text-ink">Quantity</span>

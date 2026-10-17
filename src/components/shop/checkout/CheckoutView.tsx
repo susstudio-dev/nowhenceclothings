@@ -3,7 +3,7 @@
 // summary beside (desktop) or folded above (mobile). Razorpay opens in-page.
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Button, Input, cn } from '@/components/ui';
 import { IconChevronDown } from '@/components/ui/icons';
 import { clearCart, useCart } from '@/lib/commerce/cart-client';
@@ -15,6 +15,7 @@ import { EmptyBag } from '../cart-drawer';
 import { storedPresaleCode } from '../PresaleAccessGate';
 import { AddressFieldset, BillingFields, Check, ContactFields, Step } from './fields';
 import { FlowError, payForOrder, useCheckoutDetails } from './flow';
+import { checkoutParams, track } from '@/lib/analytics/meta';
 
 export function TrustLine({ className }: { className?: string }) {
   return (
@@ -44,6 +45,17 @@ export function CheckoutView() {
     const saved = storedPresaleCode();
     if (saved) setAccessCode(saved);
   }, []);
+
+  // Meta InitiateCheckout: once per /checkout visit with a non-empty bag,
+  // valued by the server quote (cart snapshot only if the quote failed).
+  const initiated = useRef(false);
+  useEffect(() => {
+    if (initiated.current || !hydrated || !cart.lines.length || (!quote && !quoteError)) return;
+    initiated.current = true;
+    const items = quote ? quote.lines : cart.lines;
+    const amount = quote ? quote.total : cart.lines.reduce((n, l) => n + (l.unitPrice ?? 0) * l.qty, 0);
+    track('InitiateCheckout', checkoutParams(items, amount));
+  }, [hydrated, cart.lines, quote, quoteError]);
 
   const firstError = useMemo(() => Object.keys(errors)[0], [errors]);
   useEffect(() => {

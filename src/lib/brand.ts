@@ -123,7 +123,7 @@ export function emailFromHeader(email: SettingsDoc['email']): string {
   return `${name} <${addr}>`;
 }
 
-export type SettingsTab = 'brand' | 'shipping' | 'returns' | 'legal' | 'email' | 'launches';
+export type SettingsTab = 'brand' | 'shipping' | 'returns' | 'legal' | 'email' | 'launches' | 'marketing';
 export interface ReadinessItem {
   id: string;
   label: string;

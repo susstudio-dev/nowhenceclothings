@@ -79,3 +79,19 @@ export function purgePathsFor(opts: { productSlugs?: string[]; extra?: string[] 
   const products = (opts.productSlugs ?? []).map((s) => `/products/${encodeURIComponent(s)}`);
   return [...new Set([...base, ...products, ...(opts.extra ?? [])])];
 }
+
+/**
+ * Request headers only middleware may set (it stamps `x-admin-path` on /admin
+ * requests; the root layout reads it to keep the Meta Pixel off the studio).
+ * A client-sent copy on a public URL would otherwise render — and edge-cache
+ * for everyone — a page without the pixel, so the worker strips them first.
+ */
+export const INTERNAL_REQUEST_HEADERS = ['x-admin-path'] as const;
+
+/** A copy of `headers` without internal ones, or null when there is nothing to strip. */
+export function withoutInternalHeaders(headers: Headers): Headers | null {
+  if (!INTERNAL_REQUEST_HEADERS.some((h) => headers.has(h))) return null;
+  const out = new Headers(headers);
+  for (const h of INTERNAL_REQUEST_HEADERS) out.delete(h);
+  return out;
+}

@@ -22,6 +22,21 @@ describe('security + cache headers (next.config.mjs)', async () => {
     expect(header('/:path*', 'Strict-Transport-Security')).toMatch(/max-age=\d+/);
   });
 
+  it('allows the Meta Pixel and nothing broader', () => {
+    const csp = header('/:path*', 'Content-Security-Policy')!;
+    const dir = (name: string) => csp.split(';').map((d) => d.trim()).find((d) => d.startsWith(name + ' '))!;
+    expect(dir('script-src').split(' ')).toContain('https://connect.facebook.net');
+    expect(dir('connect-src').split(' ')).toEqual(
+      expect.arrayContaining(["'self'", 'https://www.facebook.com', 'https://connect.facebook.net', 'https://api.razorpay.com']),
+    );
+    // The noscript / fallback beacon is an <img> to www.facebook.com/tr.
+    expect(dir('img-src').split(' ')).toContain('https:');
+    // Unchanged: no Meta frames, no wildcard scripts.
+    expect(dir('frame-src')).toBe('frame-src https://api.razorpay.com https://checkout.razorpay.com https://www.facebook.com');
+    expect(dir('script-src')).not.toMatch(/\*|https:(\s|$)/);
+    expect(dir('default-src')).toBe("default-src 'self'");
+  });
+
   it('never caches or indexes admin, api, checkout, orders', () => {
     for (const s of ['/admin/:path*', '/api/:path*', '/checkout', '/orders/:path*']) {
       expect(header(s, 'Cache-Control')).toBe('no-store, private');

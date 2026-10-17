@@ -10,6 +10,9 @@
 //   api.razorpay.com / checkout.razorpay.com, XHR to api + lumberjack.
 // - static.cloudflareinsights.com / cloudflareinsights.com cover the Web
 //   Analytics beacon Cloudflare injects at the edge.
+// - Meta Pixel: fbevents.js (+ per-pixel config) from connect.facebook.net,
+//   events to www.facebook.com/tr (XHR/beacon; the <img> fallback is covered
+//   by img-src https:). Settings -> Marketing can turn the pixel off.
 // - img-src allows https: for seed placeholders (placehold.co) and external
 //   editorial images; uploads are served same-origin from /media.
 // - React Fast Refresh needs eval() in dev only; production stays eval-free.
@@ -20,14 +23,14 @@ const CSP = [
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
-  "form-action 'self'",
-  `script-src 'self' 'unsafe-inline'${devEval} https://checkout.razorpay.com https://static.cloudflareinsights.com`,
+  "form-action 'self' https://www.facebook.com",
+  `script-src 'self' 'unsafe-inline'${devEval} https://checkout.razorpay.com https://static.cloudflareinsights.com https://connect.facebook.net`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com https://cloudflareinsights.com",
+  "connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net",
   "media-src 'self' https:",
-  'frame-src https://api.razorpay.com https://checkout.razorpay.com',
+  'frame-src https://api.razorpay.com https://checkout.razorpay.com https://www.facebook.com',
   'upgrade-insecure-requests',
 ].join('; ');
 

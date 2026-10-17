@@ -276,7 +276,7 @@ export function toPublicOrder(o: Order): PublicOrder {
     number: o.number,
     status: o.status,
     createdAt: o.createdAt,
-    lines: o.lines.map((l) => ({ title: l.title, colour: l.colour, size: l.size, qty: l.qty, unitPrice: l.unitPrice, image: l.image })),
+    lines: o.lines.map((l) => ({ sku: l.sku, title: l.title, colour: l.colour, size: l.size, qty: l.qty, unitPrice: l.unitPrice, image: l.image })),
     subtotal: o.subtotal,
     discount: o.discount,
     shipping: o.shipping,

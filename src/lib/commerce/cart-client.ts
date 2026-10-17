@@ -5,6 +5,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { addLine, EMPTY_CART, removeLineFrom, setCoupon, updateLineQty, wouldMixPresale, type CartLine, type CartState } from './cart-core';
+import { addToCartParams, track } from '../analytics/meta';
 
 export type { CartLine, CartState } from './cart-core';
 
@@ -69,6 +70,9 @@ export function addToCart(line: CartLine, opts: { open?: boolean } = {}) {
   if (wouldMixPresale(state, line)) throw new MixedCartError();
   if (opts.open !== false) drawerOpen = true;
   commit(addLine(state, line, MAX_QTY));
+  // Every add path goes through here (bag button, Buy now). Only buyable
+  // pieces reach the bag, so no hidden coming-soon title/price is sent.
+  track('AddToCart', addToCartParams(line));
 }
 export function updateQty(sku: string, qty: number) {
   ensureHydrated();

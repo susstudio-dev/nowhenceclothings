@@ -107,7 +107,7 @@ export default async function ProductPage({ params }: Props) {
   const items = details.filter((x): x is AccordionItem => !!x);
 
   return (
-    <div className="container-page pb-section pt-4 md:pt-8">
+    <div className="container-page pt-4 md:pt-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd.filter(Boolean)).replace(/</g, '\\u003c') }} />
       <nav aria-label="Breadcrumb" className="mb-4 hidden text-caption text-muted md:mb-6 md:block">
         <ol className="flex flex-wrap gap-2">

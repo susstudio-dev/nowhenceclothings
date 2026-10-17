@@ -9,6 +9,7 @@ import type { PublicOrder } from '@/lib/commerce/types';
 import { formatPaise } from '@/lib/money';
 import { LAST_ORDER_KEY } from './checkout/flow';
 import { LineThumb, formatShipBy } from './cart-lines';
+import { checkoutParams, isPaidStatus, trackOnce } from '@/lib/analytics/meta';
 
 const STATUS_LABEL: Record<string, string> = {
   pending_payment: 'Awaiting payment',
@@ -214,6 +215,12 @@ export function OrderConfirmation() {
       try {
         const o = await lookup(number, email);
         setOrder(o);
+        // Meta Purchase once the server has the order as paid (never for a
+        // refunded oversell). sessionStorage flag per order number: reloads
+        // of this page do not count twice; eventID = order number for dedup.
+        if (isPaidStatus(o.status)) {
+          trackOnce(o.number, 'Purchase', checkoutParams(o.lines, o.total), { eventID: o.number });
+        }
         // Keep polling briefly until paid, and once more for the invoice link.
         if ((o.status === 'pending_payment' || (o.status === 'paid' && !o.documents?.length)) && ++tries < 10) timer = setTimeout(poll, 2000);
       } catch (err) {

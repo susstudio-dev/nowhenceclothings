@@ -110,7 +110,8 @@ export interface PublicOrder {
   number: string;
   status: string;
   createdAt: string;
-  lines: { title: string; colour: string; size: string; qty: number; unitPrice: number; image?: string }[];
+  /** `sku` lets the confirmation page report content_ids to analytics. */
+  lines: { sku?: string; title: string; colour: string; size: string; qty: number; unitPrice: number; image?: string }[];
   subtotal: number;
   discount: number;
   shipping: number;

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import type { CheckoutResponse } from '@/lib/commerce/types';
 import { EMPTY_DETAILS, detailsPayload, loadRemembered, saveRemembered, type CheckoutDetails } from '@/lib/commerce/checkout-details';
 import { payWithRazorpay, type CheckoutOpts } from '../booking/pay';
+import { checkoutParams, trackOnce } from '@/lib/analytics/meta';
 
 export const LAST_ORDER_KEY = 'nowhence.lastOrder';
 
@@ -88,6 +89,11 @@ export async function payDeposit(input: {
   const json = (await res.json().catch(() => ({}))) as { error?: string; code?: string; token?: string; number?: string; razorpay?: CheckoutOpts };
   if (!res.ok || !json.token || !json.razorpay || !json.number) throw new FlowError(json.error || 'Booking failed. Please retry.', json.code);
   saveRemembered(input.details);
-  const result = await payWithRazorpay(json.razorpay, `Booking ${json.number} deposit`);
-  return { result, token: json.token, number: json.number };
+  const number = json.number;
+  const charged = json.razorpay.amount;
+  // Meta Purchase for the deposit actually paid; eventID = booking number.
+  const result = await payWithRazorpay(json.razorpay, `Booking ${number} deposit`, () =>
+    trackOnce(number, 'Purchase', checkoutParams([{ sku: input.sku, qty: input.qty }], charged), { eventID: number }),
+  );
+  return { result, token: json.token, number };
 }

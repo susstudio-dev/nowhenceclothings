@@ -19,6 +19,7 @@ import { variantPrice } from './merch';
 import { QuickBuySheet } from './checkout/QuickBuySheet';
 import { quickBuyAction, RESERVE_SEPARATE_NOTE, sizeGridClass } from './quick-buy';
 import { countdownFor, depositSummary, depositTodayLine } from './presale-copy';
+import { track, viewContentParams } from '@/lib/analytics/meta';
 
 export interface ProductViewProps {
   product: Product;
@@ -59,6 +60,16 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
   const [sizeError, setSizeError] = useState(false);
   const [quick, setQuick] = useState(false);
   const colour = product.colours.find((c) => c.id === colourId) ?? product.colours[0];
+
+  // Meta ViewContent, once per product view. Skipped while a coming-soon
+  // piece hides its title or price (A10 secrecy: never sent to Meta).
+  const viewed = useRef<string | null>(null);
+  const secret = !!launch?.titleHidden || !!launch?.priceHidden;
+  useEffect(() => {
+    if (secret || viewed.current === product.id) return;
+    viewed.current = product.id;
+    track('ViewContent', viewContentParams({ productId: product.id, title: product.title, price: variantPrice(product, undefined).amount }));
+  }, [secret, product]);
 
   const variantsBySize = useMemo(
     () => new Map(product.variants.filter((v) => v.colourId === colour.id).map((v) => [v.size, v])),
@@ -145,25 +156,33 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
             {eyebrow && <p className="eyebrow">{eyebrow}</p>}
             {launch?.badge && launch.state !== 'available' && <p className="care-tag">{launch.badge}</p>}
           </div>
-          <h1 className="mt-3 text-balance font-display text-h2 font-light md:text-h1">{product.title}</h1>
+          <h1 className="mt-4 text-balance font-display text-h3 font-light lg:text-[2.5rem] lg:leading-[1.1]">{product.title}</h1>
+          {product.colours.length === 1 && <p className="mt-1 text-small text-muted">{colour.name}</p>}
           {!launch?.priceHidden && (
-            <div className="mt-3 flex items-baseline gap-3">
+            <div className="mt-4 flex items-baseline gap-3">
               <Price amount={price.amount} compareAt={price.compareAt} size="md" />
               <span className="text-caption text-muted">Inclusive of all taxes</span>
             </div>
           )}
+          {deposit && (
+            <p className="mt-2 text-small tabular-nums text-ink-soft">
+              {depositTerms ? depositTodayLine(depositTerms) : `${deposit.label} today · the balance when the sale opens`}
+            </p>
+          )}
           {soon && launch?.teaser && <p className="mt-6 max-w-md text-small text-ink-soft">{launch.teaser}</p>}
-          {pre?.shipCopy && <p className="mt-4 text-small text-ink-soft">{pre.shipCopy}</p>}
+          {pre?.shipCopy && <p className="mt-2 text-small text-muted">{pre.shipCopy}</p>}
 
           <div className="mt-8 space-y-8 border-t border-line pt-8">
-            <Swatch
-              options={product.colours.map((c) => ({ value: c.id, label: c.name, hex: c.hex }))}
-              value={colour.id}
-              onChange={(v) => {
-                setColourId(v);
-                setStatus('idle');
-              }}
-            />
+            {product.colours.length > 1 && (
+              <Swatch
+                options={product.colours.map((c) => ({ value: c.id, label: c.name, hex: c.hex }))}
+                value={colour.id}
+                onChange={(v) => {
+                  setColourId(v);
+                  setStatus('idle');
+                }}
+              />
+            )}
 
             {!soon && (
               <div id="pdp-size">
@@ -209,13 +228,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
                   <NotifyMe sku={variant.sku} />
                 </>
               ) : deposit ? (
-                <>
-                  <Button fullWidth size="lg" onClick={buyNow}>{primaryLabel}</Button>
-                  <p className="text-small tabular-nums text-ink-soft">
-                    {depositTerms ? depositTodayLine(depositTerms) : `${deposit.label} today · the balance when the sale opens`}
-                  </p>
-                  <p className="text-caption text-muted">{RESERVE_SEPARATE_NOTE}</p>
-                </>
+                <Button fullWidth size="lg" onClick={buyNow}>{primaryLabel}</Button>
               ) : (
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Button fullWidth size="lg" onClick={buyNow} className="sm:order-2">
@@ -227,15 +240,16 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
                 </div>
               )}
               {pre && (
-                <div className="space-y-3 text-caption text-muted">
+                <div className="space-y-1.5 text-caption text-muted">
                   {pre.access === 'waitlist' && (
-                    <>
+                    <div className="space-y-3 pb-2">
                       <p>Open to the waitlist only. Check out with the email you signed up with, or join below.</p>
                       <NotifyMe productId={product.id} label="Join the waitlist" />
-                    </>
+                    </div>
                   )}
-                  {preCountdown && <Countdown releaseAt={preCountdown.at} label={preCountdown.label} />}
-                  <p>Limit {pre.perCustomerLimit} per customer.{deposit ? " Full booking terms are shown before you pay." : ` ${pre.terms}`}</p>
+                  {preCountdown && <Countdown variant="inline" releaseAt={preCountdown.at} label={preCountdown.label} className="text-ink-soft" />}
+                  {deposit && <p>{RESERVE_SEPARATE_NOTE}</p>}
+                  <p>Limit {pre.perCustomerLimit} per customer.{deposit ? ' Full booking terms are shown before you pay.' : ` ${pre.terms}`}</p>
                 </div>
               )}
               <p role="status" className="min-h-[1.25rem] text-small">

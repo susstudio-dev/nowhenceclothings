@@ -32,8 +32,11 @@ function loadCheckoutJs(): Promise<void> {
   });
 }
 
-/** Resolves 'paid' (verified or still confirming) or 'dismissed'; rejects with a message. */
-export async function payWithRazorpay(opts: CheckoutOpts, description: string): Promise<'paid' | 'dismissed'> {
+/**
+ * Resolves 'paid' (verified or still confirming) or 'dismissed'; rejects with a message.
+ * `onVerified` runs only when /api/razorpay/verify accepted the signature (analytics Purchase).
+ */
+export async function payWithRazorpay(opts: CheckoutOpts, description: string, onVerified?: () => void): Promise<'paid' | 'dismissed'> {
   await loadCheckoutJs();
   return new Promise((resolve, reject) => {
     // Razorpay keeps the modal open after a failed attempt so the buyer can retry;
@@ -55,6 +58,13 @@ export async function payWithRazorpay(opts: CheckoutOpts, description: string): 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(r),
         }).catch(() => null);
+        if (vr?.ok) {
+          try {
+            onVerified?.();
+          } catch {
+            /* analytics must never block the flow */
+          }
+        }
         if (!vr || vr.ok || vr.status >= 500) return resolve('paid');
         const vj = (await vr.json().catch(() => ({}))) as { error?: string };
         reject(new Error(vj.error || 'Payment could not be verified. You have not been charged twice.'));

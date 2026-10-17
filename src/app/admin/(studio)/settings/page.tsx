@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/admin/kit';
 
 export const metadata = { title: 'Settings' };
 
-const TABS: SettingsTab[] = ['brand', 'shipping', 'returns', 'legal', 'email', 'launches'];
+const TABS: SettingsTab[] = ['brand', 'shipping', 'returns', 'legal', 'email', 'launches', 'marketing'];
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const admin = await requireAdmin('manager');
@@ -15,7 +15,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const tab = TABS.find((t) => t === sp.tab) ?? 'brand';
   return (
     <div className="space-y-6">
-      <PageHeader title="Settings" description="Brand, shipping, returns, legal, email and launch defaults." />
+      <PageHeader title="Settings" description="Brand, shipping, returns, legal, email, launch defaults and marketing." />
       <SettingsForm key={tab} initial={settings} initialTab={tab} canEdit={roleHas(admin.role, 'settings.write')} />
     </div>
   );

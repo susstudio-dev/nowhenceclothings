@@ -9,6 +9,7 @@ import { MediaPickerField } from './MediaPicker';
 import { LaunchSettingsPanel } from './LaunchSettingsPanel';
 import { mediaPreviewSrc } from './MediaUploader';
 import { useMsgToast } from './useMsgToast';
+import { META_PIXEL_ID_RE } from '@/lib/analytics/meta';
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'brand', label: 'Brand' },
@@ -17,6 +18,7 @@ const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'legal', label: 'Legal' },
   { id: 'email', label: 'Email' },
   { id: 'launches', label: 'Launches' },
+  { id: 'marketing', label: 'Marketing' },
 ];
 
 const textarea = 'w-full border border-line bg-paper px-3 py-2 text-sm focus:border-ink focus:outline-none';
@@ -68,6 +70,7 @@ export function SettingsForm({
     setS((cur) => ({ ...cur, brand: { ...cur.brand, colours: { ...cur.brand.colours, ...patch } } }));
 
   const checks = brandContrastChecks(s.brand.colours);
+  const pixelOk = !s.analytics.metaPixelId.trim() || META_PIXEL_ID_RE.test(s.analytics.metaPixelId.trim());
   const readiness = launchReadiness(s);
   const missingByTab = (t: SettingsTab) => readiness.filter((r) => r.tab === t && !r.ok).length;
 
@@ -254,6 +257,31 @@ export function SettingsForm({
         </fieldset>
       </div>
     ),
+    marketing: (
+      <div className="max-w-2xl space-y-4">
+        <Input
+          label="Meta Pixel ID"
+          hint="Digits only, from Meta Events Manager. Leave empty to turn the pixel off."
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={20}
+          value={s.analytics.metaPixelId}
+          error={pixelOk ? undefined : 'Use the numeric pixel ID, e.g. 1574364723928175.'}
+          onChange={(e) => sec('analytics', { metaPixelId: e.target.value.replace(/\s+/g, '') })}
+        />
+        <p className="border border-line p-3 text-sm">
+          {s.analytics.metaPixelId.trim() ? (
+            <>
+              Pixel <b className="font-mono">{s.analytics.metaPixelId.trim()}</b> loads on every storefront page (never in the studio) and sends
+              PageView, ViewContent, AddToCart, InitiateCheckout and Purchase (INR).
+            </>
+          ) : (
+            'Meta Pixel is off. No Meta script loads on the storefront.'
+          )}
+        </p>
+        <p className="text-xs text-muted">Coming-soon pieces with a hidden title or price are never sent to Meta.</p>
+      </div>
+    ),
     email: (
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-3">
@@ -302,10 +330,11 @@ export function SettingsForm({
       </fieldset>
       {canEdit ? (
         <div className="sticky bottom-0 flex items-center gap-3 border-t border-line bg-paper py-3">
-          <Button type="submit" loading={busy} disabled={checks.some((c) => !c.ok)}>
+          <Button type="submit" loading={busy} disabled={checks.some((c) => !c.ok) || !pixelOk}>
             Save settings
           </Button>
           {checks.some((c) => !c.ok) && <span className="text-sm text-sale">Fix colour contrast to save.</span>}
+          {!pixelOk && <span className="text-sm text-sale">Fix the Meta Pixel ID (Marketing) to save.</span>}
           {msg && (
             <span role="status" className={msg.ok ? 'text-sm' : 'text-sm text-sale'}>
               {msg.text}

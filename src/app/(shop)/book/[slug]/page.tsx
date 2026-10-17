@@ -101,6 +101,7 @@ export default async function BookPage({ params, searchParams }: Props) {
               access={win.pre.access}
               initialCode={code?.slice(0, 64)}
               ctaLabel={dep.bookCtaLabel}
+              analytics={{ productId: product.id, ...(pub.price > 0 ? { deposit: unitDeposit } : {}) }}
             />
             <details className="group border-t border-line pt-5">
               <summary className="flex cursor-pointer list-none items-center justify-between text-label uppercase text-ink">

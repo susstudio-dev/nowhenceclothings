@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { Email, MediaRef, Paise } from './common';
 import { LaunchDefaults } from './launches';
+import { DEFAULT_META_PIXEL_ID } from '../analytics/meta';
 
 export const SETTINGS_KEY = 'settings.json';
 
@@ -87,6 +88,18 @@ const Legal = z
   })
   .default({});
 
+/** Marketing / analytics (Settings -> Marketing). Additive: older docs get the defaults. */
+const Analytics = z
+  .object({
+    /** Meta (Facebook) Pixel ID, digits only. Empty string = pixel off. Never loads on /admin. */
+    metaPixelId: z
+      .string()
+      .trim()
+      .regex(/^(\d{6,20})?$/, 'Meta Pixel ID is digits only (from Events Manager), or empty to turn it off')
+      .default(DEFAULT_META_PIXEL_ID),
+  })
+  .default({});
+
 const SettingsShape = z.object({
   /** F13: ISO timestamp of the last save; the admin form echoes it back as an optimistic-concurrency precondition. */
   updatedAt: z.string().default(''),
@@ -154,6 +167,7 @@ const SettingsShape = z.object({
   legal: Legal,
   /** A10/A11 global defaults (Settings -> Launches). */
   launches: LaunchDefaults,
+  analytics: Analytics,
 });
 
 type Raw = Record<string, unknown>;

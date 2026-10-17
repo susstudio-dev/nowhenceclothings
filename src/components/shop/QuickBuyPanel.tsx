@@ -1,11 +1,49 @@
 'use client';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui';
 import { SizeSelector } from '@/components/ui/SizeSelector';
 import { Swatch } from '@/components/ui/Swatch';
 import type { PublicProduct } from '@/lib/launches';
 import { QuickBuySheet } from './checkout/QuickBuySheet';
 import { RESERVE_SEPARATE_NOTE, sizeGridClass, type QuickBuyMode } from './quick-buy';
+
+/**
+ * A16 fast path from editorial surfaces (the home hero): one button that opens the reserve / pre-order
+ * sheet straight away. No size is preselected; the sheet asks for it.
+ */
+export function QuickReserveButton({
+  product,
+  mode,
+  children,
+  className,
+  unavailableSizes,
+}: {
+  product: PublicProduct;
+  mode: QuickBuyMode;
+  children: ReactNode;
+  className?: string;
+  unavailableSizes?: readonly string[];
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)} className={className}>
+        {children}
+      </button>
+      {open && (
+        <QuickBuySheet
+          product={product}
+          colourId={product.colours[0].id}
+          // No size preselected: the sheet shows the price and asks for a size.
+          mode={mode}
+          preview={{ price: product.price, deposit: product.launch.presale?.deposit?.amount }}
+          unavailableSizes={unavailableSizes}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}
 
 /** Colour + size + one primary button; opens checkout/booking in a sheet over the page (A16). */
 export function QuickBuyPanel({
