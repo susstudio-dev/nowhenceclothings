@@ -6,12 +6,13 @@ import { Markdown } from '@/components/shop/Markdown';
 import { ProductGrid } from '@/components/shop/ProductCard';
 import { ProductView } from '@/components/shop/ProductView';
 import { completeTheLook, dropFor, stockMap } from '@/components/shop/merch';
+import { preorderFaq } from '@/components/shop/presale-copy';
 import { getInventory, isReleased } from '@/lib/catalogue';
 import { isIndexable } from '@/lib/launches';
 import { getStorefrontCatalogue } from '@/lib/launches-server';
 import { getSettings } from '@/lib/content';
 import { productBreadcrumb, productLd, jsonLdScript } from '@/lib/jsonld';
-import { formatPaise } from '@/lib/money';
+import { etaSentence, shippingSummary } from '@/lib/store-copy';
 import { buildMetadata, paths, plainText } from '@/lib/seo';
 import { returnsLabel } from '@/lib/static-pages';
 
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: paths.product(p.slug),
     seo: p.seo,
     description: plainText(p.description),
-    descriptionSupport: `${p.title}${preorder ? ', available to pre-order' : ''} from Nowhence. Heavyweight unisex clothing, designed in India.`,
+    descriptionSupport: `${p.title}${preorder ? ', available to pre-order' : ''} from Nowhence. Polos for after the match, embroidered in India.`,
     image: p.colours[0]?.images[0],
     noindex: !isIndexable(p),
     follow: true,
@@ -66,8 +67,8 @@ export default async function ProductPage({ params }: Props) {
       content: (
         <div className="space-y-2">
           <p>
-            Free shipping on orders above {formatPaise(ship.freeShippingThreshold)}; otherwise {formatPaise(ship.flatFee)}.
-            {ship.eta && ` ${ship.eta}.`}
+            {shippingSummary(ship)}
+            {ship.eta && ` ${etaSentence(ship.eta)}.`}
           </p>
           <p>
             {settings.returns.returnsAllowed || settings.returns.exchangesAllowed
@@ -80,6 +81,10 @@ export default async function ProductPage({ params }: Props) {
     },
   ];
   const items = details.filter((x): x is AccordionItem => !!x);
+  const preFaq = preorderFaq(product, {
+    eta: ship.eta ? etaSentence(ship.eta) : undefined,
+    exchange: settings.returns.exchangesAllowed ? { days: settings.returns.windowDays } : undefined,
+  });
 
   return (
     <div className="container-page pt-4 md:pt-8">
@@ -104,6 +109,12 @@ export default async function ProductPage({ params }: Props) {
           <>
             {product.description && launch.state !== 'coming_soon' && (
               <div className="mb-6 text-small text-ink-soft"><Markdown source={product.description} /></div>
+            )}
+            {preFaq.length > 0 && (
+              <section aria-labelledby="preorder-faq" className="mb-6">
+                <h2 id="preorder-faq" className="eyebrow mb-2">Pre-order questions</h2>
+                <Accordion items={preFaq.map((f, i) => ({ id: `pre-${i}`, title: f.q, content: <p>{f.a}</p> }))} defaultOpen={['pre-0']} />
+              </section>
             )}
             <Accordion items={items} />
             {drop && (

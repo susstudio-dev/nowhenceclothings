@@ -12,7 +12,9 @@ import {
   listingHref,
   parseListingParams,
   searchIndex,
+  sizeChartMatrix,
   sizeChartTable,
+  titleWithColour,
   sortProducts,
   variantPrice,
 } from './merch';
@@ -123,5 +125,30 @@ describe('size guide + drops + look', () => {
   it('complete the look prefers relatedIds then cross-category collection mates', () => {
     const t = { ...a, relatedIds: ['cap'] };
     expect(completeTheLook(t, [t, b, c]).map((p) => p.id)).toEqual(['cap', 'pant']);
+  });
+});
+
+describe('sizeChartMatrix', () => {
+  it('leads with body chest and stacks inches over cm', () => {
+    const { sizes, rows } = sizeChartMatrix({
+      id: 'c',
+      name: 'x',
+      measurements: ['chest', 'sleeve'],
+      rows: [{ size: 'M', values: { chest: 104.14 }, bodyChest: { min: 93.98, max: 99.06 } }],
+      modelNote: '',
+    });
+    expect(sizes).toEqual(['M']);
+    expect(rows.map((r) => r.label)).toEqual(['Fits body chest', 'Chest', 'Sleeve']);
+    expect(rows[0].cells[0]).toEqual({ inches: '37–39"', cm: '94–99 cm' });
+    expect(rows[1].cells[0]).toEqual({ inches: '41"', cm: '104 cm' });
+    expect(rows[2].cells[0]).toBeNull();
+  });
+});
+
+describe('titleWithColour', () => {
+  it('never repeats a colour already in the title', () => {
+    expect(titleWithColour('Black Embroidered Polo', 'Black')).toBe('Black Embroidered Polo');
+    expect(titleWithColour('The Panther', 'Black')).toBe('The Panther in Black');
+    expect(titleWithColour('Ocean Blue Polo', 'ocean blue')).toBe('Ocean Blue Polo');
   });
 });

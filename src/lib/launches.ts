@@ -229,6 +229,9 @@ export interface LaunchView {
       amount?: number;
       priceLock?: 'booking' | 'sale';
       balanceWindowDays?: number;
+      /** Booking terms the customer agrees to; shown on the product page before they reserve. */
+      refundable?: boolean;
+      unpaidOutcome?: UnpaidOutcome;
     };
   };
 }
@@ -334,6 +337,8 @@ export function toPublicProduct(product: Product, drops: Drop[], d: LaunchDefaul
                   amount: unitDeposit(priced.price, pre.deposit),
                   priceLock: pre.deposit.priceLock,
                   balanceWindowDays: pre.deposit.balanceWindowDays,
+                  refundable: pre.deposit.depositRefundable,
+                  unpaidOutcome: pre.deposit.unpaidOutcome,
                 },
               }
             : {}),

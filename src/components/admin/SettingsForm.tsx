@@ -13,6 +13,8 @@ import { META_PIXEL_ID_RE } from '@/lib/analytics/meta';
 import { INDEXNOW_KEY_RE } from '@/lib/indexnow';
 import { usableFavicon } from '@/lib/icons';
 import { extractVerificationToken } from '@/lib/seo';
+import { formatPaise } from '@/lib/money';
+import { shippingLooksSwapped, shippingSummary } from '@/lib/store-copy';
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'brand', label: 'Brand' },
@@ -180,6 +182,7 @@ export function SettingsForm({
           <Input label="Flat fee (₹)" type="number" min={0} value={toRupees(s.shipping.flatFee)} onChange={(e) => sec('shipping', { flatFee: toPaise(e.target.value) ?? 0 })} />
           <Input
             label="Free shipping from (₹)"
+            hint="0 = no free shipping; the flat fee applies to every order"
             type="number"
             min={0}
             value={toRupees(s.shipping.freeShippingThreshold)}
@@ -187,6 +190,15 @@ export function SettingsForm({
           />
           <Input label="Delivery estimate" hint="e.g. Ships in 2–4 working days" value={s.shipping.eta} onChange={(e) => sec('shipping', { eta: e.target.value })} />
         </div>
+        <p className="text-sm text-muted">
+          Customers see: <span className="text-ink">{shippingSummary(s.shipping)}</span>
+        </p>
+        {shippingLooksSwapped(s.shipping) && (
+          <p role="alert" className="border-l-2 border-sale pl-3 text-sm text-sale">
+            Free shipping starts at {formatPaise(s.shipping.freeShippingThreshold)}, which is below the {formatPaise(s.shipping.flatFee)} fee, so almost every order ships free. Were the two
+            fields swapped?
+          </p>
+        )}
         <div className="grid gap-4 md:grid-cols-3">
           <Input label="GST rate (%)" type="number" min={0} max={28} value={s.tax.gstRatePercent} onChange={(e) => sec('tax', { gstRatePercent: Number(e.target.value) })} />
           <Input

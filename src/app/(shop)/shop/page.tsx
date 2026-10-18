@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = buildMetadata({
   title: 'Shop all',
   path: paths.shop(),
-  description: 'Every Nowhence piece in one place. Heavyweight unisex cotton, quiet colour, sizes XS to XXL, designed in India.',
+  description: 'Every Nowhence polo in one place. Cotton piqué polos for after the match, each with an animal embroidered in India.',
 });
 
 const crumbs = jsonLdScript(breadcrumbLd([{ name: 'Home', path: paths.home() }, { name: 'Shop', path: paths.shop() }]));

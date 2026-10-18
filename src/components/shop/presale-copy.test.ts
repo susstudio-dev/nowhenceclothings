@@ -5,6 +5,7 @@ import {
   depositSummary,
   depositTodayLine,
   heroDepositLine,
+  preorderFaq,
   preorderShipLine,
   reserveHowItWorks,
 } from './presale-copy';
@@ -98,5 +99,38 @@ describe('preorderShipLine', () => {
   });
   it('without a date it is just the copy', () => {
     expect(preorderShipLine(undefined, 'Made to order.', fmt)).toBe('Made to order.');
+  });
+});
+
+describe('preorderFaq', () => {
+  const reserve = (over: object = {}) =>
+    ({
+      price: 149900,
+      launch: launch({
+        presale: presale({
+          paymentMode: 'deposit',
+          deposit: { label: '₹500', ctaLabel: 'Reserve', amount: 50000, saleStartsAt: SALE, priceLock: 'booking', balanceWindowDays: 7, refundable: false, unpaidOutcome: 'manual', ...over },
+        }),
+      }),
+    }) as Pick<PublicProduct, 'price' | 'launch'>;
+
+  it('states the booking terms before checkout', () => {
+    const faq = preorderFaq(reserve(), { eta: 'Ships in 5–6 working days', exchange: { days: 7 } });
+    expect(faq.map((x) => x.q)).toEqual(['How does reserving work?', 'What if I change my mind?', 'When does it ship?', 'Can I change my size?']);
+    expect(faq[0].a).toBe(
+      'Pay ₹500 today to hold your size. When the sale opens on 31 October, we email you a private link to pay the remaining ₹999 within 7 days. Your ₹500 counts towards the price.',
+    );
+    expect(faq[1].a).toContain('not refundable');
+    expect(faq[1].a).toContain('write to us');
+    expect(faq[2].a).toBe('After the sale opens on 31 October, once your balance is paid. Ships in 5–6 working days from then.');
+    expect(faq[3].a).toContain('within 7 days');
+  });
+
+  it('says refundable when it is', () => {
+    expect(preorderFaq(reserve({ refundable: true }))[1].a).toBe('Your ₹500 reservation is refundable. Write to us before you pay the balance.');
+  });
+
+  it('is empty outside a presale', () => {
+    expect(preorderFaq({ price: 1, launch: launch({ state: 'available' }) })).toEqual([]);
   });
 });

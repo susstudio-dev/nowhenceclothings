@@ -70,6 +70,8 @@ describe('shippingFee', () => {
   it('empty cart is free', () => expect(shippingFee(0, settings)).toBe(0));
   it('below threshold pays flat', () => expect(shippingFee(299899, settings)).toBe(9900));
   it('at threshold is free', () => expect(shippingFee(299900, settings)).toBe(0));
+  it('threshold 0 means flat fee on every order', () =>
+    expect(shippingFee(999999, { shipping: { flatFee: 9900, freeShippingThreshold: 0, eta: '' } })).toBe(9900));
 });
 
 describe('priceCart (C5)', () => {

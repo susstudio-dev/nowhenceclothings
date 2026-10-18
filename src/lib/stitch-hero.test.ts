@@ -43,6 +43,11 @@ describe('motifFor', () => {
   it('knows the panther name for the rings', () => {
     expect(motifFor({ slug: 'black-panther-embroidered-design', title: 'Black Embroidered Polo' })).toBe('rings');
     expect(motifFor({ slug: 'x', title: 'Leopard Rosette Polo' })).toBe('rings');
+    expect(motifFor({ slug: 'x', title: 'The Panther' })).toBe('rings');
+    expect(motifFor({ slug: 'x', title: 'The Kestrel' })).toBe('wing');
+    expect(motifFor({ slug: 'whale-shark-embroidery-design', title: 'The Whale Shark' })).toBe('rain');
+    expect(motifFor({ slug: 'x', title: 'The Crocodile' })).toBe('pebbles');
+    expect(motifFor({ slug: 'x', title: 'The Rattlesnake' })).toBe('diamonds');
   });
   it('falls back to the photographs’ alt text, after the slug and title', () => {
     const renamed = { slug: 'black-embroidered', title: 'Black Embroidered Polo', colours: [{ images: [{ alt: 'Ring Embroidered Polo in Black' }] }] };

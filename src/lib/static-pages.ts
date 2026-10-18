@@ -2,6 +2,8 @@ import type { Page } from './schemas/site-content';
 import type { SettingsDoc } from './schemas/settings';
 import { formatPaise } from './money';
 import { formatLegalDate } from './brand';
+import { displayPhone, etaSentence, instagramHandle, shippingSummary, whatsappUrl } from './store-copy';
+import { socialUrl } from './seo';
 
 // Default copy for the S9 static pages (WS-E). Admin-edited pages in
 // site-content.json win; these render when a page is missing or still holds
@@ -17,35 +19,36 @@ export const DEFAULT_STATIC_PAGES: Record<StaticSlug, Page> = {
     slug: 'about',
     title: 'About',
     seo: {
-      title: 'About Nowhence',
+      title: 'About Nowhence: polos for after the match',
       description:
-        'Nowhence is a unisex clothing label. Fewer pieces, better cloth, cut to be worn by anyone and kept for years.',
+        'Nowhence makes polos for tennis, padel, pickleball and golf players, off court. Each piece carries an animal, embroidered into the cloth in India.',
     },
     blocks: [
       md(
         'about-body',
-        `# Made from nowhere in particular
+        `# Polos for after the match
 
-{{brandName}} began with a simple question. Why do clothes need a gender, a season or a trend to justify them?
+{{brandName}} makes polos for people who play. Tennis, padel, pickleball, golf. Not the kit you sweat through: the one you change into for the coffee, the drive home and the dinner that follows a good game.
 
-We make a small range of unisex pieces. Heavyweight cotton. Honest twill. Colours that sit quietly together. Each piece is cut on one block and graded across sizes XS to XXL, so the fit is decided by the body, not a label.
+Every piece carries an animal. Not a badge on the chest, but the animal's own pattern worked into the cloth. A black panther's rosettes that show only in the right light. A whale shark's spots. A kestrel's feathers, a diamondback's scales, a crocodile's back.
 
-## How we work
+## How we make them
 
-- Fewer styles, made well. We would rather remake a good shirt than invent a new one.
-- Fabric first. We choose the cloth, then design around it.
-- Released in drops. Small runs mean less waste and nothing on sale for long.
+- **One regular-fit block.** Easy through the chest, clean at the shoulder, worn by anyone.
+- **The animal is the detail.** Tonal, close to the cloth, noticed on the second look.
+- **Small runs.** Each animal is released in a limited run.
+- **Embroidered in India.** Cotton piqué, designed and made here.
 
-## Where we are
+## Find us
 
-{{brandName}} is designed in India and made with partners we visit. Our studio is at {{address}}.`,
+{{contactList}}`,
       ),
     ],
   },
   contact: {
     slug: 'contact',
     title: 'Contact',
-    seo: { title: 'Contact Nowhence', description: 'Questions about an order, a size or a piece? Write to Nowhence. We reply within one working day.' },
+    seo: { title: 'Contact Nowhence', description: 'Questions about an order, a size or a piece? Message Nowhence on WhatsApp or email. We reply within one working day.' },
     blocks: [
       md(
         'contact-body',
@@ -53,9 +56,7 @@ We make a small range of unisex pieces. Heavyweight cotton. Honest twill. Colour
 
 Write to us. A person reads every message and replies within one working day.
 
-- Email: [{{email}}](mailto:{{email}})
-- Phone: {{phone}}
-- Studio: {{address}}
+{{contactList}}
 
 For an order, include your order number. It starts with NWH and is in your confirmation email. You can also [track an order](/orders/track) yourself.`,
       ),
@@ -64,20 +65,21 @@ For an order, include your order number. It starts with NWH and is in your confi
   faq: {
     slug: 'faq',
     title: 'FAQ',
-    seo: { title: 'FAQ: sizing, shipping and returns', description: 'Sizing, shipping, returns and care. Short answers to common questions about Nowhence.' },
+    seo: { title: 'FAQ: sizing, shipping and returns', description: 'Sizing, shipping, pre-orders, returns and embroidery care. Short answers to common questions about Nowhence polos.' },
     blocks: [
       {
         type: 'faq',
         id: 'faq-items',
         items: [
-          { q: 'How does unisex sizing work?', a: 'Every piece is cut on one block. Choose by chest measurement. If you are between sizes, size down for a closer fit, up for a relaxed one. See the [size guide](/size-guide).' },
+          { q: 'How does sizing work?', a: 'Every polo is cut on one unisex, regular-fit block. Measure your chest and find it in the [size guide](/size-guide): each size lists the body chest it fits. Between sizes? Size down for a closer, athletic look, up for a relaxed one.' },
           { q: 'How long does delivery take?', a: '{{eta}}. Delivery across India usually takes a further 2 to 6 working days, depending on your PIN code.' },
-          { q: 'What does shipping cost?', a: 'A flat {{flatFee}}. Orders of {{freeShippingThreshold}} or more ship free.' },
+          { q: 'What does shipping cost?', a: '{{shippingSummary}}' },
           { q: 'Can I return or exchange?', a: '{{returnsSummary}} Pieces must be unworn and with tags. Read the [returns policy](/returns).' },
           { q: 'Do prices include tax?', a: 'Yes. All prices include GST.' },
           { q: 'How do I pay?', a: 'Cards, UPI, net banking and wallets, through Razorpay. We do not store your card details.' },
           { q: 'Will a sold-out size come back?', a: 'Sometimes. Choose the size and select "Notify me". We will write once, when it returns.' },
-          { q: 'How should I care for my pieces?', a: 'Wash cold, inside out, with similar colours. Dry in the shade. Each product page lists its own care.' },
+          { q: 'How should I care for the embroidery?', a: 'Machine wash cold, inside out, on a gentle cycle. Do not bleach. Dry in the shade. Iron on the reverse, never directly on the embroidery.' },
+          { q: 'Where are the polos made?', a: 'Designed and embroidered in India, in small runs.' },
         ],
       },
     ],
@@ -85,28 +87,24 @@ For an order, include your order number. It starts with NWH and is in your confi
   'size-guide': {
     slug: 'size-guide',
     title: 'Size guide',
-    seo: { title: 'Size guide, XS to XXL', description: 'Unisex measurements for every Nowhence piece, in centimetres and inches, with notes on how to measure.' },
+    seo: { title: 'Polo size guide', description: 'Real garment measurements for every Nowhence polo, in inches and centimetres, with the body chest each size fits and how to measure.' },
     blocks: [
       md(
         'size-guide-intro',
         `# Size guide
 
-All {{brandName}} pieces are unisex. Measurements below are of the garment laid flat, not the body.
+Garment measurements, taken flat and doubled. Inches first, centimetres below. Every polo is unisex.
 
-## How to measure
+Not sure? Send us your height and chest measurement and we will tell you which size to take.
 
-- **Chest**: across the garment, armpit to armpit, then doubled.
-- **Length**: from the highest point of the shoulder to the hem.
-- **Shoulder**: seam to seam across the back.
-
-Compare with a piece you already own and like. That is the most reliable guide.`,
+{{contactList}}`,
       ),
     ],
   },
   shipping: {
     slug: 'shipping',
     title: 'Shipping',
-    seo: { title: 'Shipping across India', description: 'Nowhence ships across India. Flat-rate shipping, free above a threshold, tracked to your door.' },
+    seo: { title: 'Shipping across India', description: 'Nowhence ships across India, tracked to your door. What shipping costs, when pieces leave us, and how pre-orders ship.' },
     blocks: [
       md(
         'shipping-body',
@@ -116,8 +114,7 @@ We ship to every serviceable PIN code in India. International shipping is not ye
 
 ## Cost
 
-- A flat {{flatFee}} per order.
-- Free on orders of {{freeShippingThreshold}} or more.
+{{shippingSummary}}
 
 ## Timing
 
@@ -127,9 +124,9 @@ We ship to every serviceable PIN code in India. International shipping is not ye
 
 When your order ships, we email a tracking link. You can also [track your order](/orders/track) with your order number and email.
 
-## Drops
+## Pre-orders and drops
 
-Pieces from a drop ship once the drop is released. If your order mixes released and upcoming pieces, it ships together when everything is ready.`,
+Reserved and pre-ordered pieces ship once the sale opens and the balance is paid. Pieces from a drop ship once the drop is released.`,
       ),
     ],
   },
@@ -252,6 +249,20 @@ export function resolveStaticPage(slug: StaticSlug, stored: Page | undefined): P
   return isPlaceholderPage(stored) ? DEFAULT_STATIC_PAGES[slug] : stored!;
 }
 
+/** Markdown list of the ways to reach the store, skipping unset channels. */
+export function contactList(store: Pick<SettingsDoc['store'], 'email' | 'phone' | 'instagram'>): string {
+  const wa = whatsappUrl(store.phone);
+  const ig = socialUrl(store.instagram, 'instagram');
+  const handle = instagramHandle(store.instagram);
+  return [
+    wa && `- WhatsApp: [${displayPhone(store.phone)}](${wa})`,
+    store.email && `- Email: [${store.email}](mailto:${store.email})`,
+    ig && handle && `- Instagram: [${handle}](${ig})`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
 /** Template variables for `fillTemplate`, from store settings (A9: legal, returns, brand). */
 export function settingsVars(settings: SettingsDoc): Record<string, string> {
   const r = settings.returns;
@@ -275,7 +286,9 @@ export function settingsVars(settings: SettingsDoc): Record<string, string> {
     jurisdictionCity: settings.legal.jurisdictionCity,
     privacyUpdatedAt: formatLegalDate(settings.legal.privacyUpdatedAt),
     termsUpdatedAt: formatLegalDate(settings.legal.termsUpdatedAt),
-    eta: settings.shipping.eta,
+    eta: etaSentence(settings.shipping.eta),
+    shippingSummary: shippingSummary(settings.shipping),
+    contactList: contactList(settings.store),
     flatFee: formatPaise(settings.shipping.flatFee),
     freeShippingThreshold: formatPaise(settings.shipping.freeShippingThreshold),
     returnWindowDays: days,

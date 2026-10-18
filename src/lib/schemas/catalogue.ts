@@ -106,10 +106,16 @@ export const SizeChart = z.object({
     z.object({
       size: Size,
       values: z.record(z.string(), z.number().nonnegative()),
+      /** Body chest (on the person) this size fits, cm. */
+      bodyChest: z.object({ min: z.number().nonnegative(), max: z.number().nonnegative() }).optional(),
     }),
   ),
   /** "Model is 183 cm wearing M" */
   modelNote: z.string().default(''),
+  /** e.g. '±0.5" (±1 cm)' */
+  tolerance: z.string().optional(),
+  /** Guidance shown under the chart: how to measure, fit, care. */
+  notes: z.array(z.object({ heading: z.string().min(1), items: z.array(z.string().min(1)) })).optional(),
 });
 export type SizeChart = z.infer<typeof SizeChart>;
 

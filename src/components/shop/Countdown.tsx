@@ -41,13 +41,16 @@ export function Countdown({
 
   if (variant === 'inline') {
     const day = target.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
+    const time = target.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
     const clock = now ? `${parts.days}d ${pad(parts.hours)}:${pad(parts.minutes)}:${pad(parts.seconds)}` : '';
     return (
       <p className={cn('flex flex-wrap items-baseline gap-x-3 gap-y-1', className)}>
         {/* The sentence is the accessible version; the ticking clock is hidden from AT. */}
         <span>
-          {what} <time dateTime={releaseAt}>{day}</time>
-          <span className="sr-only">, {label} IST</span>
+          {what}{' '}
+          <time dateTime={releaseAt}>
+            {day}, {time} IST
+          </time>
         </span>
         <span aria-hidden className="min-w-[9ch] tabular-nums text-ink">
           {clock}

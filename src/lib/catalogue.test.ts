@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findVariant, getActiveProducts, getCatalogue, getProductBySlug, getStock, isReleased } from './catalogue';
+import { findVariant, getActiveProducts, getCatalogue, getProductBySlug, getStock, isReleased, normaliseCatalogue, orderSizes } from './catalogue';
 import { getSettings, getSiteContent } from './content';
 import { formatPaise, assertPaise, rupeesToPaise } from './money';
 
@@ -31,6 +31,19 @@ describe('catalogue (seed)', () => {
     expect(isReleased(dropped, cat.drops, new Date('2026-01-01'))).toBe(false);
     expect(isReleased(dropped, cat.drops, new Date('2027-01-01'))).toBe(true);
     expect(isReleased(cat.products.find((p) => !p.dropId)!, cat.drops)).toBe(true);
+  });
+});
+
+describe('normaliseCatalogue', () => {
+  it('orders sizes XS to XXL', () => {
+    expect(orderSizes(['S', 'XL', 'XXL', 'XS', 'M', 'L'])).toEqual(['XS', 'S', 'M', 'L', 'XL', 'XXL']);
+  });
+  it('orders every product and resolves placeholder charts', async () => {
+    const cat = await getCatalogue();
+    const shuffled = { ...cat, products: cat.products.map((p) => ({ ...p, sizes: [...p.sizes].reverse() })) };
+    const out = normaliseCatalogue(shuffled);
+    for (const p of out.products) expect(p.sizes).toEqual(orderSizes(p.sizes));
+    expect(out.sizeCharts.map((c) => c.name)).toEqual(['Regular fit polo']);
   });
 });
 

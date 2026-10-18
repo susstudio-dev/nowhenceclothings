@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = buildMetadata({
   title: 'Lookbook',
   path: '/lookbook',
-  description: 'The Nowhence lookbook: seasons in pictures. Heavyweight unisex clothing, worn and photographed in India.',
+  description: 'The Nowhence lookbook: polos for after the match, worn on and off court and photographed in India.',
 });
 
 export default async function LookbookIndex() {

@@ -77,10 +77,11 @@ export function couponDiscount(coupon: Coupon, subtotal: number): number {
   }
 }
 
-/** Flat fee unless the merchandise subtotal reaches the free threshold. */
+/** Flat fee unless the merchandise subtotal reaches the free threshold. A threshold of 0 means no free tier. */
 export function shippingFee(subtotal: number, settings: Pick<SettingsDoc, 'shipping'>): number {
   if (subtotal <= 0) return 0;
-  return subtotal >= settings.shipping.freeShippingThreshold ? 0 : settings.shipping.flatFee;
+  const { freeShippingThreshold: t, flatFee } = settings.shipping;
+  return t > 0 && subtotal >= t ? 0 : flatFee;
 }
 
 export interface PricingInputLine {

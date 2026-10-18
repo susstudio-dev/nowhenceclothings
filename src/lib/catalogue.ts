@@ -2,6 +2,8 @@ import 'server-only';
 import { readJson } from './storage';
 import { CATALOGUE_KEY, CatalogueDoc, type Drop, type Product } from './schemas/catalogue';
 import { INVENTORY_KEY, InventoryDoc, available, type StockLevel } from './schemas/inventory';
+import { SIZES, type Size } from './schemas/common';
+import { resolveSizeCharts } from './size-charts';
 
 // Read-side catalogue API. Writes go through writeJsonCas(CATALOGUE_KEY, ...)
 // in the admin workstream. Reads hit storage each call (R2 is strongly
@@ -18,7 +20,21 @@ const EMPTY: CatalogueDoc = {
 
 /** Whole catalogue doc (all statuses). Empty catalogue when absent. */
 export async function getCatalogue(): Promise<CatalogueDoc> {
-  return (await readJson(CATALOGUE_KEY, CatalogueDoc)) ?? EMPTY;
+  return normaliseCatalogue((await readJson(CATALOGUE_KEY, CatalogueDoc)) ?? EMPTY);
+}
+
+/** Sizes in XS..XXL order, whatever order they were ticked in. Pure. */
+export function orderSizes<T extends Size>(sizes: readonly T[]): T[] {
+  return [...sizes].sort((a, b) => SIZES.indexOf(a) - SIZES.indexOf(b));
+}
+
+/** Read-side view: sizes in order, placeholder size charts resolved. Pure; never written back. */
+export function normaliseCatalogue(doc: CatalogueDoc): CatalogueDoc {
+  return {
+    ...doc,
+    products: doc.products.map((p) => ({ ...p, sizes: orderSizes(p.sizes) })),
+    sizeCharts: resolveSizeCharts(doc.sizeCharts),
+  };
 }
 
 /** Products shoppers may see (status 'active'). */

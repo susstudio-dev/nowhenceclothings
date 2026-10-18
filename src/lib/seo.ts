@@ -9,7 +9,7 @@ export const SITE_URL = 'https://nowhenceclothings.com';
 export const CANONICAL_HOST = 'nowhenceclothings.com';
 export const BRAND = 'Nowhence';
 export const DEFAULT_DESCRIPTION =
-  'Nowhence makes considered unisex clothing. Heavyweight cotton, quiet colour, cut to be worn for years. Designed in India.';
+  'Polos for after the match: tennis, padel, pickleball and golf. Each Nowhence polo carries an animal, embroidered into the cloth in India.';
 
 /** URL conventions for public routes. Storefront should link via these. */
 export const paths = {
@@ -35,7 +35,7 @@ export const DEFAULT_OG_IMAGE = {
   url: `${SITE_URL}/brand-default/og-default.jpg`,
   width: 1200,
   height: 630,
-  alt: 'Nowhence, considered unisex clothing. Black polo with tonal ring embroidery.',
+  alt: 'Nowhence, polos for after the match. Black polo with tonal panther-rosette embroidery.',
 } as const;
 
 /** Square symbol PNG for Organization.logo (Google wants a crawlable square logo of at least 112px). */

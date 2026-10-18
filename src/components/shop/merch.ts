@@ -180,6 +180,62 @@ export function sizeChartTable(chart: SizeChart, unit: 'cm' | 'in'): { size: Siz
   }));
 }
 
+/** 41 -> "41", 27.8 -> "27.8" */
+const inchText = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+
+export interface SizeChartCell {
+  /** Inches, e.g. '41"' or '37–39"'. */
+  inches: string;
+  /** Centimetres, e.g. '104 cm'. */
+  cm: string;
+}
+
+/**
+ * Chart transposed for display: one row per measurement, one column per size,
+ * inches first with centimetres below. A "Fits body chest" row leads when the
+ * chart carries body ranges.
+ */
+export function sizeChartMatrix(chart: SizeChart): {
+  sizes: Size[];
+  rows: { label: string; hint?: string; body?: boolean; cells: (SizeChartCell | null)[] }[];
+} {
+  const sizes = chart.rows.map((r) => r.size);
+  const rows: ReturnType<typeof sizeChartMatrix>['rows'] = [];
+  if (chart.rows.some((r) => r.bodyChest)) {
+    rows.push({
+      label: 'Fits body chest',
+      hint: 'your chest, measured on you',
+      body: true,
+      cells: chart.rows.map((r) =>
+        r.bodyChest
+          ? {
+              inches: `${inchText(cmToIn(r.bodyChest.min))}–${inchText(cmToIn(r.bodyChest.max))}"`,
+              cm: `${Math.round(r.bodyChest.min)}–${Math.round(r.bodyChest.max)} cm`,
+            }
+          : null,
+      ),
+    });
+  }
+  for (const m of chart.measurements) {
+    rows.push({
+      label: m.charAt(0).toUpperCase() + m.slice(1),
+      cells: chart.rows.map((r) => {
+        const v = r.values[m];
+        return v == null ? null : { inches: `${inchText(cmToIn(v))}"`, cm: `${Math.round(v)} cm` };
+      }),
+    });
+  }
+  return { sizes, rows };
+}
+
+/** "Black Embroidered Polo" + "Black" -> no repeat; "Polo" + "Navy" -> "Polo in Navy". */
+export function titleWithColour(title: string, colour: string): string {
+  const c = colour.trim();
+  const words = title.toLowerCase().split(/[^a-z0-9]+/);
+  if (!c || c.toLowerCase().split(/\s+/).every((w) => words.includes(w))) return title;
+  return `${title} in ${c}`;
+}
+
 // ---- drops (S4) ----
 
 export function countdownParts(target: Date, now: Date) {

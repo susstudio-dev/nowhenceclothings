@@ -11,6 +11,8 @@ import type { SettingsDoc } from '@/lib/schemas/settings';
 import type { SiteContentDoc } from '@/lib/schemas/site-content';
 import { jsonLdScript, organizationLd, webSiteLd } from '@/lib/jsonld';
 import { withReturnsNavLabel } from '@/lib/static-pages';
+import { socialUrl } from '@/lib/seo';
+import { displayPhone, instagramHandle, whatsappUrl } from '@/lib/store-copy';
 
 /**
  * The open pre-order piece the header status links to when the owner gave the announcement
@@ -39,6 +41,9 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
     logoDark: settings.brand.logoDark,
   };
   const announcement = resolveAnnouncement(content.announcement, await presaleTarget(content.announcement, settings));
+  const wa = whatsappUrl(settings.store.phone);
+  const ig = socialUrl(settings.store.instagram, 'instagram');
+  const igHandle = instagramHandle(settings.store.instagram);
   const footerColumns = content.nav.footer.map((col) => ({ ...col, links: withReturnsNavLabel(col.links, settings) }));
   return (
     <>
@@ -55,6 +60,8 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
       />
       <main id="main">{children}</main>
       <Footer columns={footerColumns} newsletter={<NewsletterForm source="footer" />} email={settings.store.email}
+        whatsapp={wa ? { href: wa, label: displayPhone(settings.store.phone) } : undefined}
+        instagram={ig && igHandle ? { href: ig, label: igHandle } : undefined}
         brand={brand}
         legalName={settings.legal.legalName || undefined}
       />

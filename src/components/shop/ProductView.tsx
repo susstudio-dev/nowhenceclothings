@@ -15,7 +15,7 @@ import { PresaleAccessGate, presaleCodeKey } from './PresaleAccessGate';
 import { Countdown } from './Countdown';
 import { NotifyMe } from './NotifyMe';
 import { SizeGuide } from './SizeGuide';
-import { variantPrice } from './merch';
+import { titleWithColour, variantPrice } from './merch';
 import { QuickBuySheet } from './checkout/QuickBuySheet';
 import { quickBuyAction, RESERVE_SEPARATE_NOTE, sizeGridClass } from './quick-buy';
 import { countdownFor, depositSummary, depositTodayLine } from './presale-copy';
@@ -147,7 +147,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
   return (
     <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
       <div className="-mx-gutter lg:col-span-7 lg:mx-0">
-        <Gallery key={colour.id} images={colour.images} title={`${product.title} in ${colour.name}`} />
+        <Gallery key={colour.id} images={colour.images} title={titleWithColour(product.title, colour.name)} />
       </div>
 
       <div className="lg:col-span-5 lg:col-start-8">
@@ -157,7 +157,9 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
             {launch?.badge && launch.state !== 'available' && <p className="care-tag">{launch.badge}</p>}
           </div>
           <h1 className="mt-4 text-balance font-display text-h3 font-light lg:text-[2.5rem] lg:leading-[1.1]">{product.title}</h1>
-          {product.colours.length === 1 && <p className="mt-1 text-small text-muted">{colour.name}</p>}
+          {product.colours.length === 1 && titleWithColour(product.title, colour.name) !== product.title && (
+            <p className="mt-1 text-small text-muted">{colour.name}</p>
+          )}
           {!launch?.priceHidden && (
             <div className="mt-4 flex items-baseline gap-3">
               <Price amount={price.amount} compareAt={price.compareAt} size="md" />

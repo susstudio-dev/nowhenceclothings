@@ -10,10 +10,11 @@ export type Pt = [number, number];
 const MOTIF_WORDS: [RegExp, Motif][] = [
   // The black polo's rings are panther rosettes; the catalogue may name it either way.
   [/(^|[^a-z])(rings?|panthers?|leopards?|rosettes?)([^a-z]|$)/, 'rings'],
-  [/(^|[^a-z])wings?([^a-z]|$)/, 'wing'],
-  [/(^|[^a-z])rain([^a-z]|$)/, 'rain'],
-  [/(^|[^a-z])pebbles?([^a-z]|$)/, 'pebbles'],
-  [/(^|[^a-z])diamonds?([^a-z]|$)/, 'diamonds'],
+  // Each motif is an animal's pattern: kestrel feathers, whale-shark spots, crocodile scutes, rattlesnake diamonds.
+  [/(^|[^a-z])(wings?|kestrels?|feathers?)([^a-z]|$)/, 'wing'],
+  [/(^|[^a-z])(rain|whale[\s-]?sharks?)([^a-z]|$)/, 'rain'],
+  [/(^|[^a-z])(pebbles?|crocodiles?|crocs?)([^a-z]|$)/, 'pebbles'],
+  [/(^|[^a-z])(diamonds?|diamondbacks?|rattlesnakes?)([^a-z]|$)/, 'diamonds'],
 ];
 
 const matchMotif = (text: string) => MOTIF_WORDS.find(([re]) => re.test(text.toLowerCase()))?.[1];

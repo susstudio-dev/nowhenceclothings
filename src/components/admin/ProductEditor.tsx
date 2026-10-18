@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { SIZES, type Size } from '@/lib/schemas/common';
 import type { Category, Collection, Colour, Drop, Product, SizeChart } from '@/lib/schemas/catalogue';
 import { buildVariantGrid } from '@/lib/admin/variants';
+import { titleWithColour } from '@/components/shop/merch';
 import { Button, Input, Select } from '@/components/ui';
 import { adminFetch, toPaise, toRupees } from './api-client';
 import { MediaListEditor } from './MediaUploader';
@@ -259,7 +260,7 @@ export function ProductEditor({
                 type="checkbox"
                 checked={p.sizes.includes(s)}
                 onChange={(e) =>
-                  set('sizes', (e.target.checked ? [...p.sizes, s] : p.sizes.filter((x) => x !== s)) as Size[])
+                  set('sizes', SIZES.filter((x) => (x === s ? e.target.checked : p.sizes.includes(x))) as Size[])
                 }
               />
               {s}
@@ -307,7 +308,7 @@ export function ProductEditor({
             <MediaListEditor
               label={`${c.name} images (first is primary; drag to reorder)`}
               value={c.images}
-              defaultAlt={`${p.title} in ${c.name}`}
+              defaultAlt={titleWithColour(p.title, c.name)}
               onChange={(images) => setColour(i, { images })}
             />
           </div>

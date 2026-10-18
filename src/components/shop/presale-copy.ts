@@ -102,3 +102,64 @@ export function preorderShipLine(shipBy: string | undefined, shipCopy: string | 
   if (copy.includes(date) || /\bships? by\b/i.test(copy)) return copy;
   return [`Ships by ${date}.`, copy].filter(Boolean).join(' ');
 }
+
+export interface PreorderFaqContext {
+  /** Store delivery estimate, sentence-cased ("Ships in 5–6 working days"). */
+  eta?: string;
+  /** Size exchanges after delivery, e.g. { days: 7 }; absent when exchanges are off. */
+  exchange?: { days: number };
+}
+
+/**
+ * Product page "Pre-order questions" (A13 trust): the booking terms, said
+ * before the customer reserves rather than only at checkout. Every answer is
+ * read from the launch config, so it can never promise more than checkout does.
+ */
+export function preorderFaq(p: Pick<PublicProduct, 'price' | 'launch'>, ctx: PreorderFaqContext = {}): { q: string; a: string }[] {
+  const pre = p.launch.state === 'presale' ? p.launch.presale : undefined;
+  if (!pre) return [];
+  const dep = pre.paymentMode === 'deposit' ? pre.deposit : undefined;
+  const s = depositSummary(p);
+  const sale = s?.saleStartsAt ? `the sale opens on ${longDate(s.saleStartsAt)}` : 'the sale opens';
+  const days = dep?.balanceWindowDays ?? s?.balanceWindowDays;
+  const out: { q: string; a: string }[] = [];
+
+  if (dep && s) {
+    const balance = s.priceLock === 'sale' ? 'the balance at the sale price' : `the remaining ${formatPaise(s.balance)}`;
+    out.push({
+      q: 'How does reserving work?',
+      a: `Pay ${formatPaise(s.deposit)} today to hold your size. When ${sale}, we email you a private link to pay ${balance}${days ? ` within ${days} days` : ''}. Your ${formatPaise(s.deposit)} counts towards the price.`,
+    });
+    const unpaid =
+      dep.unpaidOutcome === 'refund'
+        ? ` If the balance is not paid in time, we refund your ${formatPaise(s.deposit)}.`
+        : dep.unpaidOutcome === 'forfeit'
+          ? ` If the balance is not paid in time, the reservation lapses and the ${formatPaise(s.deposit)} is kept.`
+          : ` If you cannot pay the balance in time, write to us and we will sort it out with you.`;
+    out.push({
+      q: 'What if I change my mind?',
+      a: dep.refundable
+        ? `Your ${formatPaise(s.deposit)} reservation is refundable. Write to us before you pay the balance.`
+        : `The ${formatPaise(s.deposit)} reservation is not refundable, because it holds a piece from a limited run for you.${unpaid}`,
+    });
+  }
+
+  const ship = pre.shipBy
+    ? `By ${new Date(`${pre.shipBy}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', timeZone: 'UTC' })}.`
+    : dep
+      ? `After ${sale}, once your balance is paid.`
+      : 'Together, once the pre-order closes.';
+  // A fixed ship-by date is the promise; the store's usual dispatch time only applies after the sale opens.
+  out.push({ q: 'When does it ship?', a: [ship, !pre.shipBy && ctx.eta ? `${ctx.eta} from then.` : ''].filter(Boolean).join(' ') });
+
+  out.push({
+    q: 'Can I change my size?',
+    a: [
+      dep ? 'Yes. Write to us before you pay the balance and we will switch it while that size lasts.' : 'Yes. Write to us before it ships and we will switch it while that size lasts.',
+      ctx.exchange ? `After delivery, you can exchange for another size within ${ctx.exchange.days} days.` : '',
+    ]
+      .filter(Boolean)
+      .join(' '),
+  });
+  return out;
+}

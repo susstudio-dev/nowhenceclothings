@@ -12,6 +12,10 @@ export interface FooterProps {
   newsletter?: ReactNode;
   /** Contact email from settings `store.email`. */
   email?: string;
+  /** WhatsApp click-to-chat link and its display number. */
+  whatsapp?: { href: string; label: string };
+  /** Instagram profile link and its "@handle". */
+  instagram?: { href: string; label: string };
   className?: string;
   /** Owner brand from settings (A9). */
   brand?: ChromeBrand;
@@ -23,7 +27,7 @@ export interface FooterProps {
  * Quiet footer (A17): newsletter left, link columns right, then one legal line
  * carrying a modest wordmark. No oversized logo. Server component.
  */
-export function Footer({ columns, newsletter, email, className, brand, legalName }: FooterProps) {
+export function Footer({ columns, newsletter, email, whatsapp, instagram, className, brand, legalName }: FooterProps) {
   const year = new Date().getFullYear();
   const name = brand?.name || 'Nowhence';
   return (
@@ -54,12 +58,32 @@ export function Footer({ columns, newsletter, email, className, brand, legalName
               </ul>
             </div>
           ))}
-          {email && (
+          {(email || whatsapp || instagram) && (
             <div className="col-span-2 sm:col-span-1">
               <h2 className="eyebrow mb-4">Contact</h2>
-              <a href={`mailto:${email}`} className="link-underline break-words text-small text-ink-soft hover:text-ink">
-                {email}
-              </a>
+              <ul className="flex flex-col gap-2.5 text-small text-ink-soft">
+                {whatsapp && (
+                  <li>
+                    <a href={whatsapp.href} target="_blank" rel="noopener noreferrer" className="link-underline hover:text-ink">
+                      WhatsApp <span className="tabular-nums">{whatsapp.label}</span>
+                    </a>
+                  </li>
+                )}
+                {instagram && (
+                  <li>
+                    <a href={instagram.href} target="_blank" rel="noopener noreferrer" className="link-underline hover:text-ink">
+                      Instagram {instagram.label}
+                    </a>
+                  </li>
+                )}
+                {email && (
+                  <li>
+                    <a href={`mailto:${email}`} className="link-underline break-words hover:text-ink">
+                      {email}
+                    </a>
+                  </li>
+                )}
+              </ul>
             </div>
           )}
         </nav>

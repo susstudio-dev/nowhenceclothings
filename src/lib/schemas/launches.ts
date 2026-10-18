@@ -117,7 +117,7 @@ export const LaunchDefaults = z
       .object({
         perCustomerLimit: z.number().int().positive().default(2),
         access: PresaleAccess.default('public'),
-        shipCopy: z.string().max(300).default('Made to order. Ships by {date}.'),
+        shipCopy: z.string().max(300).default('Limited first run. Ships by {date}.'),
         terms: z
           .string()
           .max(4000)

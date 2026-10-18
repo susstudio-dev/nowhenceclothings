@@ -9,7 +9,7 @@ export const DEFAULT_ICON = { png32: '/brand-default/icon-32.png', apple: '/bran
 
 export const DEFAULT_HERO_MEDIA: MediaRef = {
   id: 'brand-default-hero',
-  alt: 'Black Nowhence polo, close detail of tonal ring embroidery across the shoulder',
+  alt: 'Black Nowhence polo, close detail of tonal panther-rosette embroidery across the shoulder and chest',
   width: 1440,
   height: 2560,
   widths: [640, 960, 1440],

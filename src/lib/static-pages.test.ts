@@ -5,6 +5,7 @@ import { Page, STATIC_PAGE_SLUGS } from './schemas/site-content';
 import {
   DEFAULT_STATIC_PAGES,
   STATIC_SLUGS,
+  contactList,
   isPlaceholderPage,
   resolveReturnsLabel,
   resolveStaticPage,
@@ -35,6 +36,18 @@ describe('static pages', () => {
     expect(v.flatFee).toBe('₹99');
     expect(v.freeShippingThreshold).toBe('₹2,999');
     expect(v.returnWindowDays).toBe('7');
+    expect(v.shippingSummary).toBe('Flat ₹99 shipping. Free on orders of ₹2,999 or more.');
+  });
+
+  it('lists only the contact channels that are set', () => {
+    expect(contactList({ email: 'hello@nowhenceclothings.com', phone: '9014352958', instagram: 'nowhence_clothings' })).toBe(
+      [
+        '- WhatsApp: [+91 90143 52958](https://wa.me/919014352958)',
+        '- Email: [hello@nowhenceclothings.com](mailto:hello@nowhenceclothings.com)',
+        '- Instagram: [@nowhence_clothings](https://www.instagram.com/nowhence_clothings)',
+      ].join('\n'),
+    );
+    expect(contactList({ email: 'a@b.co', phone: '', instagram: '' })).toBe('- Email: [a@b.co](mailto:a@b.co)');
   });
 
   it('fills legal and returns tokens from settings (no [[TBD]] once filled)', async () => {

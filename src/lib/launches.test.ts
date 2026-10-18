@@ -229,7 +229,8 @@ describe('ship copy and deposit projection', () => {
       },
     } as Partial<Product>);
     const pub = toPublicProduct(p, [], D, NOW);
-    expect(pub.launch.presale?.shipCopy).toBe('Made to order. Ships after the sale opens.');
+    expect(pub.launch.presale?.shipCopy).toBe('Limited first run. Ships after the sale opens.');
     expect(pub.launch.presale?.deposit).toMatchObject({ amount: 50000, priceLock: 'booking', balanceWindowDays: 7, saleStartsAt: '2026-10-31T04:30:00.000Z' });
+    expect(pub.launch.presale?.deposit).toMatchObject({ refundable: false, unpaidOutcome: 'forfeit' });
   });
 });

@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
   const { home } = await getSiteContent();
   return buildMetadata({
-    title: 'Nowhence | Considered unisex clothing, designed in India',
+    title: 'Nowhence | Polos for after the match, embroidered in India',
     exactTitle: true,
     path: paths.home(),
     seo: home.seo,
@@ -78,7 +78,7 @@ export default async function HomePage() {
         <section className="container-page py-section text-center">
           <p className="eyebrow">Nowhence</p>
           <h2 className="mx-auto mt-4 max-w-xl text-balance font-display text-display-sm font-light">The first drop is almost here.</h2>
-          <p className="mx-auto mt-4 max-w-sm text-small text-muted">Considered unisex essentials, made in small runs. Join the list below to hear first.</p>
+          <p className="mx-auto mt-4 max-w-sm text-small text-muted">Polos for after the match, embroidered in India in small runs. Join the list below to hear first.</p>
         </section>
       )}
     </>

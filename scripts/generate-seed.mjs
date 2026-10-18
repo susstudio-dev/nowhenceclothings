@@ -113,7 +113,7 @@ const siteContent = {
   },
   home: {
     blocks: [
-      { type: 'hero', id: 'home-hero', heading: 'Clothes from nowhere in particular.', subheading: 'Unisex essentials, made slowly.', media: img('home-hero', 'Campaign'), cta: { label: 'Shop the core', href: '/shop' } },
+      { type: 'hero', id: 'home-hero', heading: 'Polos for after the match.', subheading: 'Embroidered in India.', media: img('home-hero', 'Campaign'), cta: { label: 'Shop the core', href: '/shop' } },
       { type: 'featuredDrop', id: 'home-drop', dropId: 'drop-001' },
       { type: 'categoryTiles', id: 'home-cats', heading: 'Shop by category', categoryIds: ['cat-tops', 'cat-bottoms'] },
       { type: 'story', id: 'home-story', heading: 'Made to outlast the season', body: 'Placeholder story copy.', media: img('home-story', 'Studio') },
