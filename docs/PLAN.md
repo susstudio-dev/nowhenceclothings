@@ -84,6 +84,7 @@ Phase 5  Integration & QA  ◄─────────────┘  (qa-re
 ## WS-H — Brand pass + perf (A12, audit findings) · agent `design-system-engineer`
 - [x] Logo SVGs as default wordmark/favicon/app icon; Jost added; monochrome defaults
 - [x] Home hero from photography; home meta description fallback
+- [x] Home stitch hero: the lead polo embroiders and sews itself ("Thread first"), tonal palette from the product colour, once per session, reduced-motion still
 - [x] Font loading (fewer weights, adjustFontFallback), modern browserslist, home caching
 - [x] Typecheck/tests/build green
 

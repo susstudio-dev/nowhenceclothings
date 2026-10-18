@@ -8,7 +8,7 @@ import { quickBuyAction } from './quick-buy';
 import { countdownFor, depositSummary, heroDepositLine } from './presale-copy';
 
 /** "Reserve — ₹500" / "Pre-order — ₹1,499": the hero's one action. */
-function heroCta(product: PublicProduct): string {
+export function heroCta(product: PublicProduct): string {
   const action = quickBuyAction(product);
   const dep = depositSummary(product);
   if (action.mode === 'deposit' && dep) return `Reserve — ${formatPaise(dep.deposit)}`;

@@ -108,6 +108,16 @@ The top of the site is one quiet line of type, like the masthead and dateline of
 
 **Brand.** All header colour comes from `--hdr-fg` (ink, or paper over a hero), so Settings → Brand colours apply. Uploaded logos switch between `logoLight` on paper and `logoDark` over the hero.
 
+**Light hero.** `data-chrome-hero="light"` (the home stitch hero) keeps the overlay but uses ink type, the paper logo and no shade, because its backdrop is pale.
+
+## Home hero: "the stitch"
+The home page leads with the polo drawing itself (`shop/StitchHero`, geometry in `lib/stitch-hero.ts`, spec in `docs/superpowers/specs/2026-10-18-stitch-hero-design.md`). It is the one orchestrated motion moment on the site, so the Motion rules above (opacity and transform, 150–300ms) do not apply inside it.
+- **Sequence (10 s, 7 s on phones).** Close on the cloth, the needle stitches the embroidery in satin stitch while the camera follows, then the camera pulls back over a chalk draft, the cut pieces glide in, two needles sew the seams in pairs and the buttons go on. It rests on the finished polo.
+- **Which polo.** The open pre-order piece, or else the first available polo. The motif is read from the slug or title (ring, wing, rain, pebble, diamond). A piece with no motif keeps the photo hero.
+- **Colour.** The embroidery is tonal: thread, sheen, shade and seams are derived from the product colour `hex`, never a contrast colour. The backdrop is sampled from that polo's photograph. Type on it is ink.
+- **Restraint.** It plays once per session. Under reduced motion, and on later visits, it shows the finished polo with no needle. The drawing is `aria-hidden`; the server-rendered caption carries the title, price and one action.
+- **Adding a motif.** Add a generator to `MOTIFS` (points in the 600 × 700 flat-lay space, satin lines or knots), a word to `MOTIF_WORDS`, a backdrop to `BACKDROPS` and a host piece to `MOTIF_HOST`.
+
 ## Do / don't
 **Do:** let photographs run large · use hairlines to separate content · write short, specific copy in sentence case (labels are the only caps) · put one primary action on each screen · keep price, size and buy within thumb reach on mobile.
 **Don't:** use gradients, shadows, pills or rounded cards · put boxed backgrounds behind hero text · use more than one badge on a card · use emoji · write "Shop now!" · put tracked caps on anything longer than 4 words · use clay for text on paper (too low contrast) · make the logo bigger than the nav needs.
