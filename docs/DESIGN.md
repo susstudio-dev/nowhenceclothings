@@ -108,7 +108,15 @@ The top of the site is one quiet line of type, like the masthead and dateline of
 
 **Brand.** All header colour comes from `--hdr-fg` (ink, or paper over a hero), so Settings → Brand colours apply. Uploaded logos switch between `logoLight` on paper and `logoDark` over the hero.
 
-**Light hero.** `data-chrome-hero="light"` (the home stitch hero) keeps the overlay but uses ink type, the paper logo and no shade, because its backdrop is pale.
+**Light hero.** `data-chrome-hero="light"` (the home stitch hero; the night hero uses the default dark state) keeps the overlay but uses ink type, the paper logo and no shade, because its backdrop is pale.
+
+## Home hero: "eyes in the dark"
+A motif with prepared photographs leads the home page in the night hero (`shop/NightHero`, `shop/NightStage`, pure parts in `lib/night-hero.ts`, spec in `docs/superpowers/specs/2026-10-19-night-hero-design.md`). Today that is the Panther Polo; the other motifs keep the stitch hero below until their photographs are prepared with `scripts/prep-night-hero.mjs`.
+- **The cloth is a photograph.** A Three.js shader puts the real thread back into a bare-cloth copy of the real macro photo, rosette by rosette, under a soft torch that follows the pointer. Nothing on the cloth is drawn.
+- **Sequence (11 s, 8 s on phones).** Dark cloth and a panther's eyes, the torch comes on, the rosettes stitch from the collar down, the eyes blink and close, and the room lights up. Afterwards the torch keeps following the pointer as a raking light. It plays once per session, and later visits start lit.
+- **The copy does not wait.** The h1, the price and the reserve action are server-rendered and visible from the first frame, on an ink scrim (left on desktop, bottom on phones). The header uses the dark-hero state (`data-chrome-hero`, paper type).
+- **Fallbacks.** The poster (the lit embroidered crop) is the first paint. It is the whole hero under reduced motion, without WebGL, or if the textures fail to load. Three.js and anime.js load only here, after mount.
+- **Eyes.** The drawn eyes are a stand-in. A crop of the panther photograph on black goes in `NightHeroEntry.eyesImage`.
 
 ## Home hero: "the stitch"
 The home page leads with the polo drawing itself (`shop/StitchHero`, geometry in `lib/stitch-hero.ts`, spec in `docs/superpowers/specs/2026-10-18-stitch-hero-design.md`). It is the one orchestrated motion moment on the site, so the Motion rules above (opacity and transform, 150–300ms) do not apply inside it.

@@ -20,6 +20,7 @@ Defaults chosen on 2026-10-17 so the build could proceed in parallel.
 | D13 | Package manager | npm (as furor-web), single app, no monorepo | Smaller than Ravisweets' monorepo | — |
 
 | D14 | Owner-specific data | All editable in admin (REQUIREMENTS A9); no code change needed to fill the open questions below | Owner request 2026-10-17 | — |
+| D15 | Home hero for the panther | Real macro photograph + Three.js shader ("eyes in the dark"); drawn stitch hero kept for motifs without prepared photographs | The drawn polo did not read as real fabric; a black panther's hidden rosettes are the polo's tonal embroidery | Real photographs prepared for the other motifs, or a blank-polo shoot for an exact bare cloth |
 
 ## Open questions for the owner (all answerable from Admin → Settings)
 

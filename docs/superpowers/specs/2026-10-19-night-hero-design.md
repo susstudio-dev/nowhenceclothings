@@ -26,7 +26,7 @@ After the timeline ends, the stage stays interactive: the torch keeps following 
 Copy is server-rendered and readable from the first frame. It is not faded in by the timeline: an 11 s wait in front of the reserve button costs pre-orders.
 - h1: "Every black panther has spots. You only see them in the light." Per-motif copy lives with the assets (below).
 - Under it: product name, colour, price (`formatPaise`, hidden when `priceHidden`), then the pre-order care tag and `QuickReserveButton` (pre-order) or "View the polo" link, exactly as `StitchHero` does today.
-- The site-content hero heading ("Five animals. One polo.") moves to `HomeEditorial`, as it already does when the stitch hero leads.
+- The site-content hero heading ("Five animals. One polo.") is shown as a small tagline under the h1, so it stays editable in admin and is not repeated below.
 - A left-to-right ink scrim (bottom-up on phones) keeps the copy legible over lit rosettes.
 
 ## Which hero leads
@@ -35,11 +35,12 @@ Copy is server-rendered and readable from the first frame. It is not faded in by
 ## Plays once, and fallbacks
 - First visit in a browser session: the full sequence (`sessionStorage`, guarded in try/catch).
 - Later visits in the session: the stage starts at the end state, lit and interactive, with no eyes.
+- On a first visit the lit poster dims into the dark opening as the canvas fades in (700 ms). This is intended: the lights go out, then the eyes open.
 - `prefers-reduced-motion`, no WebGL, or a script failure: a server-rendered `<picture>` poster of the lit embroidered crop (`full`), the same image the canvas covers. It is also the LCP element and the paint before Three.js loads; the canvas fades in over it only once all three textures have loaded.
 - Off screen (IntersectionObserver) the render loop stops. Hidden tabs pause naturally (rAF).
 
 ## Crops and assets
-- Two crops from the 1600 × 2000 source (`public/media/seed-02771980b22260fb/1600.webp`): **wide** 1600 × 900 (y 380–1280) for ≥ 768px, and **tall** 1408 × 1760 (4:5, clear of the grey wall) for phones. Each crop has `full.webp`, `bare.webp` and `order.png`.
+- Two crops from the 1600 × 2000 source (`public/media/seed-02771980b22260fb/1600.webp`): **wide** 1600 × 900 (y 380–1280) for ≥ 768px, and **tall** 1280 × 1600 (4:5, x 320–1600, y 300–1900, clear of the grey wall) for phones. Each crop has `full.webp`, `bare.webp` and `order.png`.
 - Files live in `public/hero/rings/{wide,tall}/`. In total, about 0.8 MB per breakpoint; a device loads only one breakpoint.
 - `scripts/prep-night-hero.mjs` (Node + `sharp`, a dev dependency) generates them from the source photo: thread mask by local contrast, connected components filtered by size, aspect and distance from the wall, removal mask dilated to include the thread's shadow halo, bare cloth filled by offset copies of nearby piqué and feathered, then the order map. This ports the prototype's Python prep. The script is run by hand and its output committed; it is not part of the build.
 - A dedicated shoot of a blank polo in the same light would make `bare` exact. With the generated `bare`, faint ghosts can show under the torch. Swapping in better source photos means only re-running the script.
