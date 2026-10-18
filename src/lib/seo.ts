@@ -9,7 +9,7 @@ export const SITE_URL = 'https://nowhenceclothings.com';
 export const CANONICAL_HOST = 'nowhenceclothings.com';
 export const BRAND = 'Nowhence';
 export const DEFAULT_DESCRIPTION =
-  'Polos for after the match: tennis, padel, pickleball and golf. Each Nowhence polo carries an animal, embroidered into the cloth in India.';
+  'Nowhence: heavyweight piqué polos with hand-finished animal embroidery, for tennis, padel, pickleball and golf.';
 
 /** URL conventions for public routes. Storefront should link via these. */
 export const paths = {

@@ -29,6 +29,8 @@ export const Product = z.object({
   slug: Slug,
   title: z.string().min(1).max(120),
   description: z.string().default(''),
+  /** One short line under the title, e.g. "Black on black. Quiet until you look closer." */
+  tagline: z.string().max(140).optional(),
   categoryId: Id,
   collectionIds: z.array(Id).default([]),
   dropId: Id.optional(),

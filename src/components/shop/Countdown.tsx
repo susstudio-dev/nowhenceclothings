@@ -20,7 +20,8 @@ export function Countdown({
   releaseAt: string;
   className?: string;
   label?: string;
-  variant?: 'block' | 'inline';
+  /** 'clock': only the ticking time left, for places where the date is already written out beside it. */
+  variant?: 'block' | 'inline' | 'clock';
 }) {
   const router = useRouter();
   const target = new Date(releaseAt);
@@ -38,6 +39,14 @@ export function Countdown({
   }, [now, parts.done, router]);
 
   const label = target.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' });
+
+  if (variant === 'clock') {
+    return (
+      <p aria-hidden className={cn('tabular-nums', className)}>
+        {now ? `${what} in ${parts.days}d ${pad(parts.hours)}:${pad(parts.minutes)}:${pad(parts.seconds)}` : ''}
+      </p>
+    );
+  }
 
   if (variant === 'inline') {
     const day = target.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });

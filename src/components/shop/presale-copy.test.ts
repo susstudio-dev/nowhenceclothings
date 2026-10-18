@@ -5,8 +5,12 @@ import {
   depositSummary,
   depositTodayLine,
   heroDepositLine,
+  pieceName,
   preorderFaq,
   preorderShipLine,
+  preorderShipSentence,
+  preorderTrustLine,
+  presaleNoteCopy,
   reserveHowItWorks,
 } from './presale-copy';
 
@@ -55,9 +59,9 @@ describe('deposit copy (live polo: ₹1,499, ₹500 fixed deposit, sale 31 Oct)'
     expect(heroDepositLine(depositSummary(polo({ priceLock: 'sale' }))!)).toBe('₹500 to reserve · the balance at the sale price when the sale opens');
   });
   it('product page line', () => {
-    expect(depositTodayLine(depositSummary(polo())!)).toBe('₹500 today · ₹999 balance when the sale opens on 31 Oct');
-    expect(depositTodayLine(depositSummary(polo({ saleStartsAt: undefined }))!)).toBe('₹500 today · ₹999 balance when the sale opens');
-    expect(depositTodayLine(depositSummary(polo({ priceLock: 'sale' }))!)).toBe('₹500 today · the balance at the sale price when the sale opens on 31 Oct');
+    expect(depositTodayLine(depositSummary(polo())!)).toBe('Reserve today for ₹500 · Pay ₹999 when the sale opens on 31 Oct, 10:00 am IST');
+    expect(depositTodayLine(depositSummary(polo({ saleStartsAt: undefined }))!)).toBe('Reserve today for ₹500 · Pay ₹999 when the sale opens');
+    expect(depositTodayLine(depositSummary(polo({ priceLock: 'sale' }))!)).toBe('Reserve today for ₹500 · Pay the balance at the sale price when the sale opens on 31 Oct, 10:00 am IST');
   });
   it('reserve sheet explains the balance per price lock', () => {
     const q = { deposit: 50000, unitPrice: 149900, qty: 1, priceLock: 'booking' as const, saleStartsAt: SALE, balanceWindowDays: 7 };
@@ -102,35 +106,74 @@ describe('preorderShipLine', () => {
   });
 });
 
-describe('preorderFaq', () => {
-  const reserve = (over: object = {}) =>
+describe('pre-order trust copy', () => {
+  const SHIP = 'Limited first run of 100. Orders ship within 2–3 weeks of the sale opening.';
+  const reserve = (dep: object = {}, pre: object = {}) =>
     ({
       price: 149900,
       launch: launch({
         presale: presale({
+          shipCopy: SHIP,
+          cap: 100,
           paymentMode: 'deposit',
-          deposit: { label: '₹500', ctaLabel: 'Reserve', amount: 50000, saleStartsAt: SALE, priceLock: 'booking', balanceWindowDays: 7, refundable: false, unpaidOutcome: 'manual', ...over },
+          deposit: { label: '₹500', ctaLabel: 'Reserve', amount: 50000, saleStartsAt: SALE, priceLock: 'booking', balanceWindowDays: 7, refundable: false, unpaidOutcome: 'manual', ...dep },
+          ...pre,
         }),
       }),
     }) as Pick<PublicProduct, 'price' | 'launch'>;
+  const ctx = { exchange: { days: 7 } };
 
-  it('states the booking terms before checkout', () => {
-    const faq = preorderFaq(reserve(), { eta: 'Ships in 5–6 working days', exchange: { days: 7 } });
-    expect(faq.map((x) => x.q)).toEqual(['How does reserving work?', 'What if I change my mind?', 'When does it ship?', 'Can I change my size?']);
-    expect(faq[0].a).toBe(
-      'Pay ₹500 today to hold your size. When the sale opens on 31 October, we email you a private link to pay the remaining ₹999 within 7 days. Your ₹500 counts towards the price.',
+  it('trust line under the button', () => {
+    expect(preorderTrustLine(reserve(), ctx)).toBe(
+      'Limited first run of 100. Reservations are non-refundable. Orders ship within 2–3 weeks of the sale opening. One free size exchange. Limit 2 per customer.',
     );
-    expect(faq[1].a).toContain('not refundable');
-    expect(faq[1].a).toContain('write to us');
-    expect(faq[2].a).toBe('After the sale opens on 31 October, once your balance is paid. Ships in 5–6 working days from then.');
-    expect(faq[3].a).toContain('within 7 days');
+  });
+
+  it('ship sentence: date, then owner copy, then a fallback', () => {
+    expect(preorderShipSentence(reserve())).toBe('Orders ship within 2–3 weeks of the sale opening.');
+    expect(preorderShipSentence(reserve({}, { shipBy: '2026-11-21' }))).toBe('Ships by 21 November.');
+    expect(preorderShipSentence(reserve({}, { shipCopy: 'Limited first run.' }))).toBe('Ships after the sale opens.');
+  });
+
+  it('answers the pre-order questions in plain terms', () => {
+    const faq = preorderFaq(reserve(), ctx);
+    expect(faq.map((x) => x.q)).toEqual(['How does the pre-order work?', 'Can I cancel a reservation?', 'When does it ship?', 'Can I change my size?']);
+    expect(faq[0].a).toBe(
+      "Pay ₹500 today to reserve your piece and size. When the sale opens on 31 October at 10:00 am IST, we'll send you a link to pay the ₹999 balance within 7 days. Orders ship within 2–3 weeks of the sale opening.",
+    );
+    expect(faq[1].a).toBe("This is a limited run of 100, so reservations are non-refundable. If the size isn't right when it arrives, we'll exchange it once for free.");
+    expect(faq[2].a).toBe('Orders ship within 2–3 weeks of the sale opening. Delivery then takes 2–6 working days, depending on your PIN code.');
+    expect(faq[3].a).toContain('one free size exchange within 7 days');
   });
 
   it('says refundable when it is', () => {
-    expect(preorderFaq(reserve({ refundable: true }))[1].a).toBe('Your ₹500 reservation is refundable. Write to us before you pay the balance.');
+    expect(preorderFaq(reserve({ refundable: true }))[1].a).toBe("Yes. Write to us before you pay the balance and we'll refund your ₹500.");
   });
 
   it('is empty outside a presale', () => {
     expect(preorderFaq({ price: 1, launch: launch({ state: 'available' }) })).toEqual([]);
+    expect(preorderTrustLine({ launch: launch({ state: 'available' }) })).toBe('');
+  });
+
+  it('names the piece for sentences', () => {
+    expect(pieceName('The Panther Polo')).toBe('the Panther');
+    expect(pieceName('Ring Polo')).toBe('Ring');
+  });
+});
+
+describe('presaleNoteCopy', () => {
+  it('home strip names the run and the opening', () => {
+    const p = {
+      title: 'The Panther Polo',
+      price: 149900,
+      launch: launch({
+        presale: presale({ cap: 100, paymentMode: 'deposit', deposit: { label: '₹500', ctaLabel: 'Reserve', amount: 50000, saleStartsAt: SALE, priceLock: 'booking' } }),
+      }),
+    };
+    expect(presaleNoteCopy(p)).toEqual({
+      heading: 'The first run: 100 pieces.',
+      body: 'The Panther opens on 31 October at 10:00 am IST. Reserve yours for ₹500 today. Pay the ₹999 balance when the sale opens.',
+    });
+    expect(presaleNoteCopy({ ...p, launch: launch({ state: 'available' }) })).toBeNull();
   });
 });

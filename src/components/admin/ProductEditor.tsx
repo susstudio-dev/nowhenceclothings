@@ -154,6 +154,14 @@ export function ProductEditor({
           pattern="[a-z0-9]+(-[a-z0-9]+)*"
           onChange={(e) => set('slug', e.target.value)}
         />
+        <Input
+          label="Tagline"
+          hint="One short line under the title. Optional."
+          maxLength={140}
+          value={p.tagline ?? ''}
+          onChange={(e) => set('tagline', e.target.value || undefined)}
+          className="md:col-span-2"
+        />
         <Select
           label="Category"
           value={p.categoryId}

@@ -5,14 +5,15 @@ import { formatPaise } from '@/lib/money';
 import { Countdown } from './Countdown';
 import { QuickReserveButton } from './QuickBuyPanel';
 import { quickBuyAction } from './quick-buy';
-import { countdownFor, depositSummary, heroDepositLine } from './presale-copy';
+import { countdownFor, depositSummary, pieceName, presaleNoteCopy } from './presale-copy';
 
-/** "Reserve — ₹500" / "Pre-order — ₹1,499": the hero's one action. */
+/** "Reserve the Panther — ₹500" / "Pre-order — ₹1,499": the hero's one action, naming an animal piece. */
 export function heroCta(product: PublicProduct): string {
   const action = quickBuyAction(product);
   const dep = depositSummary(product);
-  if (action.mode === 'deposit' && dep) return `Reserve — ${formatPaise(dep.deposit)}`;
-  if (action.mode === 'full') return `Pre-order — ${formatPaise(product.price)}`;
+  const named = /^the\s/i.test(product.title) ? ` ${pieceName(product.title)}` : '';
+  if (action.mode === 'deposit' && dep) return `Reserve${named} — ${formatPaise(dep.deposit)}`;
+  if (action.mode === 'full') return `Pre-order${named} — ${formatPaise(product.price)}`;
   return action.label;
 }
 
@@ -67,18 +68,19 @@ export function PresaleHero({ product }: { product: PublicProduct }) {
   );
 }
 
-/** One quiet line under the hero: when the sale opens (small live countdown) and what reserving costs. */
+/** The strip under the hero: the run size, when the piece opens and what reserving costs, with a small live clock. */
 export function PresaleNote({ product }: { product: PublicProduct }) {
   const countdown = countdownFor(product.launch);
-  const dep = depositSummary(product);
-  const ship = product.launch.presale?.shipCopy;
-  const right = dep ? heroDepositLine(dep) : ship;
-  if (!countdown && !right) return null;
+  const copy = presaleNoteCopy(product);
+  if (!copy) return null;
   return (
     <aside aria-label="Pre-order" className="border-b border-line">
-      <div className="container-page flex flex-col gap-1 py-4 text-caption text-muted md:flex-row md:items-baseline md:justify-between md:gap-10 md:py-5">
-        {countdown && <Countdown variant="inline" releaseAt={countdown.at} label={countdown.label} className="text-ink-soft" />}
-        {right && <p className="tabular-nums md:text-right">{right}</p>}
+      <div className="container-page flex flex-col gap-2 py-5 md:flex-row md:items-baseline md:justify-between md:gap-10 md:py-6">
+        <div className="space-y-1">
+          {copy.heading && <p className="font-display text-h3 font-light text-ink">{copy.heading}</p>}
+          {copy.body && <p className="max-w-2xl text-small text-ink-soft">{copy.body}</p>}
+        </div>
+        {countdown && <Countdown variant="clock" releaseAt={countdown.at} label={countdown.label} className="text-caption text-muted md:text-right" />}
       </div>
     </aside>
   );

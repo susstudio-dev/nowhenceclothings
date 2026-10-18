@@ -210,6 +210,9 @@ describe('ship copy and deposit projection', () => {
     expect(formatShipCopy('Made to order. Ships by {date}.', undefined)).toBe('Made to order.');
     expect(formatShipCopy('Ships by {date}.', undefined)).toBe('');
     expect(formatShipCopy('Made to order. Ships by {date}.', undefined, { deposit: true })).toBe('Made to order. Ships after the sale opens.');
+    expect(formatShipCopy('Limited first run of 100. Orders ship within 2–3 weeks of the sale opening.', undefined, { deposit: true })).toBe(
+      'Limited first run of 100. Orders ship within 2–3 weeks of the sale opening.',
+    );
     expect(formatShipCopy('Hand finished in Tiruppur.', undefined)).toBe('Hand finished in Tiruppur.');
   });
   it('strips "ship by the date shown" from default terms without a date', () => {

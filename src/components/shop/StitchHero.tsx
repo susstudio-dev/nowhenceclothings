@@ -17,7 +17,18 @@ const ACTION =
  * embroidery magnified above the caption. The caption is server-rendered and usable from the first frame; the
  * drawings are decorative. An open pre-order piece gets its reserve sheet in place, any other polo links to its page.
  */
-export function StitchHero({ product, motif }: { product: PublicProduct; motif: Motif }) {
+export function StitchHero({
+  product,
+  motif,
+  headline,
+  lede,
+}: {
+  product: PublicProduct;
+  motif: Motif;
+  /** Site-content hero line ("Five animals. One polo."); the piece's name then sits under it as a caption. */
+  headline?: string;
+  lede?: string;
+}) {
   const colour = product.colours[0]!;
   const pal = stitchPalette(colour.hex);
   const vars = {
@@ -45,7 +56,13 @@ export function StitchHero({ product, motif }: { product: PublicProduct; motif: 
             {/* The loupe: the embroidery magnified, like the care label it sits beside. */}
             {/* Sized from the height the caption leaves (a two-line title needs about 34rem), so it never pushes the caption out. */}
             <figure aria-hidden="true" className="hidden md:block">
-              <div className="relative aspect-square w-[clamp(8rem,calc(100svh_-_34rem),22rem)] overflow-hidden border border-ink/25 bg-[var(--st-cloth)]">
+              <div
+                className={
+                  'relative aspect-square overflow-hidden border border-ink/25 bg-[var(--st-cloth)] ' +
+                  // A headline + lede above the piece's name needs about 6rem more than a title alone.
+                  (headline ? 'w-[clamp(7rem,calc(100svh_-_40rem),20rem)]' : 'w-[clamp(8rem,calc(100svh_-_34rem),22rem)]')
+                }
+              >
                 <StitchLoupe />
                 <span className="care-tag absolute left-3 top-3 bg-paper text-ink">Up close</span>
               </div>
@@ -53,12 +70,26 @@ export function StitchHero({ product, motif }: { product: PublicProduct; motif: 
             </figure>
             <div>
               {presale && <p className="care-tag">{product.launch.badge ?? 'Pre-order'}</p>}
-              <h1 id="hero-title" className="mt-5 max-w-[16ch] text-balance font-display text-[clamp(1.75rem,2.8vw,2.5rem)] font-light leading-[1.08] tracking-[-0.015em]">
-                <Link href={href} className="decoration-ink/40 decoration-1 underline-offset-[6px] hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink">
-                  {product.title}
-                </Link>
-              </h1>
-              <p className="mt-2 text-small tabular-nums text-ink">
+              {headline ? (
+                <>
+                  <h1 id="hero-title" className="mt-5 max-w-[16ch] text-balance font-display text-[clamp(1.75rem,2.8vw,2.5rem)] font-light leading-[1.08] tracking-[-0.015em]">
+                    {headline}
+                  </h1>
+                  {lede && <p className="mt-3 max-w-sm text-small text-ink-soft">{lede}</p>}
+                  <p className="mt-5 text-small text-ink">
+                    <Link href={href} className="link-underline">
+                      {product.title}
+                    </Link>
+                  </p>
+                </>
+              ) : (
+                <h1 id="hero-title" className="mt-5 max-w-[16ch] text-balance font-display text-[clamp(1.75rem,2.8vw,2.5rem)] font-light leading-[1.08] tracking-[-0.015em]">
+                  <Link href={href} className="decoration-ink/40 decoration-1 underline-offset-[6px] hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink">
+                    {product.title}
+                  </Link>
+                </h1>
+              )}
+              <p className={(headline ? 'mt-1' : 'mt-2') + ' text-small tabular-nums text-ink'}>
                 {colour.name}
                 {!product.launch.priceHidden && (
                   <>

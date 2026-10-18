@@ -60,6 +60,10 @@ const nextConfig = {
       // Crawlers and iOS probe these root paths when a page declares no icon; send them to the bundled symbol.
       { source: '/apple-touch-icon.png', destination: '/brand-default/icon-180.png', permanent: false },
       { source: '/apple-touch-icon-precomposed.png', destination: '/brand-default/icon-180.png', permanent: false },
+      // Product slugs renamed to the animals (Oct 2026); old links and shares keep working.
+      { source: '/products/polo-rust-wing-sleeve', destination: '/products/kestrel-rust', permanent: true },
+      { source: '/products/polo-cream-diamond-back', destination: '/products/rattlesnake-beige', permanent: true },
+      { source: '/products/polo-olive-pebble-hem', destination: '/products/crocodile-olive', permanent: true },
       {
         source: '/:path*',
         has: [{ type: 'host', value: `www.${CANONICAL_HOST}` }],

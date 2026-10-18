@@ -51,11 +51,21 @@ export function heroDepositLine(s: DepositSummary): string {
   return `${formatPaise(s.deposit)} to reserve · ${rest}`;
 }
 
-/** Product / booking page: "₹500 today · ₹999 balance when the sale opens on 31 Oct". */
+/** "10:00 am IST" */
+function clock(iso: string): string {
+  return `${new Date(iso).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })} IST`;
+}
+
+/** "31 October at 10:00 am IST" */
+export function saleMoment(iso: string): string {
+  return `${longDate(iso)} at ${clock(iso)}`;
+}
+
+/** Product / booking page: "Reserve today for ₹500 · Pay ₹999 when the sale opens on 31 Oct, 10:00 am IST". */
 export function depositTodayLine(s: DepositSummary): string {
-  const when = s.saleStartsAt ? `when the sale opens on ${shortDate(s.saleStartsAt)}` : 'when the sale opens';
-  const rest = s.priceLock === 'sale' ? `the balance at the sale price ${when}` : `${formatPaise(s.balance)} balance ${when}`;
-  return `${formatPaise(s.deposit)} today · ${rest}`;
+  const when = s.saleStartsAt ? `when the sale opens on ${shortDate(s.saleStartsAt)}, ${clock(s.saleStartsAt)}` : 'when the sale opens';
+  const rest = s.priceLock === 'sale' ? `Pay the balance at the sale price ${when}` : `Pay ${formatPaise(s.balance)} ${when}`;
+  return `Reserve today for ${formatPaise(s.deposit)} · ${rest}`;
 }
 
 /** Reserve sheet "How reserving works", from the server quote. */
@@ -104,62 +114,112 @@ export function preorderShipLine(shipBy: string | undefined, shipCopy: string | 
 }
 
 export interface PreorderFaqContext {
-  /** Store delivery estimate, sentence-cased ("Ships in 5–6 working days"). */
-  eta?: string;
   /** Size exchanges after delivery, e.g. { days: 7 }; absent when exchanges are off. */
   exchange?: { days: number };
 }
 
+/** Courier transit after dispatch; the same wording as the Shipping page. */
+export const DELIVERY_AFTER_DISPATCH = 'Delivery then takes 2–6 working days, depending on your PIN code.';
+
+/** The piece's short name for sentences: "The Panther Polo" -> "the Panther". */
+export function pieceName(title: string): string {
+  return title.replace(/\s+polo$/i, '').replace(/^the\s+/i, 'the ');
+}
+
+/** When a pre-order ships, as one sentence: the ship-by date, else the owner's ship copy, else after the sale. */
+export function preorderShipSentence(p: Pick<PublicProduct, 'launch'>): string {
+  const pre = p.launch.state === 'presale' ? p.launch.presale : undefined;
+  if (!pre) return '';
+  if (pre.shipBy) {
+    const d = new Date(`${pre.shipBy}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+    return `Ships by ${d}.`;
+  }
+  const said = (pre.shipCopy.match(/[^.!?]+[.!?]*/g) ?? []).map((x) => x.trim()).find((x) => /\bships?\b/i.test(x));
+  return said ?? (pre.paymentMode === 'deposit' ? 'Ships after the sale opens.' : 'Ships when the pre-order closes.');
+}
+
 /**
- * Product page "Pre-order questions" (A13 trust): the booking terms, said
- * before the customer reserves rather than only at checkout. Every answer is
- * read from the launch config, so it can never promise more than checkout does.
+ * The trust line under the Reserve / Pre-order button: run size, refund terms, shipping, exchange, limit.
+ * "Limited first run of 100. Reservations are non-refundable. Orders ship within 2–3 weeks of the sale opening.
+ *  One free size exchange. Limit 2 per customer."
  */
-export function preorderFaq(p: Pick<PublicProduct, 'price' | 'launch'>, ctx: PreorderFaqContext = {}): { q: string; a: string }[] {
+export function preorderTrustLine(p: Pick<PublicProduct, 'launch'>, ctx: PreorderFaqContext = {}): string {
+  const pre = p.launch.state === 'presale' ? p.launch.presale : undefined;
+  if (!pre) return '';
+  const dep = pre.paymentMode === 'deposit' ? pre.deposit : undefined;
+  const ship = preorderShipSentence(p);
+  // The owner's ship copy leads (it carries the run size); its shipping sentence moves after the refund terms.
+  const lead = (pre.shipCopy.match(/[^.!?]+[.!?]*/g) ?? []).map((x) => x.trim()).filter((x) => x && x !== ship);
+  return [
+    ...lead,
+    dep ? (dep.refundable ? 'Reservations are refundable until you pay the balance.' : 'Reservations are non-refundable.') : '',
+    ship,
+    ctx.exchange ? 'One free size exchange.' : '',
+    `Limit ${pre.perCustomerLimit} per customer.`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+/**
+ * Pre-order questions (A13 trust), shown on the product page and the FAQ: the booking terms, said before the
+ * customer reserves rather than only at checkout. Every answer is read from the launch config.
+ */
+export function preorderFaq(
+  p: Pick<PublicProduct, 'price' | 'launch'> & { title?: string },
+  ctx: PreorderFaqContext = {},
+): { q: string; a: string }[] {
   const pre = p.launch.state === 'presale' ? p.launch.presale : undefined;
   if (!pre) return [];
   const dep = pre.paymentMode === 'deposit' ? pre.deposit : undefined;
   const s = depositSummary(p);
-  const sale = s?.saleStartsAt ? `the sale opens on ${longDate(s.saleStartsAt)}` : 'the sale opens';
-  const days = dep?.balanceWindowDays ?? s?.balanceWindowDays;
+  const ship = preorderShipSentence(p);
   const out: { q: string; a: string }[] = [];
 
   if (dep && s) {
-    const balance = s.priceLock === 'sale' ? 'the balance at the sale price' : `the remaining ${formatPaise(s.balance)}`;
+    const when = s.saleStartsAt ? `When the sale opens on ${saleMoment(s.saleStartsAt)}` : 'When the sale opens';
+    const balance = s.priceLock === 'sale' ? 'the balance at the sale price' : `the ${formatPaise(s.balance)} balance`;
+    const days = dep.balanceWindowDays;
     out.push({
-      q: 'How does reserving work?',
-      a: `Pay ${formatPaise(s.deposit)} today to hold your size. When ${sale}, we email you a private link to pay ${balance}${days ? ` within ${days} days` : ''}. Your ${formatPaise(s.deposit)} counts towards the price.`,
+      q: 'How does the pre-order work?',
+      a: `Pay ${formatPaise(s.deposit)} today to reserve your piece and size. ${when}, we'll send you a link to pay ${balance}${days ? ` within ${days} days` : ''}. ${ship}`,
     });
-    const unpaid =
-      dep.unpaidOutcome === 'refund'
-        ? ` If the balance is not paid in time, we refund your ${formatPaise(s.deposit)}.`
-        : dep.unpaidOutcome === 'forfeit'
-          ? ` If the balance is not paid in time, the reservation lapses and the ${formatPaise(s.deposit)} is kept.`
-          : ` If you cannot pay the balance in time, write to us and we will sort it out with you.`;
+    const swap = ctx.exchange ? " If the size isn't right when it arrives, we'll exchange it once for free." : '';
     out.push({
-      q: 'What if I change my mind?',
+      q: 'Can I cancel a reservation?',
       a: dep.refundable
-        ? `Your ${formatPaise(s.deposit)} reservation is refundable. Write to us before you pay the balance.`
-        : `The ${formatPaise(s.deposit)} reservation is not refundable, because it holds a piece from a limited run for you.${unpaid}`,
+        ? `Yes. Write to us before you pay the balance and we'll refund your ${formatPaise(s.deposit)}.`
+        : `This is a limited run${pre.cap ? ` of ${pre.cap}` : ''}, so reservations are non-refundable.${swap}`,
     });
   }
 
-  const ship = pre.shipBy
-    ? `By ${new Date(`${pre.shipBy}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', timeZone: 'UTC' })}.`
-    : dep
-      ? `After ${sale}, once your balance is paid.`
-      : 'Together, once the pre-order closes.';
-  // A fixed ship-by date is the promise; the store's usual dispatch time only applies after the sale opens.
-  out.push({ q: 'When does it ship?', a: [ship, !pre.shipBy && ctx.eta ? `${ctx.eta} from then.` : ''].filter(Boolean).join(' ') });
-
+  out.push({ q: 'When does it ship?', a: `${ship} ${DELIVERY_AFTER_DISPATCH}` });
   out.push({
     q: 'Can I change my size?',
     a: [
-      dep ? 'Yes. Write to us before you pay the balance and we will switch it while that size lasts.' : 'Yes. Write to us before it ships and we will switch it while that size lasts.',
-      ctx.exchange ? `After delivery, you can exchange for another size within ${ctx.exchange.days} days.` : '',
+      dep ? "Yes. Write to us before you pay the balance and we'll switch it while that size lasts." : "Yes. Write to us before it ships and we'll switch it while that size lasts.",
+      ctx.exchange ? `After delivery, you get one free size exchange within ${ctx.exchange.days} days, if the piece is unworn and still has its tags.` : '',
     ]
       .filter(Boolean)
       .join(' '),
   });
   return out;
+}
+
+/**
+ * Home strip under the hero: "The first run: 100 pieces." then
+ * "The Panther opens on 31 October at 10:00 am IST. Reserve yours for ₹500 today. Pay the ₹999 balance when the sale opens."
+ */
+export function presaleNoteCopy(product: Pick<PublicProduct, 'title' | 'price' | 'launch'>): { heading?: string; body: string } | null {
+  const pre = product.launch.state === 'presale' ? product.launch.presale : undefined;
+  if (!pre) return null;
+  const dep = depositSummary(product);
+  const name = /^the\s/i.test(product.title) ? pieceName(product.title).replace(/^the/, 'The') : 'The sale';
+  const heading = pre.cap ? `The first run: ${pre.cap} pieces.` : undefined;
+  if (dep?.saleStartsAt) {
+    const balance = dep.priceLock === 'sale' ? 'the balance' : `the ${formatPaise(dep.balance)} balance`;
+    return { heading, body: `${name} opens on ${saleMoment(dep.saleStartsAt)}. Reserve yours for ${formatPaise(dep.deposit)} today. Pay ${balance} when the sale opens.` };
+  }
+  if (pre.shipCopy) return { heading, body: pre.shipCopy };
+  return heading ? { heading, body: '' } : null;
 }

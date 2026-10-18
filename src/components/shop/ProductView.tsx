@@ -18,7 +18,7 @@ import { SizeGuide } from './SizeGuide';
 import { titleWithColour, variantPrice } from './merch';
 import { QuickBuySheet } from './checkout/QuickBuySheet';
 import { quickBuyAction, RESERVE_SEPARATE_NOTE, sizeGridClass } from './quick-buy';
-import { countdownFor, depositSummary, depositTodayLine } from './presale-copy';
+import { countdownFor, depositSummary, depositTodayLine, preorderTrustLine } from './presale-copy';
 import { track, viewContentParams } from '@/lib/analytics/meta';
 
 export interface ProductViewProps {
@@ -35,12 +35,14 @@ export interface ProductViewProps {
   details?: React.ReactNode;
   /** Small line above the title, e.g. category. */
   eyebrow?: string;
+  /** Size exchanges after delivery (days), when the store allows them. */
+  exchangeDays?: number;
 }
 
 const LOW_STOCK = 3;
 
 /** Product page interactive area (S3, S4, A16): gallery, colour, size, add to bag + buy now. */
-export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, launch, details, eyebrow }: ProductViewProps) {
+export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, launch, details, eyebrow, exchangeDays }: ProductViewProps) {
   const router = useRouter();
   const soon = launch?.state === 'coming_soon';
   const pre = launch?.state === 'presale' ? launch.presale : undefined;
@@ -85,6 +87,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
   const action = launch ? quickBuyAction({ ...product, launch } as PublicProduct) : { mode: 'buy' as const, label: 'Buy now' };
   const depositTerms = launch ? depositSummary({ price: product.price, launch }) : undefined;
   const preCountdown = pre && launch ? countdownFor(launch) : undefined;
+  const trustLine = launch ? preorderTrustLine({ launch }, exchangeDays ? { exchange: { days: exchangeDays } } : {}) : '';
 
   function line() {
     const img = colour.images[0];
@@ -160,6 +163,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
           {product.colours.length === 1 && titleWithColour(product.title, colour.name) !== product.title && (
             <p className="mt-1 text-small text-muted">{colour.name}</p>
           )}
+          {product.tagline && <p className="mt-3 max-w-md text-small text-ink-soft">{product.tagline}</p>}
           {!launch?.priceHidden && (
             <div className="mt-4 flex items-baseline gap-3">
               <Price amount={price.amount} compareAt={price.compareAt} size="md" />
@@ -168,11 +172,10 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
           )}
           {deposit && (
             <p className="mt-2 text-small tabular-nums text-ink-soft">
-              {depositTerms ? depositTodayLine(depositTerms) : `${deposit.label} today · the balance when the sale opens`}
+              {depositTerms ? depositTodayLine(depositTerms) : `Reserve today for ${deposit.label} · Pay the balance when the sale opens`}
             </p>
           )}
           {soon && launch?.teaser && <p className="mt-6 max-w-md text-small text-ink-soft">{launch.teaser}</p>}
-          {pre?.shipCopy && <p className="mt-2 text-small text-muted">{pre.shipCopy}</p>}
 
           <div className="mt-8 space-y-8 border-t border-line pt-8">
             {product.colours.length > 1 && (
@@ -210,7 +213,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
                   {launch?.notify && (
                     <div className="space-y-3">
                       <p className="text-small text-ink-soft">Get an email the moment this is ready.</p>
-                      <NotifyMe productId={product.id} label="Notify me" />
+                      <NotifyMe productId={product.id} label="Tell me when it drops" />
                     </div>
                   )}
                 </>
@@ -243,6 +246,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
               )}
               {pre && (
                 <div className="space-y-1.5 text-caption text-muted">
+                  {trustLine && <p className="pb-1 text-small text-ink-soft">{trustLine}</p>}
                   {pre.access === 'waitlist' && (
                     <div className="space-y-3 pb-2">
                       <p>Open to the waitlist only. Check out with the email you signed up with, or join below.</p>
@@ -251,7 +255,7 @@ export function ProductView({ product, stock, sizeChart, upcomingReleaseAt, laun
                   )}
                   {preCountdown && <Countdown variant="inline" releaseAt={preCountdown.at} label={preCountdown.label} className="text-ink-soft" />}
                   {deposit && <p>{RESERVE_SEPARATE_NOTE}</p>}
-                  <p>Limit {pre.perCustomerLimit} per customer.{deposit ? ' Full booking terms are shown before you pay.' : ` ${pre.terms}`}</p>
+                  {!deposit && pre.terms && <p>{pre.terms}</p>}
                 </div>
               )}
               <p role="status" className="min-h-[1.25rem] text-small">

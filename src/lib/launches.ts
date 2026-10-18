@@ -219,6 +219,8 @@ export interface LaunchView {
     ctaLabel: string;
     endsAt?: string;
     perCustomerLimit: number;
+    /** Total pieces in the run, when capped ("Limited first run of 100"). */
+    cap?: number;
     /** A13: 'deposit' = book via /book/{slug} instead of the cart. */
     paymentMode?: 'deposit';
     deposit?: {
@@ -327,6 +329,7 @@ export function toPublicProduct(product: Product, drops: Drop[], d: LaunchDefaul
           ctaLabel: pre.ctaLabel,
           endsAt: pre.endsAt,
           perCustomerLimit: pre.perCustomerLimit,
+          ...(pre.cap != null ? { cap: pre.cap } : {}),
           ...(pre.paymentMode === 'deposit' && pre.deposit
             ? {
                 paymentMode: 'deposit' as const,
@@ -405,7 +408,8 @@ export function formatShipCopy(copy: string, shipBy: string | undefined, opts: {
     .map((x) => x.trim())
     .filter((x) => x && !DATE_REF.test(x))
     .join(' ');
-  return opts.deposit ? [kept, 'Ships after the sale opens.'].filter(Boolean).join(' ') : kept;
+  // Copy that already says when it ships ("Orders ship within 2–3 weeks…") needs no generic line.
+  return opts.deposit && !/\bships?\b/i.test(kept) ? [kept, 'Ships after the sale opens.'].filter(Boolean).join(' ') : kept;
 }
 
 /** Presale terms without a dangling "ship by the date shown" when no date is set. */

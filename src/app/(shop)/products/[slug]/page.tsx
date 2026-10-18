@@ -6,7 +6,7 @@ import { Markdown } from '@/components/shop/Markdown';
 import { ProductGrid } from '@/components/shop/ProductCard';
 import { ProductView } from '@/components/shop/ProductView';
 import { completeTheLook, dropFor, stockMap } from '@/components/shop/merch';
-import { preorderFaq } from '@/components/shop/presale-copy';
+import { DELIVERY_AFTER_DISPATCH, preorderFaq, preorderShipSentence } from '@/components/shop/presale-copy';
 import { getInventory, isReleased } from '@/lib/catalogue';
 import { isIndexable } from '@/lib/launches';
 import { getStorefrontCatalogue } from '@/lib/launches-server';
@@ -58,6 +58,8 @@ export default async function ProductPage({ params }: Props) {
     : [];
 
   const ship = settings.shipping;
+  const exchange = settings.returns.exchangesAllowed ? { days: settings.returns.windowDays } : undefined;
+  const preDeposit = launch.state === 'presale' && launch.presale?.paymentMode === 'deposit' ? launch.presale.deposit : undefined;
   const details: (AccordionItem | false | '')[] = [
     product.fit && { id: 'fit', title: 'Fit', content: <Markdown source={product.fit} /> },
     product.fabric && { id: 'fabric', title: 'Fabric & care', content: <Markdown source={[product.fabric, product.care].filter(Boolean).join('\n\n')} /> },
@@ -66,25 +68,38 @@ export default async function ProductPage({ params }: Props) {
       title: 'Shipping & returns',
       content: (
         <div className="space-y-2">
-          <p>
-            {shippingSummary(ship)}
-            {ship.eta && ` ${etaSentence(ship.eta)}.`}
-          </p>
-          <p>
-            {settings.returns.returnsAllowed || settings.returns.exchangesAllowed
-              ? `${returnsLabel(settings.returns)} within ${settings.returns.windowDays} days.`
-              : 'No returns or exchanges, except faulty pieces.'}{' '}
-            <Link href="/returns" className="link-quiet">Read the policy</Link>.
-          </p>
+          {launch.state === 'presale' ? (
+            // Pre-order pieces: when they ship, and the reservation terms, in the customer's words.
+            <>
+              <p>
+                {shippingSummary(ship)} {preorderShipSentence(product)} {DELIVERY_AFTER_DISPATCH}
+              </p>
+              <p>
+                {preDeposit && (preDeposit.refundable ? 'Reservations are refundable until you pay the balance. ' : 'Reservations are non-refundable. ')}
+                {exchange && `One free size exchange within ${exchange.days} days of delivery, if the piece is unworn and still has its tags. `}
+                <Link href="/returns" className="link-quiet">Read the policy</Link>.
+              </p>
+            </>
+          ) : (
+            <>
+              <p>
+                {shippingSummary(ship)}
+                {ship.eta && ` ${etaSentence(ship.eta)}.`}
+              </p>
+              <p>
+                {settings.returns.returnsAllowed || settings.returns.exchangesAllowed
+                  ? `${returnsLabel(settings.returns)} within ${settings.returns.windowDays} days.`
+                  : 'No returns or exchanges, except faulty pieces.'}{' '}
+                <Link href="/returns" className="link-quiet">Read the policy</Link>.
+              </p>
+            </>
+          )}
         </div>
       ),
     },
   ];
   const items = details.filter((x): x is AccordionItem => !!x);
-  const preFaq = preorderFaq(product, {
-    eta: ship.eta ? etaSentence(ship.eta) : undefined,
-    exchange: settings.returns.exchangesAllowed ? { days: settings.returns.windowDays } : undefined,
-  });
+  const preFaq = preorderFaq(product, { exchange });
 
   return (
     <div className="container-page pt-4 md:pt-8">
@@ -105,6 +120,7 @@ export default async function ProductPage({ params }: Props) {
         launch={launch}
         maxQty={settings.orders.maxQtyPerLine}
         eyebrow={category?.name}
+        exchangeDays={exchange?.days}
         details={
           <>
             {product.description && launch.state !== 'coming_soon' && (

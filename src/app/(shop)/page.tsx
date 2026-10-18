@@ -9,7 +9,7 @@ import { getCatalogue, getInventory } from '@/lib/catalogue';
 import { getSettings, getSiteContent } from '@/lib/content';
 import { productsFor, publicDrops } from '@/lib/launches-server';
 import { DEFAULT_HERO_MEDIA, isPlaceholderMedia } from '@/lib/brand-defaults';
-import { DEFAULT_DESCRIPTION, buildMetadata, paths } from '@/lib/seo';
+import { DEFAULT_DESCRIPTION, buildMetadata, paths, plainText } from '@/lib/seo';
 import { motifFor, pickStitchProduct } from '@/lib/stitch-hero';
 
 export const dynamic = 'force-dynamic';
@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
   const { home } = await getSiteContent();
   return buildMetadata({
-    title: 'Nowhence | Polos for after the match, embroidered in India',
+    title: 'Nowhence | Embroidered polos for after the match',
     exactTitle: true,
     path: paths.home(),
     seo: home.seo,
@@ -55,10 +55,22 @@ export default async function HomePage() {
     .map((b) => (b.type === 'hero' && isPlaceholderMedia(b.media) ? { ...b, media: DEFAULT_HERO_MEDIA } : b))
     // The footer already carries the newsletter; unfinished story copy never ships.
     .filter((b) => b.type !== 'newsletter' && !(b.type === 'story' && isPlaceholderCopy(b.body)));
-  // The stitch hero (or the presale photo) takes the lead slot; the editorial hero's words and image move to the brand moment below it.
+  // The stitch hero (or the presale photo) takes the lead slot. With the stitch hero, the site-content hero's
+  // words become its headline ("Five animals. One polo."), and the story block becomes the large brand moment
+  // below it ("Played hard. Worn after."), shown against the hero's close crop of the cloth. Without a story
+  // block the hero's words fall back to the brand moment, as before.
   const hero = blocks.find((b) => b.type === 'hero');
-  const ordered = leads ? blocks.filter((b) => b.type !== 'hero') : blocks;
-  const editorial = leads && hero?.type === 'hero' && hero.heading.trim() ? hero : undefined;
+  const story = blocks.find((b) => b.type === 'story');
+  const heroCopy = hero?.type === 'hero' && hero.heading.trim() ? hero : undefined;
+  const heroInStitch = Boolean(stitch && stitchMotif && heroCopy);
+  const editorial = !leads
+    ? undefined
+    : story?.type === 'story'
+      ? { heading: story.heading, subheading: plainText(story.body), media: story.media && !isPlaceholderMedia(story.media) ? story.media : heroCopy?.media, cta: story.cta }
+      : heroCopy && !heroInStitch
+        ? heroCopy
+        : undefined;
+  const ordered = leads ? blocks.filter((b) => b.type !== 'hero' && !(editorial && b === story)) : blocks;
   // Sections above bring their own bottom padding, except a full-bleed hero or the pre-order strip.
   const soonSpacing = leads && (editorial || ordered.length) ? undefined : 'pt-section';
 
@@ -66,7 +78,11 @@ export default async function HomePage() {
     <>
       {leads && (
         <>
-          {stitch && stitchMotif ? <StitchHero product={stitch} motif={stitchMotif} /> : featured && <PresaleHero product={featured} />}
+          {stitch && stitchMotif ? (
+            <StitchHero product={stitch} motif={stitchMotif} headline={heroCopy?.heading} lede={heroCopy?.subheading} />
+          ) : (
+            featured && <PresaleHero product={featured} />
+          )}
           {featured && <PresaleNote product={featured} />}
           {editorial && <HomeEditorial heading={editorial.heading} body={editorial.subheading} media={editorial.media} cta={editorial.cta} />}
         </>

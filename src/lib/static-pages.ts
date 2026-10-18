@@ -19,27 +19,28 @@ export const DEFAULT_STATIC_PAGES: Record<StaticSlug, Page> = {
     slug: 'about',
     title: 'About',
     seo: {
-      title: 'About Nowhence: polos for after the match',
+      title: 'About Nowhence: played hard, worn after',
       description:
-        'Nowhence makes polos for tennis, padel, pickleball and golf players, off court. Each piece carries an animal, embroidered into the cloth in India.',
+        'Nowhence makes embroidered polos for the people who play: tennis, padel, pickleball, golf. Every polo carries an animal. Designed in India.',
     },
     blocks: [
       md(
         'about-body',
-        `# Polos for after the match
+        `# Played hard. Worn after.
 
-{{brandName}} makes polos for people who play. Tennis, padel, pickleball, golf. Not the kit you sweat through: the one you change into for the coffee, the drive home and the dinner that follows a good game.
+{{brandName}} started on the court. We played, and afterwards we sat around in clothes that looked like we'd just played. Gym tees, faded polos, nothing we were proud of. So we set out to make the polo we wanted. Heavy enough to hold its shape, soft enough to live in, and embroidered with something worth looking at twice.
 
-Every piece carries an animal. Not a badge on the chest, but the animal's own pattern worked into the cloth. A black panther's rosettes that show only in the right light. A whale shark's spots. A kestrel's feathers, a diamondback's scales, a crocodile's back.
+Every {{brandName}} polo carries an animal. Each one stands for a way of playing: the patient panther, the watchful kestrel, the unbothered crocodile. Pick the one that plays like you.
 
 ## How we make them
 
-- **One regular-fit block.** Easy through the chest, clean at the shoulder, worn by anyone.
-- **The animal is the detail.** Tonal, close to the cloth, noticed on the second look.
-- **Small runs.** Each animal is released in a limited run.
-- **Embroidered in India.** Cotton piqué, designed and made here.
+- **One fabric, done properly.** 240 GSM mercerised cotton piqué, chosen for weight, sheen and how it washes.
+- **Small runs.** We make each design in limited numbers. When a run is gone, it's gone.
+- **Made in India.** Designed in India, made with partners we know and visit.
 
-## Find us
+## Who we are
+
+{{brandName}} is founded by Sanjan Avasarala, under Sanbhanu Private Limited. We still answer every message ourselves:
 
 {{contactList}}`,
       ),
@@ -72,9 +73,9 @@ For an order, include your order number. It starts with NWH and is in your confi
         id: 'faq-items',
         items: [
           { q: 'How does sizing work?', a: 'Every polo is cut on one unisex, regular-fit block. Measure your chest and find it in the [size guide](/size-guide): each size lists the body chest it fits. Between sizes? Size down for a closer, athletic look, up for a relaxed one.' },
-          { q: 'How long does delivery take?', a: '{{eta}}. Delivery across India usually takes a further 2 to 6 working days, depending on your PIN code.' },
           { q: 'What does shipping cost?', a: '{{shippingSummary}}' },
-          { q: 'Can I return or exchange?', a: '{{returnsSummary}} Pieces must be unworn and with tags. Read the [returns policy](/returns).' },
+          { q: 'How long does delivery take?', a: '{{eta}} for in-stock pieces. Pre-orders ship within 2–3 weeks of the sale opening. Delivery takes another 2–6 working days, depending on your PIN code.' },
+          { q: 'Can I return or exchange?', a: '{{returnsSummary}} Pieces must be unworn and with tags. Pre-ordered pieces get one free size exchange within the same window. Read the [returns policy](/returns).' },
           { q: 'Do prices include tax?', a: 'Yes. All prices include GST.' },
           { q: 'How do I pay?', a: 'Cards, UPI, net banking and wallets, through Razorpay. We do not store your card details.' },
           { q: 'Will a sold-out size come back?', a: 'Sometimes. Choose the size and select "Notify me". We will write once, when it returns.' },
@@ -95,6 +96,8 @@ For an order, include your order number. It starts with NWH and is in your confi
 
 Garment measurements, taken flat and doubled. Inches first, centimetres below. Every polo is unisex.
 
+Lay your favourite polo flat and measure it. Then pick the closest size below.
+
 Not sure? Send us your height and chest measurement and we will tell you which size to take.
 
 {{contactList}}`,
@@ -114,19 +117,19 @@ We ship to every serviceable PIN code in India. International shipping is not ye
 
 ## Cost
 
-{{shippingSummary}}
+{{shippingSummary}} Anywhere in India.
 
 ## Timing
 
-{{eta}}. Most orders then arrive within 2 to 6 working days. Remote areas may take longer.
+{{eta}} for in-stock pieces. Pre-orders ship within 2–3 weeks of the sale opening. Delivery then takes 2–6 working days, depending on your PIN code. Remote areas may take longer.
 
 ## Tracking
 
 When your order ships, we email a tracking link. You can also [track your order](/orders/track) with your order number and email.
 
-## Pre-orders and drops
+## Drops
 
-Reserved and pre-ordered pieces ship once the sale opens and the balance is paid. Pieces from a drop ship once the drop is released.`,
+Pieces from a drop ship once the drop is released. If your order mixes released and upcoming pieces, it ships together when everything is ready.`,
       ),
     ],
   },
