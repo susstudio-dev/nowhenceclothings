@@ -39,8 +39,8 @@ export function pickStitchProduct<T extends { slug: string; title: string }>(fea
 
 /* ---------- colour ---------- */
 
+/** The cloth's own tones. The backdrop and chalk come from the brand theme (StitchHero), not from here. */
 export interface StitchPalette {
-  bg: string;
   cloth: string;
   hi: string;
   lo: string;
@@ -48,17 +48,7 @@ export interface StitchPalette {
   threadHi: string;
   shadow: string;
   seam: string;
-  chalk: string;
 }
-
-/** Backdrops sampled from each polo's photograph. */
-export const BACKDROPS: Record<Motif, string> = {
-  rings: '#A2A3A1',
-  wing: '#D3D1CD',
-  rain: '#B7A696',
-  pebbles: '#998C70',
-  diamonds: '#D6B27C',
-};
 
 function rgb(hex: string): number[] {
   const n = parseInt(hex.replace('#', ''), 16);
@@ -76,13 +66,13 @@ function luminance(c: number[]): number {
 }
 
 /** Tonal thread and shading from the cloth colour: embroidery sits a shade off the cloth, never a contrast colour. */
-export function stitchPalette(hex: string, motif: Motif): StitchPalette {
+export function stitchPalette(hex: string): StitchPalette {
   const c = rgb(/^#[0-9a-fA-F]{6}$/.test(hex) ? hex : '#141412');
   const cloth = mix(c, 0, 0);
   if (luminance(c) > 0.4) {
-    return { bg: BACKDROPS[motif], cloth, hi: mix(c, 255, 0.45), lo: mix(c, 0, 0.1), thread: mix(c, 0, 0.12), threadHi: mix(c, 255, 0.5), shadow: mix(c, 0, 0.28), seam: mix(c, 0, 0.16), chalk: 'rgba(60,45,25,.5)' };
+    return { cloth, hi: mix(c, 255, 0.45), lo: mix(c, 0, 0.1), thread: mix(c, 0, 0.12), threadHi: mix(c, 255, 0.5), shadow: mix(c, 0, 0.28), seam: mix(c, 0, 0.16) };
   }
-  return { bg: BACKDROPS[motif], cloth, hi: mix(c, 255, 0.08), lo: mix(c, 0, 0.32), thread: mix(c, 255, 0.1), threadHi: mix(c, 255, 0.24), shadow: mix(c, 0, 0.6), seam: mix(c, 255, 0.16), chalk: 'rgba(255,255,255,.75)' };
+  return { cloth, hi: mix(c, 255, 0.08), lo: mix(c, 0, 0.32), thread: mix(c, 255, 0.1), threadHi: mix(c, 255, 0.24), shadow: mix(c, 0, 0.6), seam: mix(c, 255, 0.16) };
 }
 
 /* ---------- geometry ---------- */
@@ -481,6 +471,10 @@ export interface Scene {
   els: StitchEl[];
   /** Smoothed centres of the elements, for the camera to follow the needle. */
   follow: Pt[];
+  /** Each element's own centre, for the loupe: it glides from stitch to stitch and always frames one. */
+  near: Pt[];
+  /** Cumulative length along `near`. */
+  nearCum: number[];
   seams: Seam[];
 }
 
@@ -505,17 +499,20 @@ export function buildScene(motif: Motif): Scene {
     e.e = Math.min(eb, e.s + Math.max(span * 0.012, ((span * 0.86 * W[i]!) / tot) * 2.2));
     acc += W[i]!;
   });
-  const follow = els.map((_, i) => {
-    let x = 0;
-    let y = 0;
-    let n = 0;
-    for (let j = Math.max(0, i - 4); j <= Math.min(els.length - 1, i + 4); j++) {
-      x += els[j]!.c[0];
-      y += els[j]!.c[1];
-      n++;
-    }
-    return [x / n, y / n] as Pt;
-  });
+  const smooth = (r: number) =>
+    els.map((_, i) => {
+      let x = 0;
+      let y = 0;
+      let n = 0;
+      for (let j = Math.max(0, i - r); j <= Math.min(els.length - 1, i + r); j++) {
+        x += els[j]!.c[0];
+        y += els[j]!.c[1];
+        n++;
+      }
+      return [x / n, y / n] as Pt;
+    });
+  const follow = smooth(4);
+  const near = smooth(0);
   // Each seam group gets time in proportion to its longest seam.
   const groups = SEAM_GROUPS.map((g) => g.map((d) => sampleD(d)).map((pts) => ({ pts, cum: cumul(pts) })));
   const gl = groups.map((g) => Math.max(...g.map((s) => s.cum[s.cum.length - 1]!)));
@@ -529,7 +526,7 @@ export function buildScene(motif: Motif): Scene {
     gc += gl[gi]!;
     for (const one of g) seams.push({ ...one, s, e });
   });
-  return { motif, host: MOTIF_HOST[motif], els, follow, seams };
+  return { motif, host: MOTIF_HOST[motif], els, follow, near, nearCum: cumul(near.length ? near : [[0, 0]]), seams };
 }
 
 /* ---------- camera and frames ---------- */
@@ -538,15 +535,15 @@ export interface Cam { cx: number; cy: number; w: number }
 export const FULL: Cam = { cx: 300, cy: 368, w: 580 };
 const mixCam = (a: Cam, b: Cam, k: number): Cam => ({ cx: lerp(a.cx, b.cx, k), cy: lerp(a.cy, b.cy, k), w: Math.exp(lerp(Math.log(a.w), Math.log(b.w), k)) });
 
-function followAt(scene: Scene, t: number): Pt {
+function followAt(scene: Scene, t: number, path: Pt[] = scene.follow): Pt {
   const els = scene.els;
-  if (!els.length || t <= els[0]!.s) return scene.follow[0] ?? [FULL.cx, FULL.cy];
+  if (!els.length || t <= els[0]!.s) return path[0] ?? [FULL.cx, FULL.cy];
   let i = 0;
   while (i < els.length - 1 && els[i + 1]!.s <= t) i++;
-  if (i >= els.length - 1) return scene.follow[els.length - 1]!;
+  if (i >= els.length - 1) return path[els.length - 1]!;
   const k = clamp((t - els[i]!.s) / (els[i + 1]!.s - els[i]!.s || 1));
-  const a = scene.follow[i]!;
-  const b = scene.follow[i + 1]!;
+  const a = path[i]!;
+  const b = path[i + 1]!;
   return [lerp(a[0], b[0], k), lerp(a[1], b[1], k)];
 }
 
@@ -554,6 +551,38 @@ function followAt(scene: Scene, t: number): Pt {
 export function camera(scene: Scene, t: number, compact: boolean): Cam {
   const f = followAt(scene, Math.min(t, TIMELINE.emb[1]));
   return mixCam({ cx: f[0], cy: f[1], w: compact ? 120 : 150 }, FULL, eio(seg(t, ...TIMELINE.pull)));
+}
+
+/** How much of the garment the loupe shows across: a few stitches. */
+export const LOUPE_W = 64;
+/** Average drift speed along the embroidery, garment units per second (about 30px/s on screen). */
+export const LOUPE_SPEED = 6;
+
+/**
+ * The loupe beside the stage: it follows the needle, closer than the stage, while the embroidery is stitched;
+ * then it drifts slowly along the finished embroidery and back, easing at each end. `drift` is seconds since
+ * the stitching ended. It starts where the needle stopped, and always frames real stitches.
+ */
+export function loupeCamera(scene: Scene, t: number, drift: number): Cam {
+  if (t < TIMELINE.emb[1] || scene.near.length < 2) {
+    const f = followAt(scene, t, scene.near);
+    return { cx: f[0], cy: f[1], w: LOUPE_W };
+  }
+  const cum = scene.nearCum;
+  const L = cum[cum.length - 1]! || 1;
+  // One pass along the path takes L / speed seconds; u runs 1 → 0 → 1 (end → start → end).
+  const u = (1 + Math.cos((Math.PI * Math.max(0, drift) * LOUPE_SPEED) / L)) / 2;
+  const p = pointAt(scene.near, cum, u);
+  return { cx: p.x, cy: p.y, w: LOUPE_W };
+}
+
+/** The 6:7 camera frame, widened or heightened to fill a box of the given width / height. */
+export function viewBoxFor(cam: Cam, aspect: number): string {
+  let w = cam.w;
+  let h = (cam.w * VIEW.h) / VIEW.w;
+  if (aspect > w / h) w = h * aspect;
+  else h = w / aspect;
+  return `${r1(cam.cx - w / 2)} ${r1(cam.cy - h / 2)} ${r1(w)} ${r1(h)}`;
 }
 
 export interface PieceFrame { transform: string; opacity: number; drop: string; dropOpacity: number }
@@ -587,14 +616,10 @@ export interface Frame {
 
 /**
  * Everything the stage writes at time t (0…1). `aspect` is the stage box's width / height: the camera's 6:7
- * frame is widened (or heightened) to fill the box, so nothing spills out and nothing is letterboxed.
+ * frame is widened (or heightened) to fill the box, so nothing spills out and nothing is letterboxed. `cam`
+ * replaces the stage camera (the loupe passes its own).
  */
-export function frame(scene: Scene, t: number, compact: boolean, aspect = VIEW.w / VIEW.h): Frame {
-  const cam = camera(scene, t, compact);
-  let w = cam.w;
-  let h = (cam.w * VIEW.h) / VIEW.w;
-  if (aspect > w / h) w = h * aspect;
-  else h = w / aspect;
+export function frame(scene: Scene, t: number, compact: boolean, aspect = VIEW.w / VIEW.h, cam: Cam = camera(scene, t, compact)): Frame {
   const tips: Tip[] = [];
   const seams = scene.seams.map((s) => {
     const p = seg(t, s.s, s.e);
@@ -622,7 +647,7 @@ export function frame(scene: Scene, t: number, compact: boolean, aspect = VIEW.w
   });
   tips.sort((a, b) => b.s - a.s);
   return {
-    viewBox: `${r1(cam.cx - w / 2)} ${r1(cam.cy - h / 2)} ${r1(w)} ${r1(h)}`,
+    viewBox: viewBoxFor(cam, aspect),
     needleScale: (cam.w / FULL.w) * 1.1,
     draftOpacity: Math.round(seg(t, ...TIMELINE.draftIn) * (1 - seg(t, ...TIMELINE.draftOut)) * 10) / 10,
     pieces: PIECES.map((p) => pieceFrame(p, t, scene.host)),
@@ -642,15 +667,15 @@ export function seamPath(seam: Seam, p: number): string {
 
 /* ---------- markup ---------- */
 
-/** Element ids inside the stage SVG. One stitch hero per page, so a fixed prefix is enough. */
+/** Element id prefix for the stage SVG; the loupe passes its own (`LOUPE_ID`) so the two never clash. */
 export const ID = 'nhs';
+export const LOUPE_ID = 'nhl';
 
 /**
  * The stage's inner SVG at t = 0. Built from numbers only (no product text), so it is safe to set as
  * markup. Colours come from CSS custom properties on the section (`--st-*`).
  */
-export function sceneMarkup(scene: Scene): string {
-  const P = ID;
+export function sceneMarkup(scene: Scene, P: string = ID): string {
   let defs =
     `<filter id="${P}-drop" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>` +
     `<filter id="${P}-soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter>` +

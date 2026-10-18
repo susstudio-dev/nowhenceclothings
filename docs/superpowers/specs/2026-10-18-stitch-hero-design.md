@@ -14,7 +14,7 @@ The home page opens on a drawn polo that makes itself. The camera starts close o
 Motifs, matched by word in slug or title: `ring` → rings, `wing` → wing (on the left sleeve), `rain` → rain, `pebble` → pebbles, `diamond` → diamonds.
 
 ## Colour
-The cloth tones (highlight, shade, thread, seam) are derived from the product colour's `hex`, light and dark cloth handled separately. Each motif has a backdrop sampled from its photograph. Type over the hero is ink. The header uses a new additive `data-chrome-hero="light"` state: transparent, ink type, no shade.
+The cloth tones (highlight, shade, thread, seam) are derived from the product colour's `hex`, light and dark cloth handled separately. The ground is the brand theme's `paper-deep` (revised 2026-10-18; first version used backdrops sampled from the photographs). A loupe on the left magnifies the embroidery (revised 2026-10-18). Type over the hero is ink. The header uses a new additive `data-chrome-hero="light"` state: transparent, ink type, no shade.
 
 ## Motion
 - 10 s on desktop, 7 s under 768px. One rAF loop; attribute writes only, no React state per frame. Time accumulates frame to frame (capped), so a hidden tab resumes where it was.

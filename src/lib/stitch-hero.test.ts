@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   BODY,
   FULL,
+  LOUPE_ID,
+  LOUPE_SPEED,
+  LOUPE_W,
   MOTIFS,
   PIECES,
   TIMELINE,
@@ -9,6 +12,7 @@ import {
   camera,
   cumul,
   frame,
+  loupeCamera,
   mirrorD,
   motifFor,
   pickStitchProduct,
@@ -19,6 +23,7 @@ import {
   sceneMarkup,
   seamPath,
   stitchPalette,
+  viewBoxFor,
   zigzag,
   type Motif,
   type Pt,
@@ -68,16 +73,15 @@ describe('pickStitchProduct', () => {
 
 describe('stitchPalette', () => {
   it('keeps the thread tonal: lighter than dark cloth, darker than light cloth', () => {
-    const dark = stitchPalette('#141412', 'rings');
-    const light = stitchPalette('#E9E1CF', 'diamonds');
+    const dark = stitchPalette('#141412');
+    const light = stitchPalette('#E9E1CF');
     for (const p of [dark, light]) for (const k of ['cloth', 'hi', 'lo', 'thread', 'threadHi', 'shadow', 'seam'] as const) expect(p[k]).toMatch(HEX);
     const v = (h: string) => parseInt(h.slice(1, 3), 16);
     expect(v(dark.thread)).toBeGreaterThan(v(dark.cloth));
     expect(v(light.thread)).toBeLessThan(v(light.cloth));
-    expect(dark.bg).toBe('#A2A3A1');
   });
   it('falls back to black on a malformed hex', () => {
-    expect(stitchPalette('nope', 'rain').cloth).toBe('#141412');
+    expect(stitchPalette('nope').cloth).toBe('#141412');
   });
 });
 
@@ -187,6 +191,44 @@ describe('camera and frames', () => {
     expect(frame(scene, 1, false, 2).viewBox).toBe('-376.7 29.7 1353.3 676.7');
     expect(frame(scene, 1, false, 0.5).viewBox).toBe('10 -212 580 1160');
   });
+  it('lets the loupe follow the needle, then drift along the embroidery and back', () => {
+    const embEnd = TIMELINE.emb[1];
+    const mid = loupeCamera(scene, 0.2, 0);
+    expect(mid.w).toBe(LOUPE_W);
+    // closer to the stitches than the stage camera, which averages more of them
+    const stage = camera(scene, 0.2, false);
+    expect(Math.hypot(mid.cx - stage.cx, mid.cy - stage.cy)).toBeLessThan(40);
+    // hand-over: where the needle stopped
+    const last = scene.near[scene.near.length - 1]!;
+    const handover = loupeCamera(scene, embEnd, 0);
+    expect(handover.cx).toBeCloseTo(last[0]);
+    expect(handover.cy).toBeCloseTo(last[1]);
+    // one pass (path length / speed) reaches the first stitches; two bring it back
+    const pass = scene.nearCum[scene.nearCum.length - 1]! / LOUPE_SPEED;
+    const first = scene.near[0]!;
+    expect(loupeCamera(scene, 1, pass).cx).toBeCloseTo(first[0]);
+    expect(loupeCamera(scene, 1, pass * 2).cx).toBeCloseTo(last[0]);
+    // gentle: under 10 garment units per second at its fastest
+    const a = loupeCamera(scene, 1, pass / 2);
+    const b = loupeCamera(scene, 1, pass / 2 + 1);
+    expect(Math.hypot(a.cx - b.cx, a.cy - b.cy)).toBeLessThan(10);
+  });
+  it('keeps every loupe stop on the stitches', () => {
+    for (const m of ALL) {
+      const s = buildScene(m);
+      const pass = s.nearCum[s.nearCum.length - 1]! / LOUPE_SPEED;
+      for (let d = 0; d <= pass; d += pass / 40) {
+        const c = loupeCamera(s, 1, d);
+        const nearest = Math.min(...s.els.map((e) => Math.hypot(e.c[0] - c.cx, e.c[1] - c.cy)));
+        expect(nearest).toBeLessThan(LOUPE_W / 2);
+      }
+    }
+  });
+  it('frames any camera through frame()', () => {
+    const cam = { cx: 300, cy: 300, w: 64 };
+    expect(frame(scene, 1, false, 1, cam).viewBox).toBe(viewBoxFor(cam, 1));
+    expect(viewBoxFor(cam, 1)).toBe('262.7 262.7 74.7 74.7');
+  });
   it('shows a needle while stitching', () => {
     const mid = frame(scene, 0.2, false);
     expect(mid.tips.length).toBeGreaterThan(0);
@@ -210,5 +252,11 @@ describe('sceneMarkup', () => {
     const sleeve = svg.slice(svg.indexOf('id="nhs-pc-sleeveR"'), svg.indexOf('id="nhs-pc-cuffL"'));
     expect(sleeve).toContain('id="nhs-e0"');
     expect(svg).not.toMatch(/undefined|NaN/);
+  });
+  it('prefixes every id and reference for a second copy', () => {
+    const svg = sceneMarkup(buildScene('rings'), LOUPE_ID);
+    expect(svg).not.toMatch(/nhs-/);
+    expect(svg).toContain('url(#nhl-pique)');
+    expect(svg).toContain('href="#nhl-z0"');
   });
 });
