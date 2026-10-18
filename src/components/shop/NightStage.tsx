@@ -137,7 +137,9 @@ export function NightStage({ entry }: { entry: NightHeroEntry }) {
       let visible = true;
       const io = new IntersectionObserver(([e]) => {
         visible = Boolean(e?.isIntersecting);
-        if (!done) visible ? tl.play() : tl.pause();
+        if (done) return;
+        if (visible) tl.play();
+        else tl.pause();
       });
       io.observe(host);
 

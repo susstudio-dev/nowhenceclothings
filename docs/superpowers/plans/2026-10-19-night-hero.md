@@ -666,7 +666,9 @@ export function NightStage({ entry }: { entry: NightHeroEntry }) {
       let visible = true;
       const io = new IntersectionObserver(([e]) => {
         visible = Boolean(e?.isIntersecting);
-        if (!done) visible ? tl.play() : tl.pause();
+        if (done) return;
+        if (visible) tl.play();
+        else tl.pause();
       });
       io.observe(host);
 
@@ -843,7 +845,6 @@ export function NightHero({ product, entry, tagline }: { product: PublicProduct;
     >
       <picture>
         <source media="(min-width: 768px)" srcSet={wide.full} width={wide.w} height={wide.h} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={tall.full}
           width={tall.w}

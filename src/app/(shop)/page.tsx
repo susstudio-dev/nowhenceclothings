@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { BlockRenderer } from '@/components/shop/BlockRenderer';
 import { ComingSoonSection } from '@/components/shop/ComingSoonGrid';
 import { HomeEditorial } from '@/components/shop/HomeEditorial';
+import { NightHero } from '@/components/shop/NightHero';
 import { PresaleHero, PresaleNote } from '@/components/shop/PresaleHero';
 import { StitchHero } from '@/components/shop/StitchHero';
 import { heroPresaleProduct } from '@/components/shop/quick-buy';
@@ -10,6 +11,7 @@ import { getSettings, getSiteContent } from '@/lib/content';
 import { productsFor, publicDrops } from '@/lib/launches-server';
 import { DEFAULT_HERO_MEDIA, isPlaceholderMedia } from '@/lib/brand-defaults';
 import { DEFAULT_DESCRIPTION, buildMetadata, paths, plainText } from '@/lib/seo';
+import { nightHeroFor } from '@/lib/night-hero';
 import { motifFor, pickStitchProduct } from '@/lib/stitch-hero';
 
 export const dynamic = 'force-dynamic';
@@ -28,10 +30,11 @@ export async function generateMetadata(): Promise<Metadata> {
 const isPlaceholderCopy = (s: string) => /placeholder/i.test(s);
 
 /**
- * Home (S1, A16): the stitch hero leads, drawing the lead polo as it is embroidered and sewn: the open presale /
- * pre-booking piece (bought in place) or else the first polo with a known motif. A presale piece without a motif
- * keeps the photo hero; with no lead piece the editorial hero from site content leads. Then content blocks and
- * the A10 "Coming soon" section.
+ * Home (S1, A16): the lead polo leads: the open presale / pre-booking piece (bought in place) or else the first polo
+ * with a known motif. A motif with prepared photographs gets the night hero (its real embroidery stitched into the
+ * real cloth); any other motif gets the stitch hero, drawing the polo as it is embroidered and sewn. A presale piece
+ * without a motif keeps the photo hero; with no lead piece the editorial hero from site content leads. Then content
+ * blocks and the A10 "Coming soon" section.
  */
 export default async function HomePage() {
   const [content, raw, inventory, settings] = await Promise.all([getSiteContent(), getCatalogue(), getInventory(), getSettings()]);
@@ -48,6 +51,8 @@ export default async function HomePage() {
     products.filter((p) => p.launch.state === 'available' && p.colours.length),
   );
   const stitchMotif = stitch && motifFor(stitch);
+  // A motif whose photographs have been prepared leads in the night hero; the others keep the drawn stitch hero.
+  const night = nightHeroFor(stitchMotif || undefined);
   const leads = Boolean(featured || stitchMotif);
 
   const blocks = content.home.blocks
@@ -79,7 +84,11 @@ export default async function HomePage() {
       {leads && (
         <>
           {stitch && stitchMotif ? (
-            <StitchHero product={stitch} motif={stitchMotif} headline={heroCopy?.heading} lede={heroCopy?.subheading} />
+            night ? (
+              <NightHero product={stitch} entry={night} tagline={heroCopy?.heading} />
+            ) : (
+              <StitchHero product={stitch} motif={stitchMotif} headline={heroCopy?.heading} lede={heroCopy?.subheading} />
+            )
           ) : (
             featured && <PresaleHero product={featured} />
           )}
