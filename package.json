@@ -19,12 +19,14 @@
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.2",
+    "animejs": "^4.0.2",
     "jose": "^5.9.6",
     "next": "^15.5.18",
     "pdf-lib": "^1.17.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "server-only": "^0.0.1",
+    "three": "^0.170.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -32,10 +34,12 @@
     "@types/node": "^22",
     "@types/react": "19.0.2",
     "@types/react-dom": "19.0.2",
+    "@types/three": "^0.170.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.39.1",
     "eslint-config-next": "15.5.18",
     "postcss": "^8.4.49",
+    "sharp": "^0.35.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "vitest": "^4.1.10",

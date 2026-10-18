@@ -99,7 +99,7 @@ async function prep(box, out) {
   const grey = new Uint8Array(N);
   for (let i = 0; i < N; i++) grey[i] = Math.round(0.299 * rgb[3 * i] + 0.587 * rgb[3 * i + 1] + 0.114 * rgb[3 * i + 2]);
   const blur = async (u8, sigma) =>
-    new Uint8Array(await sharp(Buffer.from(u8), { raw: { width: W, height: H, channels: 1 } }).blur(sigma).raw().toBuffer());
+    new Uint8Array(await sharp(Buffer.from(u8), { raw: { width: W, height: H, channels: 1 } }).blur(sigma).extractChannel(0).raw().toBuffer());
   const a = await blur(grey, 3), bg = await blur(grey, 40);
 
   // Thread is a little lighter than the cloth around it; the grey wall behind the polo is excluded.
