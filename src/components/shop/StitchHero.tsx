@@ -29,6 +29,7 @@ export function StitchHero({ product, motif }: { product: PublicProduct; motif: 
     '--st-lo': pal.lo,
     '--st-thread': pal.thread,
     '--st-thread-hi': pal.threadHi,
+    '--st-thread-lo': pal.threadLo,
     '--st-shadow': pal.shadow,
     '--st-seam': pal.seam,
   } as CSSProperties;

@@ -46,6 +46,8 @@ export interface StitchPalette {
   lo: string;
   thread: string;
   threadHi: string;
+  /** The thread's side away from the light. */
+  threadLo: string;
   shadow: string;
   seam: string;
 }
@@ -65,14 +67,17 @@ function luminance(c: number[]): number {
   return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
 }
 
-/** Tonal thread and shading from the cloth colour: embroidery sits a shade off the cloth, never a contrast colour. */
+/**
+ * Tonal thread and shading from the cloth colour: embroidery sits a shade off the cloth, never a contrast
+ * colour. On dark cloth the thread is the charcoal of the photographs, catching the light on its top edge.
+ */
 export function stitchPalette(hex: string): StitchPalette {
   const c = rgb(/^#[0-9a-fA-F]{6}$/.test(hex) ? hex : '#141412');
   const cloth = mix(c, 0, 0);
   if (luminance(c) > 0.4) {
-    return { cloth, hi: mix(c, 255, 0.45), lo: mix(c, 0, 0.1), thread: mix(c, 0, 0.12), threadHi: mix(c, 255, 0.5), shadow: mix(c, 0, 0.28), seam: mix(c, 0, 0.16) };
+    return { cloth, hi: mix(c, 255, 0.45), lo: mix(c, 0, 0.1), thread: mix(c, 0, 0.12), threadHi: mix(c, 255, 0.55), threadLo: mix(c, 0, 0.26), shadow: mix(c, 0, 0.3), seam: mix(c, 0, 0.14) };
   }
-  return { cloth, hi: mix(c, 255, 0.08), lo: mix(c, 0, 0.32), thread: mix(c, 255, 0.1), threadHi: mix(c, 255, 0.24), shadow: mix(c, 0, 0.6), seam: mix(c, 255, 0.16) };
+  return { cloth, hi: mix(c, 255, 0.07), lo: mix(c, 0, 0.4), thread: mix(c, 255, 0.17), threadHi: mix(c, 255, 0.42), threadLo: mix(c, 255, 0.05), shadow: mix(c, 0, 0.7), seam: mix(c, 255, 0.09) };
 }
 
 /* ---------- geometry ---------- */
@@ -184,9 +189,9 @@ export function pointAt(pts: Pt[], cum: number[], p: number): { x: number; y: nu
   return { x: lerp(pts[lo]![0], pts[hi]![0], k), y: lerp(pts[lo]![1], pts[hi]![1], k), i: lo };
 }
 
-/** Satin stitch: the thread crosses the line from side to side, `w` wide, every 0.8 units. */
+/** Satin stitch: the thread crosses the line from side to side, `w` wide, every 0.4 units, packed like real satin. */
 export function zigzag(pts: Pt[], w: number): Pt[] {
-  const r = resample(pts, 0.8);
+  const r = resample(pts, 0.4);
   return r.map((p, i) => {
     const a = r[Math.max(0, i - 1)]!;
     const b = r[Math.min(r.length - 1, i + 1)]!;
@@ -246,20 +251,22 @@ export interface Piece {
   tex: 'pique' | 'ribV' | 'ribC';
   /** Rotation centre. */
   c: Pt;
-  /** Where the cut piece starts: dx, dy, degrees, scale. */
+  /** Where the cut piece starts, lifted off the table: dx, dy, degrees, scale (above 1 = held up). */
   from: [number, number, number, number];
   /** Arrival order. */
   k: number;
   folds?: 'body' | 'sleeve';
 }
+// Each piece is carried in a short way from beside its place, held a little above the table, and laid down
+// square: a small turn, no spins. The lift shows in its scale and in a longer, softer shadow.
 export const PIECES: Piece[] = [
-  { id: 'body', d: BODY, tex: 'pique', c: [300, 380], from: [0, 24, 0, 0.97], k: 0, folds: 'body' },
-  { id: 'placket', d: PLACKET, tex: 'pique', c: [300, 174], from: [190, 330, 90, 1], k: 1 },
-  { id: 'sleeveL', d: SLEEVE, tex: 'pique', c: [110, 215], from: [-175, -40, -28, 1], k: 2, folds: 'sleeve' },
-  { id: 'sleeveR', d: SLEEVE, mirror: true, tex: 'pique', c: [490, 215], from: [175, -40, 28, 1], k: 2, folds: 'sleeve' },
-  { id: 'cuffL', d: CUFF, tex: 'ribC', c: [75, 274], from: [-150, 330, -70, 1], k: 3 },
-  { id: 'cuffR', d: CUFF, mirror: true, tex: 'ribC', c: [525, 274], from: [150, 330, 70, 1], k: 3 },
-  { id: 'collar', d: COLLAR, tex: 'ribV', c: [300, 112], from: [0, -160, 0, 1], k: 4 },
+  { id: 'body', d: BODY, tex: 'pique', c: [300, 380], from: [0, 40, 0, 1.03], k: 0, folds: 'body' },
+  { id: 'placket', d: PLACKET, tex: 'pique', c: [300, 174], from: [0, 70, 0, 1.06], k: 1 },
+  { id: 'sleeveL', d: SLEEVE, tex: 'pique', c: [110, 215], from: [-96, -18, -6, 1.04], k: 2, folds: 'sleeve' },
+  { id: 'sleeveR', d: SLEEVE, mirror: true, tex: 'pique', c: [490, 215], from: [96, -18, 6, 1.04], k: 2, folds: 'sleeve' },
+  { id: 'cuffL', d: CUFF, tex: 'ribC', c: [75, 274], from: [-54, 46, -9, 1.06], k: 3 },
+  { id: 'cuffR', d: CUFF, mirror: true, tex: 'ribC', c: [525, 274], from: [54, 46, 9, 1.06], k: 3 },
+  { id: 'collar', d: COLLAR, tex: 'ribV', c: [300, 112], from: [0, -74, 0, 1.06], k: 4 },
 ];
 
 /** Which piece each motif is stitched on. The wing sits on the wearer's left sleeve, as on the photograph. */
@@ -455,9 +462,11 @@ export const TIMELINE = {
   pull: [0.4, 0.62] as const,
   draftIn: [0.42, 0.48] as const,
   draftOut: [0.64, 0.72] as const,
-  glide: (k: number) => [0.47 + k * 0.035, 0.67 + k * 0.035] as const,
+  glide: (k: number) => [0.48 + k * 0.038, 0.61 + k * 0.038] as const,
   seams: [0.74, 0.9] as const,
   buttons: [0.89, 0.93] as const,
+  /** A raking light passes once across the finished embroidery. */
+  glint: [0.9, 1] as const,
 };
 export const DURATION_MS = { wide: 10000, compact: 7000 };
 
@@ -594,11 +603,16 @@ export function pieceFrame(p: Piece, t: number, host: PieceId): PieceFrame {
   const [dx, dy, rot, sc] = p.from;
   const [cx, cy] = p.c;
   const s = 1 + (sc - 1) * q;
-  const far = 1.6; // pieces arrive from outside the frame
-  let transform = q ? `translate(${r1(dx * q * far)} ${r1(dy * q * far)}) rotate(${r1(rot * q)} ${cx} ${cy})` : '';
+  let transform = q ? `translate(${r1(dx * q)} ${r1(dy * q)}) rotate(${r1(rot * q)} ${cx} ${cy})` : '';
   if (q && s !== 1) transform += ` translate(${cx} ${cy}) scale(${s.toFixed(4)}) translate(${-cx} ${-cy})`;
-  // A lifted piece casts a longer, softer shadow; it settles as the piece lands.
-  return { transform, opacity: seg(t, a, a + 0.03), drop: `translate(${r1(3 + 10 * q)} ${r1(6 + 18 * q)})`, dropOpacity: 0.22 + 0.12 * q };
+  // A lifted piece casts a longer, fainter shadow; it tightens under the piece as it is laid down.
+  return { transform, opacity: seg(t, a, a + 0.015), drop: `translate(${r1(3 + 12 * q)} ${r1(6 + 20 * q)})`, dropOpacity: 0.22 - 0.06 * q };
+}
+
+/** Where the raking light's band sits at glint progress p (0…1): it crosses the garment from top left. */
+export function glintTransform(p: number): string {
+  const d = r1(lerp(40, 620, eio(clamp(p))));
+  return `translate(${d} ${d})`;
 }
 
 export interface Tip { x: number; y: number; lift: number; s: number }
@@ -610,6 +624,8 @@ export interface Frame {
   seams: number[];
   buttons: number[];
   els: number[];
+  /** The raking light across the embroidery, 0 (not yet) … 1 (passed). */
+  glint: number;
   /** Live needle positions, most recent first. */
   tips: Tip[];
 }
@@ -654,6 +670,7 @@ export function frame(scene: Scene, t: number, compact: boolean, aspect = VIEW.w
     seams,
     buttons,
     els,
+    glint: seg(t, ...TIMELINE.glint),
     tips,
   };
 }
@@ -676,45 +693,81 @@ export const LOUPE_ID = 'nhl';
  * markup. Colours come from CSS custom properties on the section (`--st-*`).
  */
 export function sceneMarkup(scene: Scene, P: string = ID): string {
+  // Light comes from the top left. The thread's own gradients run across each stitch's box, so every ring is
+  // lit on its upper side and falls away below, as raised satin does; the glint is a band in garment space.
+  const stops = (s: [number, string, number][]) => s.map(([o, c, a]) => `<stop offset="${o}" style="stop-color:var(--st-${c});stop-opacity:${a}"/>`).join('');
   let defs =
     `<filter id="${P}-drop" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>` +
     `<filter id="${P}-soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter>` +
-    `<pattern id="${P}-pique" width="4" height="4" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".85" class="st-pq-hi"/><circle cx="3" cy="3" r=".85" class="st-pq-hi"/><circle cx="3" cy="1" r=".5" class="st-pq-lo"/><circle cx="1" cy="3" r=".5" class="st-pq-lo"/></pattern>` +
+    // Piqué: a lattice of small raised knots, each lit above and shaded below.
+    `<pattern id="${P}-pique" width="3" height="2.6" patternUnits="userSpaceOnUse">` +
+    `<ellipse cx=".8" cy=".85" rx=".7" ry=".5" class="st-pq-lo"/><ellipse cx=".7" cy=".6" rx=".55" ry=".38" class="st-pq-hi"/>` +
+    `<ellipse cx="2.3" cy="2.15" rx=".7" ry=".5" class="st-pq-lo"/><ellipse cx="2.2" cy="1.9" rx=".55" ry=".38" class="st-pq-hi"/>` +
+    `<ellipse cx="-.7" cy="2.15" rx=".7" ry=".5" class="st-pq-lo"/><ellipse cx="-.8" cy="1.9" rx=".55" ry=".38" class="st-pq-hi"/></pattern>` +
+    // The yarn: fibre noise stretched along the wales, light and dark flecks over the cloth. Rendered once
+    // per tile (stitched, so it repeats without a seam), cheap however the camera moves.
+    `<filter id="${P}-yarn" filterUnits="userSpaceOnUse" x="0" y="0" width="60" height="60" color-interpolation-filters="sRGB">` +
+    `<feTurbulence type="fractalNoise" baseFrequency="1.1 .38" numOctaves="2" seed="7" stitchTiles="stitch" result="n"/>` +
+    `<feColorMatrix in="n" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 2.6 0 0 0 -1.35" result="w"/>` +
+    `<feColorMatrix in="n" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.6 0 0 0 1.2" result="k"/>` +
+    `<feMerge><feMergeNode in="k"/><feMergeNode in="w"/></feMerge></filter>` +
+    `<pattern id="${P}-fibre" width="60" height="60" patternUnits="userSpaceOnUse"><rect width="60" height="60" filter="url(#${P}-yarn)"/></pattern>` +
     `<pattern id="${P}-ribV" width="2.4" height="10" patternUnits="userSpaceOnUse"><line x1=".6" y1="0" x2=".6" y2="10" class="st-rib-lo"/><line x1="1.8" y1="0" x2="1.8" y2="10" class="st-rib-hi"/></pattern>` +
     `<pattern id="${P}-ribC" width="2.4" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(44)"><line x1=".6" y1="0" x2=".6" y2="10" class="st-rib-lo"/><line x1="1.8" y1="0" x2="1.8" y2="10" class="st-rib-hi"/></pattern>` +
+    // The room light over the flat lay: brighter at the top left shoulder, falling off to the hem.
+    `<linearGradient id="${P}-lit" gradientUnits="userSpaceOnUse" x1="150" y1="90" x2="470" y2="660"><stop offset="0" stop-color="#fff" stop-opacity=".09"/><stop offset=".42" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".34"/></linearGradient>` +
+    `<radialGradient id="${P}-sheen" gradientUnits="userSpaceOnUse" cx="250" cy="250" r="230"><stop offset="0" stop-color="#fff" stop-opacity=".07"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>` +
+    `<linearGradient id="${P}-thr" x1="0" y1="0" x2="1" y2="1">${stops([[0, 'thread-hi', 1], [0.42, 'thread', 1], [1, 'thread-lo', 1]])}</linearGradient>` +
+    `<linearGradient id="${P}-shn" x1="0" y1="0" x2="1" y2="1">${stops([[0, 'thread-hi', 1], [0.5, 'thread-hi', 0.3], [0.85, 'thread-hi', 0]])}</linearGradient>` +
+    `<radialGradient id="${P}-knot" fx=".34" fy=".3">${stops([[0, 'thread-hi', 1], [0.6, 'thread', 1], [1, 'thread-lo', 1]])}</radialGradient>` +
+    `<linearGradient id="${P}-glint" gradientUnits="userSpaceOnUse" x1="-110" y1="-110" x2="0" y2="0" gradientTransform="${glintTransform(0)}">` +
+    `<stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>` +
     `<clipPath id="${P}-clipBody"><path d="${BODY}"/></clipPath><clipPath id="${P}-clipSleeve"><path d="${SLEEVE}"/></clipPath>`;
   const emb: string[] = scene.els.map((e, i) => {
     if (e.kind === 'satin') {
       defs += `<path id="${P}-b${i}" d="${toD(e.base)}" pathLength="1000"/><path id="${P}-z${i}" d="${toD(e.zig)}" pathLength="1000"/>`;
       return (
         `<g id="${P}-e${i}" class="st-run" style="stroke-dashoffset:1000;opacity:0">` +
+        `<use href="#${P}-b${i}" class="st-shadow" transform="translate(.35 .55)" style="stroke-width:${r1(e.w * 1.15)}"/>` +
         `<use href="#${P}-b${i}" class="st-base" style="stroke-width:${r1(e.w * 0.85)}"/>` +
-        `<use href="#${P}-z${i}" class="st-shadow" transform="translate(.45 .65)"/>` +
-        `<use href="#${P}-z${i}" class="st-thread"/>` +
-        `<use href="#${P}-z${i}" class="st-sheen" transform="translate(-.3 -.35)"/></g>`
+        `<use href="#${P}-z${i}" class="st-thread" style="stroke:url(#${P}-thr) var(--st-thread)"/>` +
+        `<use href="#${P}-z${i}" class="st-sheen" transform="translate(-.25 -.3)" style="stroke:url(#${P}-shn) var(--st-thread-hi)"/>` +
+        `<use href="#${P}-z${i}" class="st-glint" style="stroke:url(#${P}-glint) transparent"/></g>`
       );
     }
     return (
       `<g id="${P}-e${i}" transform="translate(${r1(e.cx)} ${r1(e.cy)}) scale(0)">` +
-      `<circle r="${r1(e.r)}" cx=".45" cy=".6" class="st-knot-shadow"/><circle r="${r1(e.r)}" class="st-knot"/>` +
-      `<circle r="${r1(e.r * 0.42)}" cx="${r1(-e.r * 0.3)}" cy="${r1(-e.r * 0.32)}" class="st-knot-sheen"/></g>`
+      `<circle r="${r1(e.r * 1.05)}" cx=".5" cy=".7" class="st-knot-shadow"/><circle r="${r1(e.r)}" class="st-knot" style="fill:url(#${P}-knot) var(--st-thread)"/>` +
+      `<circle r="${r1(e.r * 0.3)}" cx="${r1(-e.r * 0.34)}" cy="${r1(-e.r * 0.38)}" class="st-knot-sheen"/></g>`
     );
   });
   const folds = {
-    body: `<g clip-path="url(#${P}-clipBody)"><path class="st-fold" filter="url(#${P}-soft)" d="M212 280 C222 400 208 520 218 650"/><path class="st-fold" filter="url(#${P}-soft)" d="M394 300 C384 420 398 520 388 650"/><path class="st-light" filter="url(#${P}-soft)" d="M300 250 C296 380 306 500 300 640"/><path class="st-fold st-fold-thin" filter="url(#${P}-soft)" d="M244 108 C272 134 328 134 356 108"/></g>`,
-    sleeve: `<g clip-path="url(#${P}-clipSleeve)"><path class="st-fold" filter="url(#${P}-soft)" d="M152 150 C126 196 108 236 96 284"/></g>`,
+    // Soft drape: two long folds, a ridge of light down the front, the shadow the collar casts, the pull at the
+    // underarm and a lift where the hem turns up.
+    body:
+      `<g clip-path="url(#${P}-clipBody)">` +
+      `<path class="st-fold" filter="url(#${P}-soft)" d="M212 280 C222 400 208 520 218 650"/><path class="st-fold" filter="url(#${P}-soft)" d="M394 300 C384 420 398 520 388 650"/>` +
+      `<path class="st-light" filter="url(#${P}-soft)" d="M300 250 C296 380 306 500 300 640"/><path class="st-light st-light-thin" filter="url(#${P}-soft)" d="M176 300 C190 420 182 540 186 630"/>` +
+      `<path class="st-fold st-fold-thin" filter="url(#${P}-soft)" d="M244 112 C272 140 328 140 356 112"/>` +
+      `<path class="st-fold st-fold-thin" filter="url(#${P}-soft)" d="M150 268 C176 286 186 312 182 344"/><path class="st-fold st-fold-thin" filter="url(#${P}-soft)" d="M450 268 C424 286 414 312 418 344"/>` +
+      `<path class="st-light st-light-thin" filter="url(#${P}-soft)" d="M150 618 C250 610 350 610 452 618"/></g>`,
+    sleeve: `<g clip-path="url(#${P}-clipSleeve)"><path class="st-fold" filter="url(#${P}-soft)" d="M152 150 C126 196 108 236 96 284"/><path class="st-light st-light-thin" filter="url(#${P}-soft)" d="M140 132 C112 160 90 196 70 236"/></g>`,
   };
   const pieces = PIECES.map((p) => {
     const inner =
       `<path d="${p.d}" class="st-drop" filter="url(#${P}-drop)" transform="translate(3 6)"/>` +
       `<path d="${p.d}" class="st-cloth"/><path d="${p.d}" fill="url(#${P}-${p.tex})" class="st-tex"/>` +
-      (p.folds ? folds[p.folds] : '') +
-      `<path d="${p.d}" class="st-edge"/>`;
+      `<path d="${p.d}" fill="url(#${P}-fibre)" class="st-fibre"/>` +
+      (p.folds ? folds[p.folds] : '');
+    // The room light is fixed to the garment, not to the piece's drawing, so mirrored pieces are lit the same way.
+    const world = p.mirror ? mirrorD(p.d) : p.d;
+    const light = `<path d="${world}" fill="url(#${P}-lit)"/><path d="${world}" fill="url(#${P}-sheen)"/><path d="${world}" class="st-edge"/>`;
     const own = p.id === scene.host ? emb.join('') : '';
-    return `<g id="${P}-pc-${p.id}">${p.mirror ? `<g transform="${MIRROR}">${inner}</g>` : inner}<g>${own}</g></g>`;
+    return `<g id="${P}-pc-${p.id}">${p.mirror ? `<g transform="${MIRROR}">${inner}</g>` : inner}${light}<g>${own}</g></g>`;
   }).join('');
   const draft = PIECES.map((p) => `<path d="${p.mirror ? mirrorD(p.d) : p.d}" class="st-draft"/>`).join('');
-  const seams = scene.seams.map((_, i) => `<path id="${P}-s${i}" class="st-seam" d=""/>`).join('');
+  // A sewn seam pulls the cloth into a shallow valley; the topstitch runs along its edge.
+  const seams = scene.seams.map((_, i) => `<path id="${P}-sv${i}" class="st-seam-valley" d=""/><path id="${P}-s${i}" class="st-seam" d=""/>`).join('');
   const buttons = BUTTONS.map(
     ([x, y], i) =>
       `<g id="${P}-bt${i}" transform="translate(${x} ${y}) scale(0)"><circle r="4.6" class="st-button"/>` +

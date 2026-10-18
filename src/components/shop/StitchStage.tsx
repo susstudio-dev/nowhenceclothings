@@ -8,6 +8,7 @@ import {
   TIMELINE,
   buildScene,
   frame,
+  glintTransform,
   loupeCamera,
   sceneMarkup,
   seamPath,
@@ -111,11 +112,12 @@ function painter(svg: SVGSVGElement, scene: Scene, prefix: string) {
     return { el, drop: el.querySelector<SVGPathElement>('.st-drop')! };
   });
   const draft = q<SVGGElement>('draft');
-  const seams = scene.seams.map((_, i) => q<SVGPathElement>(`s${i}`));
+  const seams = scene.seams.map((_, i) => [q<SVGPathElement>(`sv${i}`), q<SVGPathElement>(`s${i}`)]);
   const buttons = [0, 1].map((i) => q<SVGGElement>(`bt${i}`));
   const els = scene.els.map((_, i) => q<SVGGElement>(`e${i}`));
   const needles = [0, 1].map((i) => q<SVGGElement>(`nd${i}`));
-  const last = { vb: '', pieces: pieces.map(() => ''), draft: -1, seams: seams.map(() => -1), buttons: [-1, -1], els: els.map(() => -1) };
+  const glint = q<SVGLinearGradientElement>('glint');
+  const last = { vb: '', pieces: pieces.map(() => ''), draft: -1, seams: seams.map(() => -1), buttons: [-1, -1], els: els.map(() => -1), glint: 0 };
 
   return (f: Frame, needle: boolean) => {
     if (f.viewBox !== last.vb) svg.setAttribute('viewBox', (last.vb = f.viewBox));
@@ -134,8 +136,10 @@ function painter(svg: SVGSVGElement, scene: Scene, prefix: string) {
     f.seams.forEach((p, i) => {
       if (p === last.seams[i]) return;
       last.seams[i] = p;
-      seams[i]!.setAttribute('d', seamPath(scene.seams[i]!, p));
+      const d = seamPath(scene.seams[i]!, p);
+      for (const el of seams[i]!) el.setAttribute('d', d);
     });
+    if (f.glint !== last.glint) glint.setAttribute('gradientTransform', glintTransform((last.glint = f.glint)));
     f.buttons.forEach((s, i) => {
       if (s === last.buttons[i]) return;
       last.buttons[i] = s;
