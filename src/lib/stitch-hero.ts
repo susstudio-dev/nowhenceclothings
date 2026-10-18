@@ -8,17 +8,23 @@ export type Pt = [number, number];
 /* ---------- which polo, which motif ---------- */
 
 const MOTIF_WORDS: [RegExp, Motif][] = [
-  [/(^|[^a-z])rings?([^a-z]|$)/, 'rings'],
+  // The black polo's rings are panther rosettes; the catalogue may name it either way.
+  [/(^|[^a-z])(rings?|panthers?|leopards?|rosettes?)([^a-z]|$)/, 'rings'],
   [/(^|[^a-z])wings?([^a-z]|$)/, 'wing'],
   [/(^|[^a-z])rain([^a-z]|$)/, 'rain'],
   [/(^|[^a-z])pebbles?([^a-z]|$)/, 'pebbles'],
   [/(^|[^a-z])diamonds?([^a-z]|$)/, 'diamonds'],
 ];
 
-/** The embroidery a product carries, read from the words in its slug or title. */
-export function motifFor(p: { slug: string; title: string }): Motif | undefined {
-  const text = `${p.slug} ${p.title}`.toLowerCase();
-  return MOTIF_WORDS.find(([re]) => re.test(text))?.[1];
+const matchMotif = (text: string) => MOTIF_WORDS.find(([re]) => re.test(text.toLowerCase()))?.[1];
+
+/**
+ * The embroidery a product carries, read from the words in its slug or title, or failing that from its
+ * photographs' alt text (a renamed product keeps describing its embroidery there).
+ */
+export function motifFor(p: { slug: string; title: string; colours?: readonly { images?: readonly { alt?: string }[] }[] }): Motif | undefined {
+  const alts = (p.colours ?? []).flatMap((c) => c.images ?? []).map((i) => i.alt ?? '');
+  return matchMotif(`${p.slug} ${p.title}`) ?? matchMotif(alts.join(' '));
 }
 
 /**

@@ -35,6 +35,16 @@ describe('motifFor', () => {
     expect(motifFor({ slug: 'polo-olive-pebble-hem', title: 'x' })).toBe('pebbles');
     expect(motifFor({ slug: 'x', title: 'Diamond Back Polo' })).toBe('diamonds');
   });
+  it('knows the panther name for the rings', () => {
+    expect(motifFor({ slug: 'black-panther-embroidered-design', title: 'Black Embroidered Polo' })).toBe('rings');
+    expect(motifFor({ slug: 'x', title: 'Leopard Rosette Polo' })).toBe('rings');
+  });
+  it('falls back to the photographs’ alt text, after the slug and title', () => {
+    const renamed = { slug: 'black-embroidered', title: 'Black Embroidered Polo', colours: [{ images: [{ alt: 'Ring Embroidered Polo in Black' }] }] };
+    expect(motifFor(renamed)).toBe('rings');
+    expect(motifFor({ ...renamed, title: 'Wing Sleeve Polo' })).toBe('wing');
+    expect(motifFor({ slug: 'plain', title: 'Plain Polo', colours: [{ images: [{}] }] })).toBeUndefined();
+  });
   it('matches whole words only', () => {
     expect(motifFor({ slug: 'spring-shirt', title: 'Drawstring Trouser' })).toBeUndefined();
     expect(motifFor({ slug: 'heavyweight-tee', title: 'Heavyweight Tee' })).toBeUndefined();
