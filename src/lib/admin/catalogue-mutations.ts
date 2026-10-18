@@ -1,5 +1,5 @@
 // Pure catalogue / inventory / coupon mutations, run inside writeJsonCas.
-import type { CatalogueDoc, Product } from '@/lib/schemas/catalogue';
+import type { CatalogueDoc, Product, SizeChart } from '@/lib/schemas/catalogue';
 import type { InventoryDoc } from '@/lib/schemas/inventory';
 import type { Coupon, CouponsDoc } from '@/lib/schemas/coupons';
 import type { MediaRef } from '@/lib/schemas/common';
@@ -32,6 +32,25 @@ export function setProductStatus(
     ...doc,
     products: doc.products.map((p) => (p.id === id ? { ...p, status, updatedAt: now.toISOString() } : p)),
   };
+}
+
+/** Insert or replace a size chart by id (a resolved placeholder chart saves over its seed copy). */
+export function upsertSizeChart(doc: CatalogueDoc, chart: SizeChart): CatalogueDoc {
+  const exists = doc.sizeCharts.some((c) => c.id === chart.id);
+  return {
+    ...doc,
+    sizeCharts: exists ? doc.sizeCharts.map((c) => (c.id === chart.id ? chart : c)) : [...doc.sizeCharts, chart],
+  };
+}
+
+/** Remove a size chart. Refused while any product, archived included, still points at it. */
+export function removeSizeChart(doc: CatalogueDoc, id: string): CatalogueDoc {
+  if (!doc.sizeCharts.some((c) => c.id === id)) throw new NotFoundError(`Size chart ${id}`);
+  const users = doc.products.filter((p) => p.sizeChartId === id).map((p) => p.title);
+  if (users.length) {
+    throw new Error(`Cannot delete: used by ${users.slice(0, 3).join(', ')}${users.length > 3 ? ` and ${users.length - 3} more` : ''}`);
+  }
+  return { ...doc, sizeCharts: doc.sizeCharts.filter((c) => c.id !== id) };
 }
 
 /** Move an item from one index to another (drag reorder). Out of range = no-op. */

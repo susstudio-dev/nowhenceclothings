@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SIZES, type Size } from '@/lib/schemas/common';
@@ -159,12 +160,17 @@ export function ProductEditor({
           options={categories.map((c) => ({ value: c.id, label: c.name }))}
           onChange={(e) => set('categoryId', e.target.value)}
         />
-        <Select
-          label="Size chart"
-          value={p.sizeChartId}
-          options={sizeCharts.map((c) => ({ value: c.id, label: c.name }))}
-          onChange={(e) => set('sizeChartId', e.target.value)}
-        />
+        <div>
+          <Select
+            label="Size chart"
+            value={p.sizeChartId}
+            options={sizeCharts.map((c) => ({ value: c.id, label: c.name }))}
+            onChange={(e) => set('sizeChartId', e.target.value)}
+          />
+          <Link href="/admin/size-charts" className="mt-1.5 inline-block text-xs text-muted hover:text-ink hover:underline">
+            Edit size charts
+          </Link>
+        </div>
         <Select
           label="Drop"
           value={p.dropId ?? ''}

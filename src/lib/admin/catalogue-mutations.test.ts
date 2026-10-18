@@ -10,12 +10,14 @@ import {
   moveItem,
   NotFoundError,
   removeCoupon,
+  removeSizeChart,
   setAlt,
   setProductStatus,
   stockRows,
   syncInventory,
   upsertCoupon,
   upsertProduct,
+  upsertSizeChart,
 } from './catalogue-mutations';
 
 const load = (f: string) => JSON.parse(readFileSync(path.join(process.cwd(), 'data', f), 'utf8'));
@@ -99,5 +101,33 @@ describe('coupons + sale', () => {
     expect(off.compareAtPrice).toBeUndefined();
     expect(() => CatalogueDoc.parse(on)).not.toThrow();
     expect(on.products[1]).toBe(cat.products[1]);
+  });
+});
+
+describe('size charts', () => {
+  const chart = { ...cat.sizeCharts[0], id: 'chart-new', name: 'Relaxed tee' };
+
+  it('upsert appends a new chart, replaces an existing one in place, and stays schema-valid', () => {
+    const added = upsertSizeChart(cat, chart);
+    expect(added.sizeCharts.at(-1)).toEqual(chart);
+    const renamed = upsertSizeChart(added, { ...chart, name: 'Boxy tee' });
+    expect(renamed.sizeCharts).toHaveLength(added.sizeCharts.length);
+    expect(renamed.sizeCharts.find((c) => c.id === 'chart-new')?.name).toBe('Boxy tee');
+    expect(() => CatalogueDoc.parse(renamed)).not.toThrow();
+  });
+
+  it('remove drops an unused chart', () => {
+    const out = removeSizeChart(upsertSizeChart(cat, chart), 'chart-new');
+    expect(out.sizeCharts.map((c) => c.id)).toEqual(cat.sizeCharts.map((c) => c.id));
+  });
+
+  it('remove refuses a chart products still use, naming them', () => {
+    const used = cat.products[0].sizeChartId;
+    expect(() => removeSizeChart(cat, used)).toThrow(/^Cannot delete: used by /);
+    expect(() => removeSizeChart(cat, used)).toThrow(cat.products.find((p) => p.sizeChartId === used)!.title);
+  });
+
+  it('remove of an unknown chart is NotFound', () => {
+    expect(() => removeSizeChart(cat, 'nope')).toThrow(NotFoundError);
   });
 });

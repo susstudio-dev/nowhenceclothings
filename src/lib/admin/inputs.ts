@@ -1,7 +1,7 @@
 // zod schemas for admin API request bodies.
 import { z } from 'zod';
 import { Email, IsoDate, Paise } from '@/lib/schemas/common';
-import { Product } from '@/lib/schemas/catalogue';
+import { Product, SizeChart } from '@/lib/schemas/catalogue';
 import { Coupon } from '@/lib/schemas/coupons';
 import { OrderStatus, Tracking } from '@/lib/schemas/order';
 import { RoleId } from '@/lib/schemas/users';
@@ -47,6 +47,8 @@ export const OrderPatchInput = z
 
 /** Coupons: usedCount and createdAt are server-owned (merged on save). */
 export const CouponInput = z.object({ coupon: Coupon });
+
+export const SizeChartInput = z.object({ chart: SizeChart });
 
 export const SaleInput = z.object({
   productIds: z.array(z.string().min(1)).min(1).max(500),

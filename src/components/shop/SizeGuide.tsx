@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
-import { Sheet } from '@/components/ui/Sheet';
+import { useEffect, useState } from 'react';
+import { Dialog } from '@/components/ui/Dialog';
+import { Drawer } from '@/components/ui/Drawer';
 import type { SizeChart } from '@/lib/schemas/catalogue';
 import { sizeChartMatrix } from './merch';
 
@@ -82,37 +83,60 @@ export function SizeChartNotes({ chart, className }: { chart: SizeChart; classNa
   );
 }
 
-/** "Size guide" link that opens the chart in a sheet (S3). */
+/**
+ * "Size guide" link (S3). Opens as a centred dialog from 768px up — reference
+ * content, not a side task — and as a bottom sheet on phones.
+ */
 export function SizeGuide({ chart }: { chart: SizeChart }) {
   const [open, setOpen] = useState(false);
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const sync = () => setWide(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
   const measure = chart.notes?.find((n) => /measure/i.test(n.heading));
   const fit = chart.notes?.find((n) => /fit/i.test(n.heading));
+  const close = () => setOpen(false);
+  const body = (
+    <>
+      <p className="mb-6 text-small text-muted">{chart.name}. Find your chest in the first row.</p>
+      <SizeChartTable chart={chart} />
+      {(measure || fit) && (
+        <div className="mt-8 space-y-6">
+          {[measure, fit].filter((n): n is NonNullable<typeof n> => !!n).map((n) => (
+            <section key={n.heading}>
+              <h3 className="eyebrow text-clay">{n.heading}</h3>
+              <ul className="mt-3 space-y-2 text-small text-ink-soft">
+                {n.items.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+      <p className="mt-8 text-small">
+        <Link href="/size-guide" className="link-underline">Full size guide and care</Link>
+      </p>
+    </>
+  );
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className="link-underline text-caption text-ink-soft">
         Size guide
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} title="Size guide">
-        <p className="mb-6 text-small text-muted">{chart.name}. Find your chest in the first row.</p>
-        <SizeChartTable chart={chart} />
-        {(measure || fit) && (
-          <div className="mt-8 space-y-6">
-            {[measure, fit].filter((n): n is NonNullable<typeof n> => !!n).map((n) => (
-              <section key={n.heading}>
-                <h3 className="eyebrow text-clay">{n.heading}</h3>
-                <ul className="mt-3 space-y-2 text-small text-ink-soft">
-                  {n.items.map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
-        )}
-        <p className="mt-8 text-small">
-          <Link href="/size-guide" className="link-underline">Full size guide and care</Link>
-        </p>
-      </Sheet>
+      {wide ? (
+        <Dialog open={open} onClose={close} title="Size guide" className="md:max-w-3xl">
+          {body}
+        </Dialog>
+      ) : (
+        <Drawer open={open} onClose={close} title="Size guide" side="bottom">
+          {body}
+        </Drawer>
+      )}
     </>
   );
 }

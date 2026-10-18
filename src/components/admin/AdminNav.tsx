@@ -24,6 +24,7 @@ const GROUPS: { label: string; items: Item[] }[] = [
     items: [
       { href: '/admin/products', label: 'Products' },
       { href: '/admin/launches', label: 'Launches', cap: 'catalogue.write' },
+      { href: '/admin/size-charts', label: 'Size charts', cap: 'catalogue.write' },
       { href: '/admin/inventory', label: 'Inventory', cap: 'inventory.write' },
       { href: '/admin/media', label: 'Media', cap: 'media.write' },
     ],
