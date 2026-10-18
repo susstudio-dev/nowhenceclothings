@@ -528,7 +528,7 @@ Expected: PASS (3 tests).
 
 ```tsx
 'use client';
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, type CSSProperties } from 'react';
 import { NIGHT_DARK, NIGHT_LIT, TORCH_RAD, coverScale, driftAt, timelineFor, type Crop, type NightHeroEntry } from '@/lib/night-hero';
 import { FRAGMENT, VERTEX } from '@/lib/night-hero-shader';
 
@@ -580,10 +580,8 @@ export function NightStage({ entry }: { entry: NightHeroEntry }) {
           t.generateMipmaps = false;
           return t;
         });
-      let textures;
-      try {
-        textures = await Promise.all([load(src.bare), load(src.full), load(src.order, true)]);
-      } catch {
+      const textures = await Promise.all([load(src.bare), load(src.full), load(src.order, true)]).catch(() => null);
+      if (!textures) {
         renderer.dispose();
         return;
       }
@@ -724,7 +722,7 @@ export function NightStage({ entry }: { entry: NightHeroEntry }) {
     '--eye-x-md': `${entry.eyes.wide.x * 100}%`,
     '--eye-y-md': `${entry.eyes.wide.y * 100}%`,
     '--eye-w-md': `${entry.eyes.wide.w * 100}%`,
-  } as React.CSSProperties;
+  } as CSSProperties;
 
   return (
     <>
