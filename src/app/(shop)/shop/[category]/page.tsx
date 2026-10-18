@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cat = (await getCatalogue()).categories.find((c) => c.slug === category);
   if (!cat) return {};
   return buildMetadata({
-    title: cat.name,
+    title: `${cat.name}: premium unisex clothing`,
     path: paths.category(cat.slug),
     seo: cat.seo,
     description: cat.description,

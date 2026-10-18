@@ -51,7 +51,7 @@ export function ProductCard({ product, inventory, drops, now = new Date(), prior
           )}
           {second && state !== 'coming_soon' && (
             <div aria-hidden className="absolute inset-0 hidden opacity-0 transition-opacity duration-slow ease-out group-hover:opacity-100 motion-reduce:transition-none md:block">
-              <Image media={second} alt="" sizes="25vw" className="h-full w-full object-cover" />
+              <Image media={second} alt={second.alt || `${product.title}, second view`} sizes="25vw" className="h-full w-full object-cover" />
             </div>
           )}
           {badge && <span className="care-tag absolute left-2 top-2 bg-paper/90 text-ink md:left-3 md:top-3">{badge}</span>}

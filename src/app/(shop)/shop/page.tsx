@@ -7,7 +7,7 @@ import { buildMetadata, paths } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = buildMetadata({
-  title: 'Shop all',
+  title: 'Shop all embroidered polos',
   path: paths.shop(),
   description: 'Every Nowhence polo in one place. Cotton piqué polos for after the match, each with an animal embroidered in India.',
 });

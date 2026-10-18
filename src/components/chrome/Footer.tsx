@@ -34,7 +34,7 @@ export function Footer({ columns, newsletter, email, whatsapp, instagram, classN
     <footer className={cn('mt-section border-t border-line bg-paper text-ink', className)}>
       <div className="container-page grid gap-12 pb-12 pt-14 md:grid-cols-12 md:gap-8 md:pb-16 md:pt-20">
         <div className="min-w-0 md:col-span-5 lg:col-span-4">
-          <h2 className="eyebrow text-ink">Letters</h2>
+          <p className="eyebrow text-ink">Letters</p>
           <p className="mt-4 max-w-xs text-small text-ink-soft">
             New pieces and drop dates, a few times a season. Nothing else.
           </p>
@@ -46,7 +46,7 @@ export function Footer({ columns, newsletter, email, whatsapp, instagram, classN
         >
           {columns.map((col) => (
             <div key={col.heading}>
-              <h2 className="eyebrow mb-4">{col.heading}</h2>
+              <p className="eyebrow mb-4">{col.heading}</p>
               <ul className="flex flex-col gap-2.5">
                 {col.links.map((l) => (
                   <li key={l.href}>
@@ -60,7 +60,7 @@ export function Footer({ columns, newsletter, email, whatsapp, instagram, classN
           ))}
           {(email || whatsapp || instagram) && (
             <div className="col-span-2 sm:col-span-1">
-              <h2 className="eyebrow mb-4">Contact</h2>
+              <p className="eyebrow mb-4">Contact</p>
               <ul className="flex flex-col gap-2.5 text-small text-ink-soft">
                 {whatsapp && (
                   <li>

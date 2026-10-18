@@ -49,7 +49,7 @@ Every {{brandName}} polo carries an animal. Each one stands for a way of playing
   contact: {
     slug: 'contact',
     title: 'Contact',
-    seo: { title: 'Contact Nowhence', description: 'Questions about an order, a size or a piece? Message Nowhence on WhatsApp or email. We reply within one working day.' },
+    seo: { title: 'Contact Nowhence: WhatsApp, email, Instagram', description: 'Questions about an order, a size or a piece? Message Nowhence on WhatsApp or email. We reply within one working day.' },
     blocks: [
       md(
         'contact-body',
@@ -88,7 +88,7 @@ For an order, include your order number. It starts with NWH and is in your confi
   'size-guide': {
     slug: 'size-guide',
     title: 'Size guide',
-    seo: { title: 'Polo size guide', description: 'Real garment measurements for every Nowhence polo, in inches and centimetres, with the body chest each size fits and how to measure.' },
+    seo: { title: 'Polo size guide and garment measurements', description: 'Real garment measurements for every Nowhence polo, in inches and centimetres, with the body chest each size fits and how to measure.' },
     blocks: [
       md(
         'size-guide-intro',
@@ -159,7 +159,7 @@ Write to [{{email}}](mailto:{{email}}) with your order number and what you would
   privacy: {
     slug: 'privacy',
     title: 'Privacy policy',
-    seo: { title: 'Privacy policy', description: 'What personal data Nowhence collects, why, and how it is stored and protected.' },
+    seo: { title: 'Privacy policy: how we handle your data', description: 'What personal data Nowhence collects, why, and how it is stored and protected.' },
     blocks: [
       md(
         'privacy-body',
@@ -199,7 +199,7 @@ Last updated: {{privacyUpdatedAt}}.`,
   terms: {
     slug: 'terms',
     title: 'Terms of sale',
-    seo: { title: 'Terms of sale', description: 'The terms that apply when you buy from Nowhence: pricing, payment, delivery, returns and liability.' },
+    seo: { title: 'Terms of sale: orders, delivery, returns', description: 'The terms that apply when you buy from Nowhence: pricing, payment, delivery, returns and liability.' },
     blocks: [
       md(
         'terms-body',

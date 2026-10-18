@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
   const { launches } = await getSettings();
   return buildMetadata({
-    title: launches.page.title,
+    title: `${launches.page.title}: the next embroidered polos`,
     path: '/coming-soon',
     description: plainText(launches.page.intro),
     descriptionSupport: 'First looks at what Nowhence is making next. Leave your email to hear the moment each piece lands.',
@@ -31,6 +31,7 @@ export default async function ComingSoonPage() {
         </div>
         {intro && <p className="max-w-sm text-small text-ink-soft md:col-span-4 md:col-start-9 md:justify-self-end">{intro}</p>}
       </header>
+      <h2 className="sr-only">Pieces coming soon</h2>
       <ProductGrid products={products} inventory={inventory} drops={publicDrops(raw.drops)} empty="Nothing announced yet. Check back soon." />
     </div>
   );

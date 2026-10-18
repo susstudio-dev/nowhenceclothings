@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const col = (await getCatalogue()).collections.find((c) => c.slug === slug);
   if (!col) return {};
   return buildMetadata({
-    title: col.name,
+    title: `The ${col.name} collection: premium unisex clothing`,
     path: paths.collection(col.slug),
     seo: col.seo,
     description: col.description,

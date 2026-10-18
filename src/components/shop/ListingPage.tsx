@@ -38,6 +38,7 @@ export function ListingPage({
           {intro && <p className="max-w-sm text-small text-ink-soft md:col-span-4 md:col-start-9 md:justify-self-end">{intro}</p>}
         </header>
         <ListingFilters basePath={basePath} params={params} filters={filters} sort={sort} facets={facets(products)} count={shown.length} />
+        <h2 className="sr-only">{title} pieces</h2>
         <ProductGrid products={shown} inventory={inventory} drops={drops} empty="No pieces match these filters." />
       </div>
     </>

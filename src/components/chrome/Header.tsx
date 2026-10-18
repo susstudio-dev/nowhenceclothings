@@ -224,8 +224,9 @@ export function Header({
               </button>
             </div>
             <div className="flex items-center gap-5 lg:gap-6">
-              <Link href={searchHref} aria-label="Search" className={cn(headerActionClass, 'hidden lg:inline-flex')}>
+              <Link href={searchHref} className={cn(headerActionClass, 'hidden lg:inline-flex')}>
                 <IconSearch size={18} />
+                <span className="sr-only">Search</span>
               </Link>
               {/* Opening the bag closes the menu first. */}
               <div className="contents" onClickCapture={close}>

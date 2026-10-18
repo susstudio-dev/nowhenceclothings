@@ -59,9 +59,12 @@ export function Dialog({ open, onClose, title, description, children, footer, cl
     >
       <div className="p-6 md:p-8">
         <div className="flex items-start justify-between gap-6">
-          <h2 id={titleId} className="font-display text-h4">
-            {title}
-          </h2>
+          {/* Only while open: a closed dialog's heading would sit in the outline ahead of the page h1. */}
+          {open && (
+            <h2 id={titleId} className="font-display text-h4">
+              {title}
+            </h2>
+          )}
           <button
             type="button"
             onClick={onClose}

@@ -1,0 +1,13 @@
+# Workers Static Assets serves these files (/_next/static, /brand-default, ...)
+# without going through Next, so next.config.mjs headers() never reach them.
+# Same security headers as the site; the CSP is the strict one used for /media.
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; frame-ancestors 'none'
+
+# Content-hashed build output never changes.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
